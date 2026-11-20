@@ -12,6 +12,8 @@
 
 # FuruArc
 
+**English** | [Bahasa Indonesia](README_ID.md)
+
 **FuruArc** is an Android toolkit for **RPG Maker** and **Visual Novel** games. It runs entirely on your phone: unpack and pack game archives, decrypt assets, extract and translate script text, edit save files, convert audio, images and video, and browse the assets of your game library, with no PC required.
 
 The app is written in Kotlin with Jetpack Compose. Every tool works through Android's Storage Access Framework, so it can open files and folders anywhere on the device (including game folders on external storage) without broad storage permissions. The interface is available in **Indonesian, English, Japanese, Chinese and Korean**, with light and dark themes.
@@ -225,8 +227,9 @@ FuruArc/
 │           │   └── ui/                   Compose screens, components and theme
 │           ├── net/sourceforge/lame/     java-lame (LGPL), MP3 encoder
 │           └── org/xiph/                 vorbis-java (BSD-style), OGG/Vorbis encoder
+├── languages/                            App text in 5 languages as JSON (Indonesian, English, Japanese, Chinese, Korean)
 ├── pictures/                             README images
-├── CHANGELOG_ID.md                       Change history (Indonesian)
+├── README_ID.md                          README in Indonesian
 ├── THIRD_PARTY_NOTICES.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
@@ -247,4 +250,3 @@ FuruArc is licensed under the **GNU General Public License v3.0**. See [LICENSE]
 - [java-lame](https://github.com/nwaldispuehl/java-lame) (LGPL): MP3 encoding.
 - [vorbis-java](https://github.com/tulskiy/musique) and the Xiph.Org Foundation: OGG/Vorbis encoding.
 - Format behavior was checked against the open-source tools [GARbro](https://github.com/morkt/GARbro) and [msg-tool](https://github.com/lifegpc/msg-tool).
-- Layout of this repository was inspired by [Tyranor Next](https://github.com/Weiss-UltimateSavior/Tyranor-Next).

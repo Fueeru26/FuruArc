@@ -37,6 +37,7 @@ User-facing text lives in `i18n/`:
 
 - The app UI is written in Indonesian and English (`NavStrings.kt`, `AboutStrings.kt`, and the other `*Strings.kt` files).
 - Japanese, Chinese and Korean translations are in `TrData.kt`, one row per string: `English | ja | zh | ko` (a literal `\n` is a newline). The English text must match the source string exactly.
+- The `languages/` folder holds the full app text in all five languages as JSON files (Indonesian, English, Japanese, Chinese, Korean), handy for reviewing or proposing translation fixes.
 - When you add or change an English string, add or update its translation row.
 
 ## Pull requests
