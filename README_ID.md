@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="pictures/0_header.png" alt="FuruArc" width="100%">
+  <img src="pictures/0_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -46,7 +46,7 @@ Tab pertama adalah peluncur untuk semua fitur di aplikasi.
 
 ### Aset Game (pustaka)
 
-<p align="center"><img src="pictures/1_game_assets.png" alt="Aset Game" width="100%"></p>
+<p align="center"><img src="pictures/1_game_assets.webp" alt="Aset Game" width="100%"></p>
 
 Tambahkan game sebagai pustaka dan telusuri isinya.
 
@@ -60,7 +60,7 @@ Tambahkan game sebagai pustaka dan telusuri isinya.
 
 ### Alat RPGM
 
-<p align="center"><img src="pictures/2_rpgm_tools.png" alt="Alat RPGM" width="100%"></p>
+<p align="center"><img src="pictures/2_rpgm_tools.webp" alt="Alat RPGM" width="100%"></p>
 
 Dekripsi aset, terjemahkan data, edit save dan kelola plugin RPG Maker.
 
@@ -78,7 +78,7 @@ Dekripsi aset, terjemahkan data, edit save dan kelola plugin RPG Maker.
 
 ### Alat VN
 
-<p align="center"><img src="pictures/3_vn_tools.png" alt="Alat VN" width="100%"></p>
+<p align="center"><img src="pictures/3_vn_tools.webp" alt="Alat VN" width="100%"></p>
 
 Bongkar, kemas dan terjemahkan visual novel di 21 engine (lihat [Engine yang didukung](#engine-yang-didukung)).
 
@@ -96,7 +96,7 @@ Bongkar, kemas dan terjemahkan visual novel di 21 engine (lihat [Engine yang did
 
 ### Editor Terjemahan
 
-<p align="center"><img src="pictures/4_translation_editor.png" alt="Editor Terjemahan" width="100%"></p>
+<p align="center"><img src="pictures/4_translation_editor.webp" alt="Editor Terjemahan" width="100%"></p>
 
 Terjemahkan teks game hasil ekspor dengan draf, glosarium dan terjemahan online.
 
@@ -111,7 +111,7 @@ Terjemahkan teks game hasil ekspor dengan draf, glosarium dan terjemahan online.
 
 ### Konverter Aset Media
 
-<p align="center"><img src="pictures/5_media_asset_converter.png" alt="Konverter Aset Media" width="100%"></p>
+<p align="center"><img src="pictures/5_media_asset_converter.webp" alt="Konverter Aset Media" width="100%"></p>
 
 Konversi dan kompres audio, gambar dan video game, satu file atau satu folder penuh.
 
@@ -126,7 +126,7 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 ### Editor Teks
 
-<p align="center"><img src="pictures/6_more_features.png" alt="Fitur lainnya" width="100%"></p>
+<p align="center"><img src="pictures/6_more_features.webp" alt="Fitur lainnya" width="100%"></p>
 
 - **Editor File Teks Biasa**: `.txt`, `.ini`, `.ks`, `.rpy` dan sejenisnya, dengan cari dan ganti (regex), lompat ke baris, pewarnaan sintaks, urungkan/ulangi, deteksi encoding otomatis dan draf tersimpan otomatis.
 - **File Teks Berstruktur**: JSON (tampilan pohon dan teks), CSV / TSV (tabel sel), INI / CFG, XML dan Markdown (dengan pratinjau).
@@ -220,6 +220,7 @@ FuruArc/
 ├── languages/                            Teks aplikasi dalam 5 bahasa berformat JSON (Indonesia, Inggris, Jepang, Mandarin, Korea)
 ├── pictures/                             Gambar README
 ├── README_ID.md                          README bahasa Indonesia
+├── CHANGELOG.md                          Catatan rilis (Inggris)
 ├── THIRD_PARTY_NOTICES.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md

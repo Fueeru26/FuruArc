@@ -6,6 +6,7 @@ import com.furuarc.settings.Lang
  * Japanese / Chinese (Simplified) / Korean translations for text written with t("indonesia", "english").
  * Key = exact English text; text not present here is shown in English.
  * Line format: English | Japanese | Chinese | Korean
+ * English mode: messages written only in Indonesian in the code are translated from TrEnData (Indonesian | English).
  */
 object Tr {
     private val ja = HashMap<String, String>()
@@ -19,11 +20,26 @@ object Tr {
         return s
     }
 
-    fun get(lang: Lang, en: String): String? = when (lang) {
-        Lang.JA -> ja[en]
-        Lang.ZH -> zh[en]
-        Lang.KO -> ko[en]
-        else -> null
+    /** Indonesian-only messages -> English (used when the app language is English). */
+    private val enMap = HashMap<String, String>()
+
+    fun get(lang: Lang, en: String): String? {
+        val m = when (lang) {
+            Lang.JA -> ja
+            Lang.ZH -> zh
+            Lang.KO -> ko
+            Lang.EN -> enMap
+            else -> return null
+        }
+        m[en]?.let { return it }
+        // Table keys are stored trimmed, so fragments such as "Folder: " are matched without
+        // their surrounding whitespace, which is then put back around the translation.
+        val k = en.trim()
+        if (k.isEmpty() || k.length == en.length) return null
+        val v = m[k] ?: return null
+        val a = en.indexOfFirst { !it.isWhitespace() }
+        val b = en.indexOfLast { !it.isWhitespace() }
+        return en.substring(0, a) + v + en.substring(b + 1)
     }
 
     private const val TABLE = """
@@ -127,7 +143,7 @@ Could not share the files. | ファイルを共有できませんでした。 | 
 Choose destination folder | 保存先フォルダを選択 | 选择目标文件夹 | 대상 폴더 선택
 """
 
-    private class Tpl(val regex: Regex, val idx: List<Int>, val key: String)
+    private class Tpl(val regex: Regex, val idx: List<Int>, val key: String, val lit: Int)
     private val byPrefix = HashMap<String, MutableList<Tpl>>()
     private val shortList = ArrayList<Tpl>()
     private val msgCache = HashMap<String, String>()
@@ -138,14 +154,14 @@ Choose destination folder | 保存先フォルダを選択 | 选择目标文件�
         if (ms.isEmpty()) return
         val parts = key.split(phRe)
         val re = Regex(parts.joinToString("(.+?)") { Regex.escape(it) }, RegexOption.DOT_MATCHES_ALL)
-        val t = Tpl(re, ms.map { it.groupValues[1].toInt() }, key)
+        val t = Tpl(re, ms.map { it.groupValues[1].toInt() }, key, parts.sumOf { it.length })
         val pre = parts[0]
         if (pre.length >= 4) byPrefix.getOrPut(pre.take(4)) { ArrayList() }.add(t) else shortList.add(t)
     }
 
-    /** Translate a finished message (exact match or matching a template containing {n}). Only for JA/ZH/KO. */
+    /** Translate a finished message (exact match or matching a template containing {n}). Only for EN/JA/ZH/KO. */
     fun msg(lang: Lang, s: String): String {
-        if ((lang != Lang.JA && lang != Lang.ZH && lang != Lang.KO) || s.length < 3 || s.length > 400) return s
+        if ((lang != Lang.JA && lang != Lang.ZH && lang != Lang.KO && lang != Lang.EN) || s.length < 3 || s.length > 400) return s
         get(lang, s)?.let { return it }
         val ck = lang.ordinal.toString() + s
         msgCache[ck]?.let { return it }
@@ -170,5 +186,15 @@ Choose destination folder | 保存先フォルダを選択 | 选择目标文件�
             ja[c[0]] = c[1]; zh[c[0]] = c[2]; ko[c[0]] = c[3]
             if (c[0].contains("{0}")) addTpl(c[0])
         }
+        for (line in TrEnData.ALL.flatMap { it.lines() }) {
+            val c = line.split(" | ").map { it.trim().replace("\\n", "\n") }
+            if (c.size != 2 || c[0].isEmpty()) continue
+            enMap[c[0]] = c[1]
+            if (c[0].contains("{0}")) addTpl(c[0])
+        }
+        // When several templates fit a message, the one with the most fixed text wins
+        // (e.g. "... encoder video {0}" before "... encoder {0}").
+        byPrefix.values.forEach { l -> l.sortByDescending { it.lit } }
+        shortList.sortByDescending { it.lit }
     }
 }

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="pictures/0_header.png" alt="FuruArc" width="100%">
+  <img src="pictures/0_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -56,7 +56,7 @@ The first tab is a launcher for everything in the app.
 
 ### Game Assets (library)
 
-<p align="center"><img src="pictures/1_game_assets.png" alt="Game Assets" width="100%"></p>
+<p align="center"><img src="pictures/1_game_assets.webp" alt="Game Assets" width="100%"></p>
 
 Add your games as a library and browse what is inside them.
 
@@ -70,7 +70,7 @@ Add your games as a library and browse what is inside them.
 
 ### RPGM Tools
 
-<p align="center"><img src="pictures/2_rpgm_tools.png" alt="RPGM Tools" width="100%"></p>
+<p align="center"><img src="pictures/2_rpgm_tools.webp" alt="RPGM Tools" width="100%"></p>
 
 Decrypt assets, translate data, edit saves and manage plugins for RPG Maker.
 
@@ -88,7 +88,7 @@ Decrypt assets, translate data, edit saves and manage plugins for RPG Maker.
 
 ### VN Tools
 
-<p align="center"><img src="pictures/3_vn_tools.png" alt="VN Tools" width="100%"></p>
+<p align="center"><img src="pictures/3_vn_tools.webp" alt="VN Tools" width="100%"></p>
 
 Unpack, pack and translate visual novels across 21 engines (see [Supported engines](#supported-engines)).
 
@@ -106,7 +106,7 @@ Unpack, pack and translate visual novels across 21 engines (see [Supported engin
 
 ### Translation Editor
 
-<p align="center"><img src="pictures/4_translation_editor.png" alt="Translation Editor" width="100%"></p>
+<p align="center"><img src="pictures/4_translation_editor.webp" alt="Translation Editor" width="100%"></p>
 
 Translate exported game text with drafts, a glossary and online translation.
 
@@ -121,7 +121,7 @@ Translate exported game text with drafts, a glossary and online translation.
 
 ### Media Asset Converter
 
-<p align="center"><img src="pictures/5_media_asset_converter.png" alt="Media Asset Converter" width="100%"></p>
+<p align="center"><img src="pictures/5_media_asset_converter.webp" alt="Media Asset Converter" width="100%"></p>
 
 Convert and compress game audio, images and video, one file or a whole folder.
 
@@ -136,7 +136,7 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 ### Text Editors
 
-<p align="center"><img src="pictures/6_more_features.png" alt="More features" width="100%"></p>
+<p align="center"><img src="pictures/6_more_features.webp" alt="More features" width="100%"></p>
 
 - **Plain Text Editor**: `.txt`, `.ini`, `.ks`, `.rpy` and similar, with find and replace (regex), go to line, syntax highlighting, undo/redo, automatic encoding detection and auto-saved drafts.
 - **Structured Text**: JSON (tree and text views), CSV / TSV (cell table), INI / CFG, XML and Markdown (with preview).
@@ -230,6 +230,7 @@ FuruArc/
 ├── languages/                            App text in 5 languages as JSON (Indonesian, English, Japanese, Chinese, Korean)
 ├── pictures/                             README images
 ├── README_ID.md                          README in Indonesian
+├── CHANGELOG.md                          Release notes
 ├── THIRD_PARTY_NOTICES.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
