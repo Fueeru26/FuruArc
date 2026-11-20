@@ -17,6 +17,7 @@ All notable changes to FuruArc are listed here.
 - Release signing is no longer configured with fixed credentials: it reads `ANDROID_KEYSTORE_*` / `ANDROID_KEY_*` environment variables or an untracked `keystore.properties`. Debug builds are unaffected.
 
 ### Fixed
+- Update check now also detects GitHub pre-releases (the "latest release" endpoint ignores them, so a pre-release was reported as "no update available").
 - Text clipped under the fixed header, for example the "Translation Service" label in Online Translation.
 
 ## 1.00

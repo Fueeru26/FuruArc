@@ -38,7 +38,7 @@ sealed class UpdateState {
 object UpdateChecker {
     const val REPO = "Fueeru26/FuruArc"
     const val RELEASES_URL = "https://github.com/$REPO/releases"
-    private const val API_URL = "https://api.github.com/repos/$REPO/releases/latest"
+    private const val API_URL = "https://api.github.com/repos/$REPO/releases?per_page=10"
     private const val NOTIF_CHANNEL = "furuarc_update"
     private const val NOTIF_ID = 7301
     private const val AUTO_INTERVAL_MS = 6L * 60 * 60 * 1000
@@ -141,9 +141,17 @@ object UpdateChecker {
             val code = con.responseCode
             if (code == 404) return UpdateState.NoRelease
             if (code != 200) return UpdateState.Failed("HTTP $code")
-            val j = JSONObject(con.inputStream.bufferedReader().use { it.readText() })
+            // The "latest" endpoint skips pre-releases, so read the release list instead and take the
+            // highest version among the published (non-draft) releases, pre-releases included.
+            val list = org.json.JSONArray(con.inputStream.bufferedReader().use { it.readText() })
+            var j: JSONObject? = null
+            for (i in 0 until list.length()) {
+                val r = list.getJSONObject(i)
+                if (r.optBoolean("draft") || r.optString("tag_name").isEmpty()) continue
+                if (j == null || isNewer(r.optString("tag_name"), j.optString("tag_name"))) j = r
+            }
+            if (j == null) return UpdateState.NoRelease
             val tag = j.optString("tag_name")
-            if (tag.isEmpty()) return UpdateState.NoRelease
             var apk: String? = null
             var size = 0L
             val assets = j.optJSONArray("assets")
