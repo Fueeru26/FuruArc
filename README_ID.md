@@ -153,7 +153,7 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 - Tema (terang / gelap), bahasa, warna aksen.
 - **Proses latar belakang**: tugas panjang tetap berjalan saat aplikasi ditutup, dengan notifikasi saat selesai (Android 13+ meminta izin notifikasi saat kamu mengaktifkannya).
-- **Periksa pembaruan**: mengecek rilis GitHub terbaru. Titik merah menandai Pengaturan bila ada versi baru, pop-up muncul sekali per versi dan, bila notifikasi latar belakang aktif, notifikasi sistem ditampilkan. FuruArc tidak pernah mengunduh atau memasang apa pun sendiri; ia hanya membuka halaman rilis atau tautan APK di browser.
+- **Periksa pembaruan**: mengecek rilis GitHub terbaru (termasuk pre-release). Titik merah menandai Pengaturan bila ada versi baru, pop-up muncul sekali per versi dan, bila notifikasi latar belakang aktif, notifikasi sistem ditampilkan. Tombol "Download versi terbaru" mengunduh APK di dalam aplikasi, dengan jendela progres dan notifikasi, lalu "Install aplikasi" membuka pemasang sistem. Tidak ada yang diunduh sebelum kamu menekan tombolnya, dan pemasangan selalu butuh konfirmasimu.
 - Halaman panduan, tanya jawab dan pemecahan masalah di dalam aplikasi.
 
 ## Engine yang didukung

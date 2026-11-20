@@ -2832,6 +2832,15 @@ Check for updates | アップデートを確認 | 检查更新 | 업데이트 �
 Fetch update information from GitHub | GitHub から更新情報を取得 | 从 GitHub 获取更新信息 | GitHub에서 업데이트 정보 가져오기
 Checking for updates… | アップデートを確認中… | 正在检查更新… | 업데이트 확인 중…
 You are using the latest version. | 最新バージョンを使用しています。 | 你正在使用最新版本。 | 최신 버전을 사용 중입니다.
+Download latest version | 最新バージョンをダウンロード | 下载最新版本 | 최신 버전 다운로드
+Downloading update | アップデートをダウンロード中 | 正在下载更新 | 업데이트 다운로드 중
+Download complete. Tap Install app to install it. | ダウンロードが完了しました。「アプリをインストール」をタップしてインストールしてください。 | 下载完成。点按“安装应用”即可安装。 | 다운로드가 완료되었습니다. '앱 설치'를 눌러 설치하세요.
+Download complete | ダウンロード完了 | 下载完成 | 다운로드 완료
+Install app | アプリをインストール | 安装应用 | 앱 설치
+The download failed. | ダウンロードに失敗しました。 | 下载失败。 | 다운로드에 실패했습니다.
+Try again | もう一度試す | 重试 | 다시 시도
+Cancel download | ダウンロードをキャンセル | 取消下载 | 다운로드 취소
+Tap to install. | タップしてインストールします。 | 点按以安装。 | 탭하여 설치합니다.
 Tap to open the release page. | リリースページを開くにはタップしてください。 | 点按以打开发布页面。 | 탭하여 릴리스 페이지를 엽니다.
 App updates are not available right now. | アプリのアップデートは現在ご利用いただけません。 | 目前暂无应用更新。 | 현재 앱 업데이트를 사용할 수 없습니다.
 Could not check for updates. Make sure the device is connected to the internet. | アップデートを確認できませんでした。端末がインターネットに接続されているか確認してください。 | 无法检查更新。请确认设备已连接到互联网。 | 업데이트를 확인할 수 없습니다. 기기가 인터넷에 연결되어 있는지 확인하세요.

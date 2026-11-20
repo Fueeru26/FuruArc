@@ -163,7 +163,7 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 - Theme (light / dark), language, accent color.
 - **Run in background**: long jobs keep running when the app is closed, with a notification when they finish (Android 13+ asks for the notification permission when you enable it).
-- **Check for updates**: looks up the latest GitHub release. A red dot marks Settings when a new version exists, a pop-up appears once per version and, if background notifications are enabled, a system notification is posted. FuruArc never downloads or installs anything by itself; it opens the release page or APK link in your browser.
+- **Check for updates**: looks up the latest GitHub release (pre-releases included). A red dot marks Settings when a new version exists, a pop-up appears once per version and, if background notifications are enabled, a system notification is posted. "Download latest version" downloads the APK inside the app, with a progress window and notification, then "Install app" opens the system installer. Nothing is downloaded until you tap the button, and installing always needs your confirmation.
 - In-app guide, Q&A and troubleshooting pages.
 
 ## Supported engines

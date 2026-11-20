@@ -669,12 +669,18 @@ fun DlgTitle(text: String) {
 /** Wide dialog window (follows the screen width) with title, content, and button row; its size adapts to the content. */
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-fun AppDialog(title: String, onDismiss: () -> Unit, buttons: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+fun AppDialog(title: String, onDismiss: () -> Unit, buttons: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) =
+    AppDialogW(title, onDismiss, 12.dp, buttons, content)
+
+/** Same as [AppDialog] with a custom horizontal margin [hPad] (smaller = wider window). */
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+@Composable
+fun AppDialogW(title: String, onDismiss: () -> Unit, hPad: androidx.compose.ui.unit.Dp, buttons: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val p = LocalPalette.current
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(
             shape = RoundedCornerShape(CardRadius), color = p.card, contentColor = p.text,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 24.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = hPad, vertical = 24.dp),
         ) {
             Column(Modifier.clearFocusOnOutsideTap().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = p.text)

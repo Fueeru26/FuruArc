@@ -571,7 +571,7 @@ fun App(vm: MainViewModel) {
     }
     if (showUpdate) com.furuarc.ui.UpdateDialog { showUpdate = false }
     com.furuarc.core.UpdateChecker.announce?.let { info ->
-        com.furuarc.ui.UpdateAnnounceDialog(info) { com.furuarc.core.UpdateChecker.announce = null }
+        com.furuarc.ui.UpdateAnnounceDialog(info, onDownload = { showUpdate = true }) { com.furuarc.core.UpdateChecker.announce = null }
     }
     // registered last = highest priority: while a text field is in typing mode, back only leaves typing mode
     BackHandler(enabled = com.furuarc.ui.FocusHub.focused) {

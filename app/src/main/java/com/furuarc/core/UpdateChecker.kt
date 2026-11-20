@@ -33,13 +33,13 @@ sealed class UpdateState {
 
 /**
  * Checks https://github.com/Fueeru26/FuruArc/releases for a newer version than the installed one.
- * The app never downloads or installs anything itself: the user is sent to the release page / APK link in the browser.
+ * The APK of a newer release can be downloaded in the app (see [UpdateInstaller]); installing always needs the user's confirmation.
  */
 object UpdateChecker {
     const val REPO = "Fueeru26/FuruArc"
     const val RELEASES_URL = "https://github.com/$REPO/releases"
     private const val API_URL = "https://api.github.com/repos/$REPO/releases?per_page=10"
-    private const val NOTIF_CHANNEL = "furuarc_update"
+    internal const val NOTIF_CHANNEL = "furuarc_update"
     private const val NOTIF_ID = 7301
     private const val AUTO_INTERVAL_MS = 6L * 60 * 60 * 1000
 
