@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -16,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -103,14 +106,30 @@ object PlayerHub {
     /** Replaces the list of a kind (a folder, playlist ...). */
     fun set(kind: Int, list: List<MItem>, text: String) {
         init(Engine.app)
+        stash.remove(kind)
+        if (kind == 2) AudioEngine.stop()
         setRaw(kind, list, text)
         if (kind == 3) videoIndex = -1
         MediaLib.saveQueue(kind, list, text)
     }
 
+    /** "Muat" (replace) or "Tambahkan" (append, without duplicates) a folder / playlist / collection to the gallery or queue. */
+    fun apply(kind: Int, list: List<MItem>, text: String, add: Boolean) {
+        init(Engine.app)
+        val cur = items(kind)
+        if (!add || cur.isEmpty()) { set(kind, list, text); return }
+        val have = cur.map { it.key }.toHashSet()
+        update(kind, cur + list.filter { have.add(it.key) })
+    }
+
     /** Replaces the list after reordering / removing / adding, keeping the playing item. */
     fun update(kind: Int, list: List<MItem>) {
         val old = items(kind)
+        if (list.isEmpty()) {
+            // an empty queue also empties the player
+            if (kind == 2) AudioEngine.stop()
+            if (kind == 3) videoIndex = -1
+        }
         when (kind) {
             2 -> {
                 val same = AudioEngine.queue === old
@@ -124,16 +143,36 @@ object PlayerHub {
             }
             else -> setRaw(kind, list, label[kind] ?: "")
         }
-        MediaLib.saveQueue(kind, list, label[kind] ?: "")
+        if (!isTemp(kind)) MediaLib.saveQueue(kind, list, label[kind] ?: "")
     }
 
-    /** Puts one item into the list of its kind and asks the list screen to open it. */
-    fun openSingle(kind: Int, item: MItem, text: String) {
-        set(kind, listOf(item), text)
+    // ---- temporary lists ("Open with…", Game Assets): the stored gallery / queue is stashed and restored afterwards
+    private class Stash(val items: List<MItem>, val label: String, val videoIndex: Int)
+    private val stash = HashMap<Int, Stash>()
+
+    fun isTemp(kind: Int): Boolean = stash.containsKey(kind)
+
+    /** Shows [list] temporarily: nothing is saved, and the previous list comes back with [endTemp]. */
+    fun openTemp(kind: Int, list: List<MItem>) {
+        init(Engine.app)
+        if (!stash.containsKey(kind)) stash[kind] = Stash(items(kind), label[kind] ?: "", videoIndex)
+        if (kind == 2) AudioEngine.stop()
+        setRaw(kind, list, "")
+        if (kind == 3) videoIndex = -1
         tree.remove(kind)
         tab[kind] = 0
         autoOpen = kind to 0
     }
+
+    /** Restores the list that was replaced by [openTemp] (does nothing when the list is not temporary). */
+    fun endTemp(kind: Int) {
+        val st = stash.remove(kind) ?: return
+        setRaw(kind, st.items, st.label)
+        if (kind == 3) videoIndex = -1
+    }
+
+    /** Puts one item temporarily into the list of its kind and asks the list screen to open it. */
+    fun openSingle(kind: Int, item: MItem, text: String) = openTemp(kind, listOf(item))
 }
 
 fun itemOfUri(ctx: android.content.Context, uri: Uri): MItem {
@@ -405,6 +444,7 @@ fun PlayerListScreen(kind: Int, onBack: () -> Unit) {
     DisposableEffect(kind) {
         onDispose {
             if (kind == 2 && !MediaPrefs.background) AudioEngine.stop()
+            PlayerHub.endTemp(kind)
             if (kind == 3) {
                 PlayerHub.videoFull = false
                 val a = ctx.findActivity()
@@ -462,12 +502,83 @@ fun PlayerListScreen(kind: Int, onBack: () -> Unit) {
     }
 }
 
+// ------------------------------------------------------------------ selection mode (queue and gallery)
+
+/** Window to pick a playlist / collection (Favorites is not offered) for the selected items. */
+@Composable
+internal fun PickListDialog(kind: Int, onDismiss: () -> Unit, onPick: (MList) -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    var newDlg by remember { mutableStateOf(false) }
+    if (newDlg) {
+        NameDialog(
+            if (kind == 1) pl.addCollection else pl.addPlaylist, if (kind == 1) pl.collectionName else pl.playlistName, "", pl.add,
+            { newDlg = false },
+        ) { name ->
+            val id = MediaLib.createList(kind, name)
+            MediaLib.listsOf(kind).firstOrNull { it.id == id }?.let { onPick(it) }
+        }
+        return
+    }
+    val lists = MediaLib.listsOf(kind).filter { it.id != MediaLib.FAV }
+    AppDialog(pl.chooseList, onDismiss, buttons = { TextButton(onClick = onDismiss) { Text(pl.close, color = p.accent) } }) {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            for (l in lists) {
+                Row(Modifier.fillMaxWidth().clickableScale(pressed = 0.98f) { onPick(l) }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(if (kind == 1) AppIcons.Collections else AppIcons.PlaylistMusic, null, tint = p.accent, modifier = Modifier.size(22.dp))
+                    Text(l.name, color = p.text, fontSize = 16.sp, modifier = Modifier.weight(1f).padding(start = 12.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(l.items.size.toString(), color = p.muted, fontSize = 13.sp)
+                }
+            }
+            Text(pl.newList, color = p.accent, fontSize = 16.sp, fontWeight = FontWeight.Medium, modifier = Modifier.fillMaxWidth().clickableScale(pressed = 0.98f) { newDlg = true }.padding(vertical = 13.dp))
+        }
+    }
+}
+
+/** Same layout as the Game Assets selection bar: count, select all / clear, then Favorites, list and delete icons. */
+@Composable
+internal fun SelectionBar(kind: Int, count: Int, onAll: () -> Unit, onClear: () -> Unit, onFav: () -> Unit, onList: () -> Unit, onDelete: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    val red = Color(0xFFE53935)
+    val shape = RoundedCornerShape(ControlRadius)
+    AppCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(pl.selected(count), fontWeight = FontWeight.SemiBold, color = p.text, modifier = Modifier.weight(1f))
+                TextButton(onClick = onAll, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp), modifier = Modifier.height(32.dp)) { Text(pl.selAll, fontSize = 13.sp, color = p.accent, maxLines = 1) }
+                TextButton(onClick = onClear, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp), modifier = Modifier.height(32.dp)) { Text(pl.selNone, fontSize = 13.sp, color = p.text, maxLines = 1) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val on = count > 0
+                val alpha = if (on) 1f else 0.35f
+                Box(Modifier.weight(1f).height(44.dp).clip(shape).background(p.trailingBg).then(if (on) Modifier.clickableScale(pressed = 0.94f, onClick = onFav) else Modifier), contentAlignment = Alignment.Center) {
+                    Icon(AppIcons.Heart, pl.addFav, tint = p.accent.copy(alpha = alpha), modifier = Modifier.size(24.dp))
+                }
+                Box(Modifier.weight(1f).height(44.dp).clip(shape).background(p.trailingBg).then(if (on) Modifier.clickableScale(pressed = 0.94f, onClick = onList) else Modifier), contentAlignment = Alignment.Center) {
+                    Icon(if (kind == 1) AppIcons.Collections else AppIcons.PlaylistMusic, if (kind == 1) pl.addToCollection else pl.addToPlaylist, tint = p.text.copy(alpha = alpha), modifier = Modifier.size(24.dp))
+                }
+                Box(Modifier.weight(1f).height(44.dp).clip(shape).background(p.trailingBg).then(if (on) Modifier.clickableScale(pressed = 0.94f, onClick = onDelete) else Modifier), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Delete, pl.removeSel, tint = red.copy(alpha = alpha), modifier = Modifier.size(24.dp))
+                }
+            }
+        }
+    }
+}
+
+/** Adds the chosen items to a list and reports the result. */
+internal fun addChosen(ctx: android.content.Context, pl: PlayerStr, kind: Int, chosen: List<MItem>, l: MList) {
+    val n = MediaLib.addItems(kind, l.id, chosen)
+    toastMsg(ctx, if (n > 0) pl.addedTo(n, listTitle(pl, l)) else pl.alreadyIn(listTitle(pl, l)))
+}
+
 // ------------------------------------------------------------------ queue (audio / video)
 
 @Composable
 private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
+    val ctx = LocalContext.current
     val items = PlayerHub.items(kind)
     val size = MediaPrefs.pageQueue
     val pages = ((items.size + size - 1) / size).coerceAtLeast(1)
@@ -477,6 +588,10 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
     val from = pg * size
     val to = minOf(items.size, from + size)
     var menu by remember { mutableStateOf(-1) }
+    var selMode by remember { mutableStateOf(false) }
+    var sel by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    var pickList by remember { mutableStateOf(false) }
+    BackHandler(enabled = selMode) { selMode = false; sel = emptySet() }
 
     fun move(a: Int, b: Int) {
         if (a !in items.indices || b !in items.indices) return
@@ -484,10 +599,36 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
         val x = m[a]; m[a] = m[b]; m[b] = x
         PlayerHub.update(kind, m)
     }
+    fun chosen(): List<MItem> = sel.sorted().mapNotNull { items.getOrNull(it) }
+    fun endSel() { selMode = false; sel = emptySet() }
 
     Column(Modifier.fillMaxSize()) {
-        val lb = PlayerHub.label[kind] ?: ""
-        if (items.isNotEmpty()) Text((if (lb.isNotEmpty()) "$lb · " else "") + pl.pageInfo(items.size), color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            val lb = PlayerHub.label[kind] ?: ""
+            Text(
+                if (items.isNotEmpty()) (if (lb.isNotEmpty()) "$lb · " else "") + pl.pageInfo(items.size) else "",
+                color = p.muted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+            )
+            if (items.isNotEmpty()) RoundIcon(AppIcons.Checklist, pl.selMode, if (selMode) p.accent else p.text, 40, 24) { if (selMode) endSel() else selMode = true }
+        }
+        if (selMode) {
+            Spacer(Modifier.height(4.dp))
+            SelectionBar(
+                kind, sel.size, { sel = items.indices.toSet() }, { endSel() },
+                {
+                    val c = chosen()
+                    val n = MediaLib.addItems(kind, MediaLib.FAV, c)
+                    toastMsg(ctx, if (n > 0) pl.addedTo(n, pl.favorites) else pl.alreadyIn(pl.favorites))
+                    endSel()
+                },
+                { pickList = true },
+                {
+                    PlayerHub.update(kind, items.filterIndexed { i, _ -> i !in sel })
+                    endSel()
+                },
+            )
+            Spacer(Modifier.height(6.dp))
+        }
         if (items.isEmpty()) {
             EmptyState(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, pl.emptyQueue, Modifier.fillMaxWidth().padding(top = 24.dp))
         } else {
@@ -496,9 +637,11 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
                     val gi = from + l
                     val active = if (kind == 2) AudioEngine.current?.key == it.key && AudioEngine.queue === items else PlayerHub.videoIndex == gi
                     QueueRow(
-                        kind, it, active,
+                        kind, it, active, selMode, gi in sel,
                         onClick = {
-                            if (kind == 2) {
+                            if (selMode) {
+                                sel = if (gi in sel) sel - gi else sel + gi
+                            } else if (kind == 2) {
                                 if (AudioEngine.queue === items) AudioEngine.playIndex(gi) else AudioEngine.setQueue(items, gi)
                             } else {
                                 PlayerHub.videoIndex = gi
@@ -522,10 +665,11 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
         }
     }
     items.getOrNull(menu)?.let { ItemMenu(kind, it, menu) { menu = -1 } }
+    if (pickList) PickListDialog(kind, { pickList = false }) { l -> addChosen(ctx, pl, kind, chosen(), l); pickList = false; endSel() }
 }
 
 @Composable
-private fun QueueRow(kind: Int, item: MItem, active: Boolean, onClick: () -> Unit, onUp: (() -> Unit)?, onDown: (() -> Unit)?, onMenu: () -> Unit) {
+private fun QueueRow(kind: Int, item: MItem, active: Boolean, selMode: Boolean, selected: Boolean, onClick: () -> Unit, onUp: (() -> Unit)?, onDown: (() -> Unit)?, onMenu: () -> Unit) {
     val p = LocalPalette.current
     val ctx = LocalContext.current
     val meta by produceState<MMeta?>(MediaMeta.cached(item.key), item.key) {
@@ -536,15 +680,21 @@ private fun QueueRow(kind: Int, item: MItem, active: Boolean, onClick: () -> Uni
     val dur = meta?.durationMs ?: 0
     AppCard(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.fillMaxWidth().background(if (active) p.accent.copy(alpha = 0.12f) else Color.Transparent).cardClickable(onClick).padding(vertical = 8.dp, horizontal = 6.dp),
+            Modifier.fillMaxWidth().background(if (selected) p.accent.copy(alpha = 0.18f) else if (active) p.accent.copy(alpha = 0.12f) else Color.Transparent).cardClickable(onClick).padding(vertical = 8.dp, horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.width(30.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.size(30.dp, 26.dp).then(if (onUp != null) Modifier.clickableScale(pressed = 0.8f, onClick = onUp) else Modifier), contentAlignment = Alignment.Center) {
-                    Icon(AppIcons.ArrowUp, null, tint = if (onUp != null) p.text else p.muted.copy(alpha = 0.25f), modifier = Modifier.size(24.dp))
+            if (selMode) {
+                Box(Modifier.width(30.dp), contentAlignment = Alignment.Center) {
+                    Checkbox(checked = selected, onCheckedChange = { onClick() }, colors = CheckboxDefaults.colors(checkedColor = p.accent))
                 }
-                Box(Modifier.size(30.dp, 26.dp).then(if (onDown != null) Modifier.clickableScale(pressed = 0.8f, onClick = onDown) else Modifier), contentAlignment = Alignment.Center) {
-                    Icon(AppIcons.ArrowDown, null, tint = if (onDown != null) p.text else p.muted.copy(alpha = 0.25f), modifier = Modifier.size(24.dp))
+            } else {
+                Column(Modifier.width(30.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.size(30.dp, 26.dp).then(if (onUp != null) Modifier.clickableScale(pressed = 0.8f, onClick = onUp) else Modifier), contentAlignment = Alignment.Center) {
+                        Icon(AppIcons.ArrowUp, null, tint = if (onUp != null) p.text else p.muted.copy(alpha = 0.25f), modifier = Modifier.size(24.dp))
+                    }
+                    Box(Modifier.size(30.dp, 26.dp).then(if (onDown != null) Modifier.clickableScale(pressed = 0.8f, onClick = onDown) else Modifier), contentAlignment = Alignment.Center) {
+                        Icon(AppIcons.ArrowDown, null, tint = if (onDown != null) p.text else p.muted.copy(alpha = 0.25f), modifier = Modifier.size(24.dp))
+                    }
                 }
             }
             Box(Modifier.padding(start = 4.dp).size(54.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
@@ -560,7 +710,7 @@ private fun QueueRow(kind: Int, item: MItem, active: Boolean, onClick: () -> Uni
                     if (dur > 0) Text(fmtClock(dur), color = p.muted, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
                 }
             }
-            RoundIcon(AppIcons.MoreHoriz, "", p.text, 40, 22, p.trailingBg, onMenu)
+            if (!selMode) RoundIcon(AppIcons.MoreHoriz, "", p.text, 40, 22, p.trailingBg, onMenu)
         }
     }
 }
@@ -595,7 +745,11 @@ internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
     var menu by remember { mutableStateOf<String?>(null) }
     val mime = when (kind) { 1 -> "image/*"; 2 -> "audio/*"; else -> "video/*" }
 
-    fun load(uri: String, name: String) {
+    var pending by remember { mutableStateOf<Pair<List<MItem>, String>?>(null) }
+    var addMode by remember { mutableStateOf(false) }
+
+    fun load(uri: String, name: String, add: Boolean = false) {
+        addMode = add
         job?.cancel()
         job = scope.launch {
             scanning = true
@@ -603,8 +757,10 @@ internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
             try {
                 val r = withContext(Dispatchers.IO) { MediaScan.scanTree(ctx, Uri.parse(uri), kind, MediaPrefs.subfolders) { scanCount = it } }
                 if (r.isEmpty()) toastMsg(ctx, pl.nothingFound) else {
-                    PlayerHub.set(kind, r, name)
-                    onLoaded()
+                    if (addMode) {
+                        PlayerHub.apply(kind, r, name, true)
+                        onLoaded()
+                    } else pending = r to name
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -676,13 +832,15 @@ internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
             }
         }
     }
+    ApplyHost(kind, pending, { pending = null }, onLoaded)
     val m = menu
     val mf = folders.firstOrNull { it.uri == m }
     if (mf != null) {
         OptionsDialog(
             mf.name, { menu = null },
             listOf(
-                pl.loadFolder to { menu = null; if (!scanning) load(mf.uri, mf.name); Unit },
+                pl.loadFolder(kind == 1) to { menu = null; if (!scanning) load(mf.uri, mf.name, false); Unit },
+                pl.addFolderTo(kind == 1) to { menu = null; if (!scanning) load(mf.uri, mf.name, true); Unit },
                 pl.removeFolder to { MediaLib.removeFolder(kind, mf.uri); menu = null },
             ),
         )
@@ -696,6 +854,7 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
     val lists = MediaLib.lists[kind] ?: MediaLib.listsOf(kind)
+    var pending by remember { mutableStateOf<Pair<List<MItem>, String>?>(null) }
     var nameDlg by remember { mutableStateOf(false) }
     var renameId by remember { mutableStateOf<String?>(null) }
     var menuId by remember { mutableStateOf<String?>(null) }
@@ -716,8 +875,7 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
                                 Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(CardRadius)).background(p.iconBg)
                                     .border(1.dp, p.cardBorder, RoundedCornerShape(CardRadius))
                                     .clickableScale(pressed = 0.95f) {
-                                        PlayerHub.set(kind, MediaLib.toItems(l), listTitle(pl, l))
-                                        onLoaded()
+                                        pending = MediaLib.toItems(l) to listTitle(pl, l)
                                     },
                                 contentAlignment = Alignment.Center,
                             ) {
@@ -737,6 +895,7 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
             }
         }
     }
+    ApplyHost(kind, pending, { pending = null }, onLoaded)
     if (nameDlg) NameDialog(addLabel, nameLabel, "", pl.add, { nameDlg = false }) { MediaLib.createList(kind, it); nameDlg = false }
     val rid = renameId
     val rl = lists.firstOrNull { it.id == rid }
@@ -750,4 +909,42 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
     }
     val dl = lists.firstOrNull { it.id == delId }
     if (dl != null) ConfirmDialog(pl.delete, pl.deleteListAsk(dl.name), pl.delete, pl.cancel, { MediaLib.deleteList(kind, dl.id); delId = null }, { delId = null })
+}
+
+
+// ------------------------------------------------------------------ "Terapkan ke Galeri / Antrian"
+
+/**
+ * Loads [list] into the gallery / queue of [kind]. An empty target is filled directly; otherwise the user chooses
+ * Muat (replace, after a warning) or Tambahkan (append).
+ */
+@Composable
+internal fun ApplyHost(kind: Int, pending: Pair<List<MItem>, String>?, onClose: () -> Unit, onDone: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    var confirm by remember(pending) { mutableStateOf(false) }
+    val pend = pending ?: return
+    val gallery = kind == 1
+    LaunchedEffect(pend) {
+        if (PlayerHub.items(kind).isEmpty()) {
+            PlayerHub.set(kind, pend.first, pend.second)
+            onClose()
+            onDone()
+        }
+    }
+    if (PlayerHub.items(kind).isEmpty()) return
+    if (confirm) {
+        ConfirmDialog(
+            pl.applyTitle(gallery), pl.overwriteAsk(gallery), pl.load, pl.cancel,
+            { PlayerHub.set(kind, pend.first, pend.second); onClose(); onDone() },
+            { confirm = false },
+        )
+        return
+    }
+    AppDialog(pl.applyTitle(gallery), onClose, buttons = { TextButton(onClick = onClose) { Text(pl.cancel, color = p.accent) } }) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.weight(1f)) { SecondaryButton(pl.load, true) { confirm = true } }
+            Box(Modifier.weight(1f)) { SecondaryButton(pl.add2, true) { PlayerHub.apply(kind, pend.first, pend.second, true); onClose(); onDone() } }
+        }
+    }
 }

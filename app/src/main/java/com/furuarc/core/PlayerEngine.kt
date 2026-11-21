@@ -218,6 +218,7 @@ object AudioEngine {
         val p = mp ?: return
         p.seekExact(ms.coerceIn(0, duration.coerceAtLeast(0)))
         position = ms
+        PlayerService.sync(Engine.app)
     }
 
     fun setSpeed(v: Float) {

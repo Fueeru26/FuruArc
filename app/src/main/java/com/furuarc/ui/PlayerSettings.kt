@@ -49,7 +49,7 @@ private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) 
     val p = LocalPalette.current
     AppCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(title, color = p.accent, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(title, color = p.accent, fontWeight = FontWeight.Bold, fontSize = 20.sp)
             content()
         }
     }
@@ -80,6 +80,13 @@ fun PlayerSettingsScreen(onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         ScreenHeader(pl.settingsTitle, onBack)
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+            Section(pl.secLists) {
+                PSwitch(pl.subfolders, "", MediaPrefs.subfolders) { MediaPrefs.subfolders = it; MediaPrefs.save() }
+                PDrop(pl.setSort, MediaPrefs.sortOrder, listOf(0 to pl.sortName, 1 to pl.sortDate, 2 to pl.sortSize)) { MediaPrefs.sortOrder = it }
+                PSwitch(pl.setTagTitle, pl.setTagTitleDesc, MediaPrefs.tagTitle) { MediaPrefs.tagTitle = it; MediaPrefs.save() }
+                PSwitch(pl.setShowCover, "", MediaPrefs.showCover) { MediaPrefs.showCover = it; MediaPrefs.save() }
+                PDrop(pl.setPageQueue, MediaPrefs.pageQueue, listOf(25, 50, 100, 200).map { it to pl.pageInfo(it) }) { MediaPrefs.pageQueue = it }
+            }
             Section(pl.secAudio) {
                 PSwitch(pl.setAutoNext, pl.setAutoNextDesc, MediaPrefs.autoNext) { MediaPrefs.autoNext = it; MediaPrefs.save() }
                 PSwitch(pl.setShuffle, "", MediaPrefs.shuffle) { MediaPrefs.shuffle = it; MediaPrefs.save() }
@@ -100,13 +107,6 @@ fun PlayerSettingsScreen(onBack: () -> Unit) {
                 PSwitch(pl.setDoubleTap, pl.setDoubleTapDesc, MediaPrefs.doubleTap) { MediaPrefs.doubleTap = it; MediaPrefs.save() }
                 PSwitch(pl.setSwipe, pl.setSwipeDesc, MediaPrefs.swipeGestures) { MediaPrefs.swipeGestures = it; MediaPrefs.save() }
                 PDrop(pl.setVideoOrient, MediaPrefs.videoOrient, listOf(0 to pl.orientAuto, 1 to pl.orientLandscape, 2 to pl.orientPortrait)) { MediaPrefs.videoOrient = it }
-            }
-            Section(pl.secLists) {
-                PSwitch(pl.subfolders, "", MediaPrefs.subfolders) { MediaPrefs.subfolders = it; MediaPrefs.save() }
-                PDrop(pl.setSort, MediaPrefs.sortOrder, listOf(0 to pl.sortName, 1 to pl.sortDate, 2 to pl.sortSize)) { MediaPrefs.sortOrder = it }
-                PSwitch(pl.setTagTitle, pl.setTagTitleDesc, MediaPrefs.tagTitle) { MediaPrefs.tagTitle = it; MediaPrefs.save() }
-                PSwitch(pl.setShowCover, "", MediaPrefs.showCover) { MediaPrefs.showCover = it; MediaPrefs.save() }
-                PDrop(pl.setPageQueue, MediaPrefs.pageQueue, listOf(25, 50, 100, 200).map { it to pl.pageInfo(it) }) { MediaPrefs.pageQueue = it }
             }
             Section(pl.secGallery) {
                 PDrop(pl.setPageGallery, MediaPrefs.pageGallery, listOf(30, 60, 100, 200).map { it to pl.pageInfo(it) }) { MediaPrefs.pageGallery = it }

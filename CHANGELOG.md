@@ -20,7 +20,17 @@ All notable changes to FuruArc are listed here.
 - **Theme Schedule** mode (dark between chosen hours) and an automatic **Seasonal** display style.
 - Settings switches for **Animations** and **Haptic feedback**.
 
+### Added (Media Player revisions)
+- **Apply to Queue / Gallery**: Folders, Favorites, Collections and Playlists load directly into an empty Queue/Gallery; otherwise a window offers **Load** (with an overwrite warning) or **Add**. Folder three-dot menu: Load into Queue/Gallery and Add to Queue/Gallery. Emptying the Queue also empties the Player.
+- **Subtitles** in the Video Player (SRT, VTT, ASS/SSA; icon between the playlist and three-dot icons).
+- **Media-style notification** for audio (cover, title, artist, seek bar, Favorite / Previous / Play-Pause / Next / Close).
+- **Selection mode** in the Queue and Gallery (Favorites, Playlist/Collection, Delete).
+
 ### Changed
+- "Open with..." media is temporary: it no longer overwrites the stored Gallery, Player or Queue.
+- Audio Player description: "Play audio, manage playlists, shuffle, repeat and adjust speed".
+- Video fullscreen hides the status and navigation bars (swipe from the edge to show them); Back returns to portrait.
+- Media Settings: Lists section first, larger section titles.
 - Quick Actions default: Media Player replaces Text Editor in the third place (existing custom lists are not changed).
 - The app now handles screen rotation itself instead of restarting.
 

@@ -65,6 +65,25 @@ internal fun Context.findActivity(): android.app.Activity? {
     return null
 }
 
+/** Hides (or restores) the status and navigation bars; they come back for a moment when the user swipes from the screen edge. */
+@Suppress("DEPRECATION")
+private fun applyImmersive(act: android.app.Activity?, on: Boolean) {
+    val w = act?.window ?: return
+    try {
+        w.decorView.systemUiVisibility = if (on) {
+            android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        } else android.view.View.SYSTEM_UI_FLAG_VISIBLE
+        if (android.os.Build.VERSION.SDK_INT >= 28) {
+            val lp = w.attributes
+            lp.layoutInDisplayCutoutMode = if (on) android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            else android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+            w.attributes = lp
+        }
+    } catch (e: Exception) { }
+}
+
 @Composable
 internal fun Glyph(text: String, tint: Color, onClick: () -> Unit) {
     Box(Modifier.size(46.dp).clip(RoundedCornerShape(23.dp)).clickableScale(pressed = 0.88f, onClick = onClick), contentAlignment = Alignment.Center) {
@@ -199,6 +218,8 @@ internal fun VideoPane(fullscreen: Boolean = false) {
     var speed by remember { mutableStateOf(MediaPrefs.speed) }
     var hint by remember { mutableStateOf("") }
     var menu by remember { mutableStateOf(-1) }
+    var subDlg by remember { mutableStateOf(false) }
+    var cues by remember(item.key, fullscreen) { mutableStateOf(SubStore.get(item.key)) }
     val seek = remember(item.key, fullscreen) { SeekState() }
     val skip = MediaPrefs.skipSec * 1000
     val fav = MediaLib.isFav(3, item)
@@ -240,7 +261,25 @@ internal fun VideoPane(fullscreen: Boolean = false) {
         if (!land && !fullscreen) setFull(true)
     }
 
-    if (fullscreen) BackHandler { setFull(false) }
+    // leaving fullscreen from landscape (back button or the button) also returns the screen to portrait
+    fun exitFull() {
+        setFull(false)
+        if (land) {
+            try { act?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT } catch (e: Exception) { }
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                try { act?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED } catch (e: Exception) { }
+            }, 1200)
+        }
+    }
+    if (fullscreen) {
+        BackHandler { exitFull() }
+        DisposableEffect(Unit) {
+            applyImmersive(act, true)
+            onDispose { applyImmersive(act, false) }
+        }
+        // some actions (dialogs, focus changes) reset the flags: apply them again whenever the controls toggle
+        LaunchedEffect(ui) { applyImmersive(act, true) }
+    }
     DisposableEffect(item.key, fullscreen) { onDispose { saveNow(); try { view[0]?.stopPlayback() } catch (e: Throwable) { } } }
     LaunchedEffect(item.key, fullscreen) {
         while (true) {
@@ -325,6 +364,16 @@ internal fun VideoPane(fullscreen: Boolean = false) {
                         }
                     },
             )
+            if (cues.isNotEmpty()) {
+                val cue = cues.firstOrNull { pos >= it.start && pos < it.end }
+                if (cue != null) {
+                    Text(
+                        cue.text, color = Color.White, fontSize = if (fullscreen) 18.sp else 14.sp, textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 16.dp, vertical = if (fullscreen && ui) 96.dp else 14.dp)
+                            .background(Color(0x99000000), RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                }
+            }
             if (failed) Text(pl.loadFail, color = Color.White, modifier = Modifier.padding(24.dp))
             if (hint.isNotEmpty()) {
                 Text(hint, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.background(Color(0x99000000), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 8.dp))
@@ -360,13 +409,15 @@ internal fun VideoPane(fullscreen: Boolean = false) {
         }
     }
 
+    if (subDlg) SubtitleDialog(item.key, cues.size, { cues = it }, { subDlg = false })
     if (fullscreen) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             videoArea(Modifier.fillMaxSize())
             if (ui) {
                 Row(Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color(0x99000000)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RoundIcon(AppIcons.FullscreenExit, pl.exitFullscreen, Color.White) { setFull(false) }
+                    RoundIcon(AppIcons.FullscreenExit, pl.exitFullscreen, Color.White) { exitFull() }
                     Text(item.name, color = Color.White, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(horizontal = 6.dp))
+                    RoundIcon(AppIcons.Subtitles, pl.subtitle, if (cues.isNotEmpty()) p.accent else Color.White) { subDlg = true }
                     RoundIcon(AppIcons.ScreenRotation, pl.rotate, Color.White) { rotate() }
                 }
                 Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0x99000000)).padding(horizontal = 8.dp, vertical = 4.dp)) {
@@ -391,6 +442,7 @@ internal fun VideoPane(fullscreen: Boolean = false) {
             }
             RoundIcon(AppIcons.InfoOutline, pl.infoFile, p.text) { menu = 1 }
             RoundIcon(AppIcons.PlaylistMusic, pl.addToPlaylist, p.text) { menu = 2 }
+            RoundIcon(AppIcons.Subtitles, pl.subtitle, if (cues.isNotEmpty()) p.accent else p.text) { subDlg = true }
             RoundIcon(AppIcons.MoreHoriz, pl.menuTitleItem, p.text) { menu = 0 }
             Spacer(Modifier.weight(1f))
             RoundIcon(AppIcons.ScreenRotation, pl.rotate, p.text) { rotate() }

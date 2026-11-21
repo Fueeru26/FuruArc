@@ -369,9 +369,8 @@ fun App(vm: MainViewModel) {
         navState.clearHome()
         if (kind in 1..3) {
             val same = items.filter { com.furuarc.core.MediaScan.kindOf(it.name) == kind || items.size == 1 }
-            com.furuarc.ui.PlayerHub.set(kind, same.ifEmpty { listOf(first) }, "")
-            com.furuarc.ui.PlayerHub.tree.remove(kind)
-            com.furuarc.ui.PlayerHub.autoOpen = kind to 0
+            // temporary: the stored gallery / queue is restored when the screen is left
+            com.furuarc.ui.PlayerHub.openTemp(kind, same.ifEmpty { listOf(first) })
             screen = when (kind) { 1 -> Screen.MPLAYER_IMAGE; 2 -> Screen.MPLAYER_AUDIO; else -> Screen.MPLAYER_VIDEO }
         } else {
             val ext = com.furuarc.core.MediaScan.ext(first.name)
