@@ -1,70 +1,57 @@
 package com.furuarc.ui
 
-import android.graphics.BitmapFactory
-import android.media.PlaybackParams
+import android.content.Intent
 import android.net.Uri
-import android.os.SystemClock
 import android.provider.OpenableColumns
-import android.widget.VideoView
-import androidx.activity.compose.BackHandler
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.calculatePan
-import androidx.compose.foundation.gestures.calculateZoom
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.forEachGesture
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.consumeAllChanges
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import com.furuarc.Engine
 import com.furuarc.core.AudioEngine
+import com.furuarc.core.MItem
+import com.furuarc.core.MList
+import com.furuarc.core.MMeta
+import com.furuarc.core.MediaLib
+import com.furuarc.core.MediaMeta
 import com.furuarc.core.MediaPrefs
 import com.furuarc.core.MediaScan
-import com.furuarc.core.MItem
-import com.furuarc.core.seekExact
+import com.furuarc.i18n.PlayerStr
 import com.furuarc.i18n.playerStr
 import com.furuarc.ui.theme.LocalLang
 import com.furuarc.ui.theme.LocalPalette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.FileInputStream
-import java.io.InputStream
-import kotlin.math.abs
 
-/** Lists of the Media Player screens (kept while the app is open) and the hand-off used by "Open with" and Game Assets. */
+/**
+ * Lists of the Media Player screens (kept while the app is open) and the hand-off used by "Open with" and Game Assets.
+ * Kinds: 1 = images (the gallery list), 2 = audio (the queue), 3 = video (the queue).
+ */
 object PlayerHub {
     var image by mutableStateOf<List<MItem>>(emptyList())
     var audio by mutableStateOf<List<MItem>>(emptyList())
@@ -72,30 +59,82 @@ object PlayerHub {
     var label by mutableStateOf<Map<Int, String>>(emptyMap())
     val tree = HashMap<Int, Uri>()
 
-    /** (kind, index) opened automatically when the list screen of that kind shows up. */
-    var autoOpen: Pair<Int, Int>? = null
+    /** Index of the video shown in the Player tab (-1 = none). */
+    var videoIndex by mutableStateOf(-1)
+    var videoFull by mutableStateOf(false)
+    /** Position (ms) the next video start resumes from (used when the video view is rebuilt, e.g. fullscreen). */
+    var videoResume = 0
+
+    /** Selected tab per kind, kept while the app is open. */
+    val tab = HashMap<Int, Int>()
+
+    /** (kind, index) opened automatically by the list screen of that kind; set by "Open with", Game Assets etc. */
+    var autoOpen by mutableStateOf<Pair<Int, Int>?>(null)
 
     /** Set by MainActivity: switches to the Media Player screen of a kind (1 image, 2 audio, 3 video). */
     var navigate: ((Int) -> Unit)? = null
 
+    /** Set by MainActivity: opens a file in File Inspection. */
+    var openInspect: ((Uri) -> Unit)? = null
+
+    private var inited = false
+
+    fun init(ctx: android.content.Context) {
+        if (inited) return
+        inited = true
+        MediaPrefs.init(ctx)
+        MediaLib.init(ctx)
+        if (MediaPrefs.restoreQueue) {
+            for (k in 1..3) {
+                if (items(k).isNotEmpty()) continue
+                val (l, lb) = MediaLib.loadQueue(k)
+                if (l.isNotEmpty()) setRaw(k, l, lb)
+            }
+        }
+    }
+
     fun items(kind: Int): List<MItem> = when (kind) { 1 -> image; 2 -> audio; else -> video }
 
-    fun set(kind: Int, list: List<MItem>, text: String) {
+    private fun setRaw(kind: Int, list: List<MItem>, text: String) {
         when (kind) { 1 -> image = list; 2 -> audio = list; else -> video = list }
         label = label + (kind to text)
+    }
+
+    /** Replaces the list of a kind (a folder, playlist ...). */
+    fun set(kind: Int, list: List<MItem>, text: String) {
+        init(Engine.app)
+        setRaw(kind, list, text)
+        if (kind == 3) videoIndex = -1
+        MediaLib.saveQueue(kind, list, text)
+    }
+
+    /** Replaces the list after reordering / removing / adding, keeping the playing item. */
+    fun update(kind: Int, list: List<MItem>) {
+        val old = items(kind)
+        when (kind) {
+            2 -> {
+                val same = AudioEngine.queue === old
+                setRaw(kind, list, label[kind] ?: "")
+                if (same) AudioEngine.updateQueue(list)
+            }
+            3 -> {
+                val key = old.getOrNull(videoIndex)?.key
+                setRaw(kind, list, label[kind] ?: "")
+                videoIndex = if (key == null) -1 else list.indexOfFirst { it.key == key }
+            }
+            else -> setRaw(kind, list, label[kind] ?: "")
+        }
+        MediaLib.saveQueue(kind, list, label[kind] ?: "")
     }
 
     /** Puts one item into the list of its kind and asks the list screen to open it. */
     fun openSingle(kind: Int, item: MItem, text: String) {
         set(kind, listOf(item), text)
         tree.remove(kind)
+        tab[kind] = 0
         autoOpen = kind to 0
     }
 }
-
-private val SPEEDS = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
-
-private fun nextSpeed(cur: Float): Float = SPEEDS.firstOrNull { it > cur + 0.01f } ?: SPEEDS.first()
 
 fun itemOfUri(ctx: android.content.Context, uri: Uri): MItem {
     var name = ""
@@ -112,30 +151,17 @@ fun itemOfUri(ctx: android.content.Context, uri: Uri): MItem {
     return MItem(name, uri, null, size)
 }
 
-private fun openStream(ctx: android.content.Context, it: MItem): InputStream? =
-    if (it.uri != null) ctx.contentResolver.openInputStream(it.uri) else if (it.path != null) FileInputStream(it.path) else null
-
-private fun decodeBitmap(ctx: android.content.Context, item: MItem, maxDim: Int): ImageBitmap? {
-    return try {
-        val b = BitmapFactory.Options()
-        b.inJustDecodeBounds = true
-        openStream(ctx, item)?.use { BitmapFactory.decodeStream(it, null, b) }
-        if (b.outWidth <= 0 || b.outHeight <= 0) return null
-        var sample = 1
-        while (b.outWidth / (sample * 2) >= maxDim || b.outHeight / (sample * 2) >= maxDim) sample *= 2
-        val o = BitmapFactory.Options()
-        o.inSampleSize = sample
-        openStream(ctx, item)?.use { BitmapFactory.decodeStream(it, null, o) }?.asImageBitmap()
-    } catch (e: Throwable) {
-        null
-    }
-}
-
-private fun sizeText(b: Long): String = when {
+internal fun sizeText(b: Long): String = when {
     b >= 1048576L -> "%.1f MB".format(b / 1048576.0)
     b >= 1024L -> "%.0f KB".format(b / 1024.0)
     else -> "$b B"
 }
+
+internal fun toastMsg(ctx: android.content.Context, msg: String) {
+    try { Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show() } catch (e: Exception) { }
+}
+
+internal fun listTitle(pl: PlayerStr, l: MList): String = if (l.id == MediaLib.FAV) pl.favorites else l.name
 
 // ------------------------------------------------------------------ menu
 
@@ -153,164 +179,10 @@ fun PlayerMenuScreen(onImage: () -> Unit, onAudio: () -> Unit, onVideo: () -> Un
     }
 }
 
-// ------------------------------------------------------------------ list
+// ------------------------------------------------------------------ shared small pieces
 
 @Composable
-fun PlayerListScreen(kind: Int, onBack: () -> Unit) {
-    val pl = playerStr(LocalLang.current)
-    val p = LocalPalette.current
-    val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val items = PlayerHub.items(kind)
-    var scanning by remember { mutableStateOf(false) }
-    var scanCount by remember { mutableStateOf(0) }
-    var job by remember { mutableStateOf<Job?>(null) }
-    var open by remember { mutableStateOf(-1) }
-    val title = when (kind) { 1 -> pl.imageTitle; 2 -> pl.audioTitle; else -> pl.videoTitle }
-    val mime = when (kind) { 1 -> "image/*"; 2 -> "audio/*"; else -> "video/*" }
-
-    fun scan(tree: Uri) {
-        job?.cancel()
-        PlayerHub.tree[kind] = tree
-        job = scope.launch {
-            scanning = true
-            scanCount = 0
-            try {
-                val r = withContext(Dispatchers.IO) { MediaScan.scanTree(ctx, tree, kind, MediaPrefs.subfolders) { scanCount = it } }
-                val name = tree.lastPathSegment?.substringAfterLast(':')?.substringAfterLast('/') ?: ""
-                PlayerHub.set(kind, r, name)
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-            } finally {
-                scanning = false
-            }
-        }
-    }
-
-    val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        if (uris.isNotEmpty()) {
-            for (u in uris) try { ctx.contentResolver.takePersistableUriPermission(u, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) { }
-            scope.launch {
-                val list = withContext(Dispatchers.IO) { uris.map { itemOfUri(ctx, it) } }
-                PlayerHub.tree.remove(kind)
-                PlayerHub.set(kind, list, "")
-            }
-        }
-    }
-    val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        if (uri != null) {
-            try { ctx.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) { }
-            scan(uri)
-        }
-    }
-
-    BackHandler(enabled = open >= 0) { open = -1 }
-    DisposableEffect(kind) {
-        onDispose { if (kind == 2 && !MediaPrefs.background) AudioEngine.stop() }
-    }
-    LaunchedEffect(Unit) {
-        val a = PlayerHub.autoOpen
-        if (a != null && a.first == kind) {
-            PlayerHub.autoOpen = null
-            if (kind == 2) AudioEngine.setQueue(PlayerHub.audio, a.second) else open = a.second
-        }
-    }
-
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-            ScreenHeader(title, onBack)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Box(Modifier.weight(1f)) { PrimaryButton(pl.pickFiles, !scanning) { pickFiles.launch(arrayOf(mime, "application/octet-stream")) } }
-                Box(Modifier.weight(1f)) { SecondaryButton(pl.pickFolder, !scanning) { pickFolder.launch(null) } }
-            }
-            Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth().clickableScale(pressed = 0.98f, ripple = false) {
-                MediaPrefs.subfolders = !MediaPrefs.subfolders
-                MediaPrefs.save()
-                PlayerHub.tree[kind]?.let { scan(it) }
-            }, verticalAlignment = Alignment.CenterVertically) {
-                Text(pl.subfolders, color = p.text, fontSize = 15.sp, modifier = Modifier.weight(1f))
-                Switch(
-                    checked = MediaPrefs.subfolders,
-                    onCheckedChange = {
-                        MediaPrefs.subfolders = it
-                        MediaPrefs.save()
-                        PlayerHub.tree[kind]?.let { t -> scan(t) }
-                    },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = p.accent, checkedTrackColor = p.accent.copy(alpha = 0.45f),
-                        uncheckedThumbColor = p.muted, uncheckedTrackColor = p.muted.copy(alpha = 0.3f),
-                    ),
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            if (scanning) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(Modifier.size(18.dp), color = p.accent, strokeWidth = 2.dp)
-                    Spacer(Modifier.width(10.dp))
-                    Text(pl.scanning + " " + pl.found(scanCount), color = p.muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                    TextButton(onClick = { job?.cancel(); scanning = false }) { Text("✕", color = p.accent) }
-                }
-            } else if (items.isNotEmpty()) {
-                val lb = PlayerHub.label[kind] ?: ""
-                Text((if (lb.isNotEmpty()) "$lb · " else "") + pl.found(items.size), color = p.muted, fontSize = 13.sp)
-            }
-            Spacer(Modifier.height(6.dp))
-            if (items.isEmpty() && !scanning) {
-                EmptyState(when (kind) { 1 -> AppIcons.Image; 2 -> AppIcons.MusicNote; else -> AppIcons.Videocam }, pl.emptyHint, Modifier.fillMaxWidth().padding(top = 24.dp))
-            }
-            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                itemsIndexed(items, key = { i, it -> i.toString() + it.key }) { i, it ->
-                    val active = kind == 2 && AudioEngine.current?.key == it.key
-                    AppCard(Modifier.fillMaxWidth()) {
-                        Row(
-                            Modifier.fillMaxWidth().cardClickable {
-                                when (kind) {
-                                    2 -> if (AudioEngine.queue === items) AudioEngine.playIndex(i) else AudioEngine.setQueue(items, i)
-                                    else -> open = i
-                                }
-                            }.padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            if (kind == 1) Thumb(it) else Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
-                                Icon(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, null, tint = if (active) p.accent else p.iconFg, modifier = Modifier.size(24.dp))
-                            }
-                            Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                                Text(it.name, color = if (active) p.accent else p.text, fontSize = 15.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                if (it.size > 0) Text(sizeText(it.size), color = p.muted, fontSize = 12.sp)
-                            }
-                        }
-                    }
-                }
-            }
-            if (kind == 2 && AudioEngine.current != null) {
-                Spacer(Modifier.height(8.dp))
-                AudioPanel()
-            }
-            Spacer(Modifier.height(12.dp))
-        }
-        if (open >= 0 && kind == 1) ImageViewer(items, open) { open = -1 }
-        if (open >= 0 && kind == 3) VideoOverlay(items, open) { open = -1 }
-    }
-}
-
-@Composable
-private fun Thumb(item: MItem) {
-    val p = LocalPalette.current
-    val ctx = LocalContext.current
-    val bmp by produceState<ImageBitmap?>(null, item.key) { value = withContext(Dispatchers.IO) { decodeBitmap(ctx, item, 160) } }
-    Box(Modifier.size(56.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
-        val b = bmp
-        if (b != null) Image(b, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        else Icon(AppIcons.Image, null, tint = p.iconFg, modifier = Modifier.size(24.dp))
-    }
-}
-
-// ------------------------------------------------------------------ audio panel
-
-@Composable
-private fun PChip(text: String, active: Boolean = false, onClick: () -> Unit) {
+internal fun PChip(text: String, active: Boolean = false, onClick: () -> Unit) {
     val p = LocalPalette.current
     val shape = RoundedCornerShape(ControlRadius)
     Box(
@@ -320,355 +192,562 @@ private fun PChip(text: String, active: Boolean = false, onClick: () -> Unit) {
     ) { Text(text, fontSize = 13.sp, color = if (active) p.accent else p.text, maxLines = 1) }
 }
 
+/** Round icon button (no ripple clutter, press animation). */
 @Composable
-private fun Glyph(text: String, tint: Color, onClick: () -> Unit) {
-    Box(Modifier.size(46.dp).clip(RoundedCornerShape(23.dp)).clickableScale(pressed = 0.88f, onClick = onClick), contentAlignment = Alignment.Center) {
-        Text(text, fontSize = 22.sp, color = tint)
+internal fun RoundIcon(icon: ImageVector, desc: String, tint: Color, size: Int = 44, iconSize: Int = 24, bg: Color = Color.Transparent, onClick: () -> Unit) {
+    Box(
+        Modifier.size(size.dp).clip(RoundedCornerShape((size / 2).dp)).background(bg).clickableScale(pressed = 0.88f, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, desc, tint = tint, modifier = Modifier.size(iconSize.dp)) }
+}
+
+@Composable
+private fun TabBar(icons: List<ImageVector>, descs: List<String>, sel: Int, onSel: (Int) -> Unit) {
+    val p = LocalPalette.current
+    val shape = RoundedCornerShape(ControlRadius)
+    Row(
+        Modifier.fillMaxWidth().clip(shape).background(p.trailingBg).padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        icons.forEachIndexed { i, ic ->
+            val on = i == sel
+            Box(
+                Modifier.weight(1f).height(44.dp).clip(shape)
+                    .background(if (on) p.accent.copy(alpha = 0.22f) else Color.Transparent)
+                    .clickableScale(pressed = 0.94f, ripple = false) { onSel(i) },
+                contentAlignment = Alignment.Center,
+            ) { Icon(ic, descs[i], tint = if (on) p.accent else p.muted, modifier = Modifier.size(24.dp)) }
+        }
     }
 }
 
 @Composable
-private fun AudioPanel() {
+internal fun OptionsDialog(title: String, onDismiss: () -> Unit, options: List<Pair<String, () -> Unit>>) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
-    val cur = AudioEngine.current ?: return
-    val seek = remember { SeekState() }
-    var now by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
-    LaunchedEffect(AudioEngine.sleepAt) {
-        while (AudioEngine.sleepAt != 0L) { now = SystemClock.elapsedRealtime(); delay(15000) }
-    }
-    val remainMin = if (AudioEngine.sleepAt == 0L) 0 else (((AudioEngine.sleepAt - now) / 60000L).toInt() + 1).coerceAtLeast(1)
-    AppCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp)) {
-            Text(cur.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = p.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (AudioEngine.failed) {
-                Text(pl.loadFail, color = Color(0xFFE57373), fontSize = 12.sp)
-            } else if (AudioEngine.preparing) {
-                Text(pl.loading, color = p.muted, fontSize = 12.sp)
-            } else {
-                SeekSlider(seek, AudioEngine.position, AudioEngine.duration, { AudioEngine.seek(it) })
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(fmtClock(seek.shown(AudioEngine.position)), fontSize = 11.sp, color = p.muted)
-                    Spacer(Modifier.weight(1f))
-                    Text(fmtClock(AudioEngine.duration), fontSize = 11.sp, color = p.muted)
-                }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                Glyph("⏮", p.text) { AudioEngine.previous() }
-                Box(Modifier.size(52.dp).clip(RoundedCornerShape(26.dp)).background(p.accent.copy(alpha = 0.2f)).clickableScale(pressed = 0.9f) { AudioEngine.toggle() }, contentAlignment = Alignment.Center) {
-                    Icon(if (AudioEngine.playing) AppIcons.Pause else Icons.Default.PlayArrow, null, tint = p.accent, modifier = Modifier.size(30.dp))
-                }
-                Glyph("⏭", p.text) { AudioEngine.next() }
-            }
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PChip(pl.shuffle, MediaPrefs.shuffle) { MediaPrefs.shuffle = !MediaPrefs.shuffle; MediaPrefs.save() }
-                PChip(pl.repeat(MediaPrefs.repeat), MediaPrefs.repeat != 0) { MediaPrefs.repeat = (MediaPrefs.repeat + 1) % 3; MediaPrefs.save() }
-                PChip(pl.speed(MediaPrefs.speed), MediaPrefs.speed != 1f) { AudioEngine.setSpeed(nextSpeed(MediaPrefs.speed)) }
-                PChip(pl.abLoop(AudioEngine.loopA, AudioEngine.loopB), AudioEngine.loopA != null) { AudioEngine.cycleLoop() }
-                PChip(pl.sleep(remainMin), remainMin > 0) {
-                    val next = when { remainMin <= 0 -> 15; remainMin <= 15 -> 30; remainMin <= 30 -> 60; else -> 0 }
-                    AudioEngine.setSleep(next)
-                    now = SystemClock.elapsedRealtime()
-                }
-                PChip(pl.stop) { AudioEngine.stop() }
-            }
-        }
-    }
-}
-
-// ------------------------------------------------------------------ image viewer
-
-@Composable
-fun ImageViewer(items: List<MItem>, start: Int, onClose: () -> Unit) {
-    val pl = playerStr(LocalLang.current)
-    val ctx = LocalContext.current
-    if (items.isEmpty()) { onClose(); return }
-    var index by remember { mutableStateOf(start.coerceIn(0, items.size - 1)) }
-    var scale by remember(index) { mutableStateOf(1f) }
-    var offset by remember(index) { mutableStateOf(Offset.Zero) }
-    var ui by remember { mutableStateOf(true) }
-    var slide by remember { mutableStateOf(false) }
-    var sz by remember { mutableStateOf(IntSize.Zero) }
-    val item = items[index]
-    val res by produceState<Pair<Boolean, ImageBitmap?>>(false to null, item.key) {
-        value = false to null
-        value = true to withContext(Dispatchers.IO) { decodeBitmap(ctx, item, 2400) }
-    }
-    LaunchedEffect(slide, index) {
-        if (slide && items.size > 1) {
-            delay(MediaPrefs.slideshowSec * 1000L)
-            index = (index + 1) % items.size
-        }
-    }
-    fun go(d: Int) { index = (index + d + items.size) % items.size }
-    BackHandler { onClose() }
-    Box(
-        Modifier.fillMaxSize().background(Color.Black).onSizeChanged { sz = it }
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { ui = !ui },
-                    onDoubleTap = { if (scale > 1f) { scale = 1f; offset = Offset.Zero } else scale = 2.5f },
+    AppDialog(title, onDismiss, buttons = { TextButton(onClick = onDismiss) { Text(pl.close, color = p.accent) } }) {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            for ((t, a) in options) {
+                Text(
+                    t, color = p.text, fontSize = 16.sp,
+                    modifier = Modifier.fillMaxWidth().clickableScale(pressed = 0.98f) { a() }.padding(vertical = 13.dp),
                 )
             }
-            .pointerInput(index) {
-                forEachGesture {
-                    awaitPointerEventScope {
-                        awaitFirstDown(requireUnconsumed = false)
-                        var dx = 0f
-                        var multi = false
-                        do {
-                            val ev = awaitPointerEvent()
-                            val pressed = ev.changes.count { it.pressed }
-                            val pan = ev.calculatePan()
-                            if (pressed >= 2) {
-                                multi = true
-                                scale = (scale * ev.calculateZoom()).coerceIn(1f, 6f)
-                                offset = if (scale > 1f) offset + pan else Offset.Zero
-                                ev.changes.forEach { it.consumeAllChanges() }
-                            } else if (pressed == 1 && pan != Offset.Zero) {
-                                if (scale > 1f) offset += pan else dx += pan.x
-                                ev.changes.forEach { it.consumeAllChanges() }
-                            }
-                            val mx = sz.width * (scale - 1f) / 2f
-                            val my = sz.height * (scale - 1f) / 2f
-                            offset = Offset(offset.x.coerceIn(-mx, mx), offset.y.coerceIn(-my, my))
-                        } while (ev.changes.any { it.pressed })
-                        if (!multi && scale <= 1f && abs(dx) > 110f) go(if (dx < 0) 1 else -1)
-                    }
-                }
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        val b = res.second
-        if (b != null) {
-            Image(
-                b, null,
-                Modifier.fillMaxSize().graphicsLayer { scaleX = scale; scaleY = scale; translationX = offset.x; translationY = offset.y },
-                contentScale = ContentScale.Fit,
-            )
-        } else {
-            Text(if (res.first) pl.loadFail else pl.loading, color = Color.White, modifier = Modifier.padding(24.dp))
-        }
-        if (ui) {
-            Row(Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color(0x99000000)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onClose) { Icon(Icons.Default.Close, pl.close, tint = Color.White) }
-                Text(item.name, color = Color.White, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Text("${index + 1}/${items.size}", color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(end = 8.dp))
-            }
-            Row(
-                Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0x99000000)).padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Glyph("‹", Color.White) { go(-1) }
-                PChip(pl.slideshow, slide) { slide = !slide }
-                if (scale > 1f) PChip(pl.resetZoom) { scale = 1f; offset = Offset.Zero }
-                Glyph("›", Color.White) { go(1) }
-            }
         }
     }
 }
 
-// ------------------------------------------------------------------ video
-
 @Composable
-fun VideoOverlay(items: List<MItem>, start: Int, onClose: () -> Unit) {
+internal fun NameDialog(title: String, label: String, initial: String, okText: String, onDismiss: () -> Unit, onOk: (String) -> Unit) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
-    if (items.isEmpty()) { onClose(); return }
-    var index by remember { mutableStateOf(start.coerceIn(0, items.size - 1)) }
-    val item = items[index]
-    val view = remember { arrayOfNulls<VideoView>(1) }
-    val mpRef = remember { arrayOfNulls<android.media.MediaPlayer>(1) }
-    var playing by remember(item.key) { mutableStateOf(false) }
-    var dur by remember(item.key) { mutableStateOf(0) }
-    var pos by remember(item.key) { mutableStateOf(0) }
-    var failed by remember(item.key) { mutableStateOf(false) }
-    var ui by remember { mutableStateOf(true) }
-    var speed by remember { mutableStateOf(MediaPrefs.speed) }
-    val seek = remember(item.key) { SeekState() }
+    var t by remember { mutableStateOf(initial) }
+    AppDialog(
+        title, onDismiss,
+        buttons = {
+            TextButton(onClick = onDismiss) { Text(pl.cancel, color = p.muted) }
+            TextButton(onClick = { onOk(t.trim()) }, enabled = t.isNotBlank()) { Text(okText, color = if (t.isNotBlank()) p.accent else p.muted) }
+        },
+    ) { AppTextField(t, { t = it }, label) }
+}
 
-    fun applySpeed() {
-        try { mpRef[0]?.let { if (it.isPlaying) it.playbackParams = PlaybackParams().setSpeed(speed) } } catch (e: Throwable) { }
+@Composable
+private fun InfoDialog(kind: Int, item: MItem, onDismiss: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    val ctx = LocalContext.current
+    val meta by produceState<MMeta?>(MediaMeta.cached(item.key), item.key) {
+        if (kind != 1 && value == null) value = withContext(Dispatchers.IO) { MediaMeta.load(ctx, item, kind == 3) }
     }
-    fun saveNow() {
-        try { view[0]?.let { MediaPrefs.savePos(item.key, it.currentPosition, dur) } } catch (e: Throwable) { }
+    val dim by produceState("", item.key) {
+        if (kind == 1) value = withContext(Dispatchers.IO) { imageDimensions(ctx, item) }
     }
-    fun go(d: Int) { saveNow(); index = (index + d + items.size) % items.size }
-    fun finished() {
-        MediaPrefs.savePos(item.key, 0, dur)
-        when {
-            MediaPrefs.repeat == 2 -> { mpRef[0]?.seekExact(0); view[0]?.start(); applySpeed(); playing = true }
-            MediaPrefs.autoNext && items.size > 1 && (index + 1 < items.size || MediaPrefs.repeat == 1) -> go(1)
-            else -> playing = false
-        }
+    val rows = ArrayList<Pair<String, String>>()
+    rows.add(pl.infoName to item.name)
+    meta?.let { m ->
+        m.title?.let { rows.add(pl.infoTitle to it) }
+        m.artist?.let { rows.add(pl.infoArtist to it) }
+        m.album?.let { rows.add(pl.infoAlbum to it) }
+        if (m.durationMs > 0) rows.add(pl.infoDuration to fmtClock(m.durationMs))
     }
-    BackHandler { saveNow(); onClose() }
-    DisposableEffect(item.key) { onDispose { saveNow(); try { view[0]?.stopPlayback() } catch (e: Throwable) { } } }
-    LaunchedEffect(item.key) {
-        while (true) {
-            delay(300)
-            val v = view[0]
-            if (v != null && seek.drag == null) try { pos = v.currentPosition; playing = v.isPlaying } catch (e: Throwable) { }
-        }
-    }
-    // hide the controls a few seconds after they were shown while playing
-    LaunchedEffect(ui, playing) { if (ui && playing) { delay(4000); ui = false } }
-
-    Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-        key(item.key) {
-            AndroidView(
-                factory = { c ->
-                    VideoView(c).also { v ->
-                        view[0] = v
-                        v.keepScreenOn = MediaPrefs.keepScreenOn
-                        v.setOnPreparedListener { mp ->
-                            mpRef[0] = mp
-                            dur = mp.duration
-                            val saved = MediaPrefs.savedPos(item.key)
-                            if (saved > 0 && saved < dur - 3000) { mp.seekExact(saved); pos = saved }
-                            if (MediaPrefs.videoAutoPlay) { v.start(); playing = true; applySpeed() }
-                        }
-                        v.setOnCompletionListener { finished() }
-                        v.setOnErrorListener { _, _, _ -> failed = true; true }
-                        if (item.uri != null) v.setVideoURI(item.uri) else v.setVideoPath(item.path)
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-        // taps on the video toggle the controls
-        Box(Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures(onTap = { ui = !ui }) })
-        if (failed) Text(pl.loadFail, color = Color.White, modifier = Modifier.padding(24.dp))
-        if (ui) {
-            Row(Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color(0x99000000)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { saveNow(); onClose() }) { Icon(Icons.Default.Close, pl.close, tint = Color.White) }
-                Text(item.name, color = Color.White, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                if (items.size > 1) Text("${index + 1}/${items.size}", color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(end = 8.dp))
-            }
-            Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0x99000000)).padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(fmtClock(seek.shown(pos)), fontSize = 11.sp, color = Color.White)
-                    SeekSlider(seek, pos, dur, { ms ->
-                        val m = mpRef[0]
-                        if (m != null) m.seekExact(ms) else view[0]?.seekTo(ms)
-                        pos = ms
-                    }, Modifier.weight(1f))
-                    Text(fmtClock(dur), fontSize = 11.sp, color = Color.White)
+    if (dim.isNotEmpty()) rows.add(pl.infoDim to dim)
+    if (item.size > 0) rows.add(pl.infoSize to sizeText(item.size))
+    val ext = MediaScan.ext(item.name)
+    if (ext.isNotEmpty()) rows.add(pl.infoFormat to ext.uppercase())
+    val loc = item.uri?.let { Uri.decode(it.toString()) } ?: item.path
+    if (loc != null) rows.add(pl.infoLocation to loc)
+    AppDialog(if (kind == 2) pl.infoSong else pl.infoFile, onDismiss, buttons = { TextButton(onClick = onDismiss) { Text(pl.close, color = p.accent) } }) {
+        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            for ((k, v) in rows) {
+                Column {
+                    Text(k, color = p.muted, fontSize = 12.sp)
+                    Text(v, color = p.text, fontSize = 14.sp)
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                    if (items.size > 1) Glyph("⏮", Color.White) { go(-1) }
-                    Glyph("-10", Color.White) { val np = (pos - 10000).coerceAtLeast(0); mpRef[0]?.seekExact(np); pos = np }
-                    Box(Modifier.size(52.dp).clip(RoundedCornerShape(26.dp)).background(p.accent.copy(alpha = 0.3f)).clickableScale(pressed = 0.9f) {
-                        val v = view[0]
-                        if (v != null) try {
-                            if (v.isPlaying) { v.pause(); playing = false } else { v.start(); playing = true; applySpeed() }
-                        } catch (e: Throwable) { }
-                    }, contentAlignment = Alignment.Center) {
-                        Icon(if (playing) AppIcons.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(30.dp))
-                    }
-                    Glyph("+10", Color.White) { val np = (pos + 10000).coerceAtMost(dur); mpRef[0]?.seekExact(np); pos = np }
-                    if (items.size > 1) Glyph("⏭", Color.White) { go(1) }
-                }
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PChip(pl.speed(speed), speed != 1f) {
-                        speed = nextSpeed(speed)
-                        MediaPrefs.speed = speed
-                        MediaPrefs.save()
-                        applySpeed()
-                    }
-                    PChip(pl.repeat(MediaPrefs.repeat), MediaPrefs.repeat != 0) { MediaPrefs.repeat = (MediaPrefs.repeat + 1) % 3; MediaPrefs.save() }
-                }
-                Spacer(Modifier.height(6.dp))
             }
         }
     }
 }
 
-// ------------------------------------------------------------------ settings
+@Composable
+private fun AddToListDialog(kind: Int, item: MItem, onDismiss: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    val ctx = LocalContext.current
+    var newDlg by remember { mutableStateOf(false) }
+    val lists = MediaLib.listsOf(kind)
+    fun addTo(l: MList) {
+        val n = MediaLib.addItems(kind, l.id, listOf(item))
+        toastMsg(ctx, if (n > 0) pl.addedTo(n, listTitle(pl, l)) else pl.alreadyIn(listTitle(pl, l)))
+        onDismiss()
+    }
+    if (newDlg) {
+        NameDialog(
+            if (kind == 1) pl.addCollection else pl.addPlaylist, if (kind == 1) pl.collectionName else pl.playlistName, "", pl.add,
+            { newDlg = false }, { name ->
+                val id = MediaLib.createList(kind, name)
+                MediaLib.listsOf(kind).firstOrNull { it.id == id }?.let { addTo(it) }
+            },
+        )
+        return
+    }
+    AppDialog(pl.chooseList, onDismiss, buttons = { TextButton(onClick = onDismiss) { Text(pl.close, color = p.accent) } }) {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            for (l in lists) {
+                Row(Modifier.fillMaxWidth().clickableScale(pressed = 0.98f) { addTo(l) }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(if (l.id == MediaLib.FAV) AppIcons.Heart else if (kind == 1) AppIcons.Collections else AppIcons.PlaylistMusic, null, tint = p.accent, modifier = Modifier.size(22.dp))
+                    Text(listTitle(pl, l), color = p.text, fontSize = 16.sp, modifier = Modifier.weight(1f).padding(start = 12.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(l.items.size.toString(), color = p.muted, fontSize = 13.sp)
+                }
+            }
+            Text(pl.newList, color = p.accent, fontSize = 16.sp, fontWeight = FontWeight.Medium, modifier = Modifier.fillMaxWidth().clickableScale(pressed = 0.98f) { newDlg = true }.padding(vertical = 13.dp))
+        }
+    }
+}
+
+/**
+ * The "⋯" window of an item: info, favorites, lists, share, File Inspection and (inside a queue / gallery) remove / play next.
+ * [index] is the position in the list of [kind] when the item comes from it, otherwise -1.
+ */
+@Composable
+internal fun ItemMenu(kind: Int, item: MItem, index: Int, startSub: Int = 0, onDismiss: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val ctx = LocalContext.current
+    var sub by remember { mutableStateOf(startSub) }
+    when (sub) {
+        1 -> { InfoDialog(kind, item, onDismiss); return }
+        2 -> { AddToListDialog(kind, item, onDismiss); return }
+    }
+    val opts = ArrayList<Pair<String, () -> Unit>>()
+    opts.add((if (kind == 2) pl.infoSong else pl.infoFile) to { sub = 1 })
+    val items = PlayerHub.items(kind)
+    if (index in items.indices) {
+        if (kind != 1) opts.add(pl.playNext to {
+            val cur = when (kind) {
+                2 -> if (AudioEngine.queue === items) AudioEngine.index else -1
+                else -> PlayerHub.videoIndex
+            }
+            val m = items.toMutableList()
+            val moved = m.removeAt(index)
+            var at = if (cur < 0) 0 else cur + 1
+            if (index < cur) at -= 1
+            m.add(at.coerceIn(0, m.size), moved)
+            PlayerHub.update(kind, m)
+            onDismiss()
+        })
+        opts.add((if (kind == 1) pl.removeFromGallery else pl.removeFromQueue) to {
+            val m = items.toMutableList()
+            m.removeAt(index)
+            PlayerHub.update(kind, m)
+            onDismiss()
+        })
+    }
+    val fav = MediaLib.isFav(kind, item)
+    opts.add((if (fav) pl.removeFav else pl.addFav) to {
+        if (item.uri == null) toastMsg(ctx, pl.tempCannotSave) else {
+            val now = MediaLib.toggleFav(kind, item)
+            toastMsg(ctx, if (now) pl.addedTo(1, pl.favorites) else pl.removeFav)
+        }
+        onDismiss()
+    })
+    opts.add((if (kind == 1) pl.addToCollection else pl.addToPlaylist) to {
+        if (item.uri == null) { toastMsg(ctx, pl.tempCannotSave); onDismiss() } else sub = 2
+    })
+    if (item.uri != null) {
+        opts.add(pl.share to {
+            try {
+                val mime = when (kind) { 1 -> "image/*"; 2 -> "audio/*"; else -> "video/*" }
+                val i = Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM, item.uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                ctx.startActivity(Intent.createChooser(i, pl.share).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            } catch (e: Exception) { }
+            onDismiss()
+        })
+        opts.add(pl.openInspect to { onDismiss(); PlayerHub.openInspect?.invoke(item.uri); Unit })
+    }
+    OptionsDialog(item.name, onDismiss, opts)
+}
+
+// ------------------------------------------------------------------ screen
 
 @Composable
-private fun PSwitch(label: String, desc: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    val p = LocalPalette.current
-    Row(Modifier.fillMaxWidth().clickableScale(pressed = 0.99f, ripple = false) { onChange(!checked) }, verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f).padding(end = 12.dp)) {
-            Text(label, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-            if (desc.isNotEmpty()) Text(desc, color = p.muted, fontSize = 12.sp)
+fun PlayerListScreen(kind: Int, onBack: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val ctx = LocalContext.current
+    remember { PlayerHub.init(ctx); true }
+    val isImg = kind == 1
+    val queueTab = if (isImg) 0 else 1
+    val folderTab = if (isImg) 1 else 2
+    val listTab = if (isImg) 2 else 3
+    var tab by remember { mutableStateOf((PlayerHub.tab[kind] ?: 0).coerceIn(0, listTab)) }
+    var viewer by remember { mutableStateOf(-1) }
+    fun goTab(t: Int) { tab = t; PlayerHub.tab[kind] = t }
+    val title = when (kind) { 1 -> pl.imageTitle; 2 -> pl.audioTitle; else -> pl.videoTitle }
+
+    DisposableEffect(kind) {
+        onDispose {
+            if (kind == 2 && !MediaPrefs.background) AudioEngine.stop()
+            if (kind == 3) {
+                PlayerHub.videoFull = false
+                val a = ctx.findActivity()
+                try { a?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED } catch (e: Exception) { }
+                try { a?.window?.let { w -> val lp = w.attributes; lp.screenBrightness = -1f; w.attributes = lp } } catch (e: Exception) { }
+            }
         }
-        Switch(
-            checked = checked, onCheckedChange = onChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = p.accent, checkedTrackColor = p.accent.copy(alpha = 0.45f),
-                uncheckedThumbColor = p.muted, uncheckedTrackColor = p.muted.copy(alpha = 0.3f),
+    }
+    LaunchedEffect(kind) {
+        if (kind == 3 && MediaPrefs.videoOrient != 0) {
+            try {
+                ctx.findActivity()?.requestedOrientation =
+                    if (MediaPrefs.videoOrient == 1) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            } catch (e: Exception) { }
+        }
+    }
+    val auto = PlayerHub.autoOpen
+    LaunchedEffect(auto) {
+        val a = auto ?: return@LaunchedEffect
+        if (a.first != kind) return@LaunchedEffect
+        PlayerHub.autoOpen = null
+        goTab(0)
+        when (kind) {
+            2 -> AudioEngine.setQueue(PlayerHub.audio, a.second)
+            3 -> PlayerHub.videoIndex = a.second
+            else -> viewer = a.second
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+            ScreenHeader(title, onBack)
+            if (isImg) {
+                TabBar(listOf(AppIcons.Image, AppIcons.Folder, AppIcons.Collections), listOf(pl.tabGallery, pl.tabFolder, pl.tabCollection), tab) { goTab(it) }
+            } else {
+                TabBar(
+                    listOf(Icons.Default.PlayArrow, AppIcons.QueueMusic, AppIcons.Folder, AppIcons.PlaylistMusic),
+                    listOf(pl.tabPlayer, pl.tabQueue, pl.tabFolder, pl.tabPlaylist), tab,
+                ) { goTab(it) }
+            }
+            Spacer(Modifier.height(10.dp))
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                when {
+                    isImg && tab == 0 -> GalleryTab { viewer = it }
+                    !isImg && tab == 0 -> if (kind == 2) AudioPane() else VideoPane()
+                    !isImg && tab == 1 -> QueueTab(kind) { goTab(0) }
+                    tab == folderTab -> FolderTab(kind) { goTab(queueTab) }
+                    else -> ListsTab(kind) { goTab(queueTab) }
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+        }
+        if (viewer >= 0 && isImg) ImageViewer(PlayerHub.image, viewer) { viewer = -1 }
+        if (kind == 3 && PlayerHub.videoFull && PlayerHub.videoIndex in PlayerHub.video.indices) VideoPane(fullscreen = true)
+    }
+}
+
+// ------------------------------------------------------------------ queue (audio / video)
+
+@Composable
+private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    val items = PlayerHub.items(kind)
+    val size = MediaPrefs.pageQueue
+    val pages = ((items.size + size - 1) / size).coerceAtLeast(1)
+    val curIdx = if (kind == 2 && AudioEngine.queue === items) AudioEngine.index else if (kind == 3) PlayerHub.videoIndex else -1
+    var page by remember { mutableStateOf(if (curIdx >= 0) curIdx / size else 0) }
+    val pg = page.coerceIn(0, pages - 1)
+    val from = pg * size
+    val to = minOf(items.size, from + size)
+    var menu by remember { mutableStateOf(-1) }
+
+    fun move(a: Int, b: Int) {
+        if (a !in items.indices || b !in items.indices) return
+        val m = items.toMutableList()
+        val x = m[a]; m[a] = m[b]; m[b] = x
+        PlayerHub.update(kind, m)
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        val lb = PlayerHub.label[kind] ?: ""
+        if (items.isNotEmpty()) Text((if (lb.isNotEmpty()) "$lb · " else "") + pl.pageInfo(items.size), color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
+        if (items.isEmpty()) {
+            EmptyState(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, pl.emptyQueue, Modifier.fillMaxWidth().padding(top = 24.dp))
+        } else {
+            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                itemsIndexed(items.subList(from, to), key = { l, it -> (from + l).toString() + it.key }) { l, it ->
+                    val gi = from + l
+                    val active = if (kind == 2) AudioEngine.current?.key == it.key && AudioEngine.queue === items else PlayerHub.videoIndex == gi
+                    QueueRow(
+                        kind, it, active,
+                        onClick = {
+                            if (kind == 2) {
+                                if (AudioEngine.queue === items) AudioEngine.playIndex(gi) else AudioEngine.setQueue(items, gi)
+                            } else {
+                                PlayerHub.videoIndex = gi
+                                onPlayVideo()
+                            }
+                        },
+                        onUp = if (gi > 0) ({ move(gi, gi - 1) }) else null,
+                        onDown = if (gi < items.size - 1) ({ move(gi, gi + 1) }) else null,
+                        onMenu = { menu = gi },
+                    )
+                }
+            }
+            if (pages > 1) {
+                Spacer(Modifier.height(8.dp))
+                PageNav(pg, pages, { page = it })
+            }
+            if (kind == 2 && AudioEngine.current != null) {
+                Spacer(Modifier.height(8.dp))
+                MiniBar()
+            }
+        }
+    }
+    items.getOrNull(menu)?.let { ItemMenu(kind, it, menu) { menu = -1 } }
+}
+
+@Composable
+private fun QueueRow(kind: Int, item: MItem, active: Boolean, onClick: () -> Unit, onUp: (() -> Unit)?, onDown: (() -> Unit)?, onMenu: () -> Unit) {
+    val p = LocalPalette.current
+    val ctx = LocalContext.current
+    val meta by produceState<MMeta?>(MediaMeta.cached(item.key), item.key) {
+        if (value == null) value = withContext(Dispatchers.IO) { MediaMeta.load(ctx, item, kind == 3) }
+    }
+    val title = (if (MediaPrefs.tagTitle) meta?.title else null) ?: item.name
+    val sub2 = meta?.album ?: if (item.size > 0) sizeText(item.size) else ""
+    val dur = meta?.durationMs ?: 0
+    AppCard(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().background(if (active) p.accent.copy(alpha = 0.12f) else Color.Transparent).cardClickable(onClick).padding(vertical = 8.dp, horizontal = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.width(30.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.size(30.dp, 26.dp).then(if (onUp != null) Modifier.clickableScale(pressed = 0.8f, onClick = onUp) else Modifier), contentAlignment = Alignment.Center) {
+                    Icon(AppIcons.ArrowUp, null, tint = if (onUp != null) p.text else p.muted.copy(alpha = 0.25f), modifier = Modifier.size(24.dp))
+                }
+                Box(Modifier.size(30.dp, 26.dp).then(if (onDown != null) Modifier.clickableScale(pressed = 0.8f, onClick = onDown) else Modifier), contentAlignment = Alignment.Center) {
+                    Icon(AppIcons.ArrowDown, null, tint = if (onDown != null) p.text else p.muted.copy(alpha = 0.25f), modifier = Modifier.size(24.dp))
+                }
+            }
+            Box(Modifier.padding(start = 4.dp).size(54.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
+                val art = meta?.art
+                if (MediaPrefs.showCover && art != null) Image(art, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                else Icon(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, null, tint = if (active) p.accent else p.iconFg, modifier = Modifier.size(26.dp))
+            }
+            Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
+                Text(title, color = if (active) p.accent else p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                meta?.artist?.let { Text(it, color = if (active) p.accent else p.text, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(sub2, color = p.muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    if (dur > 0) Text(fmtClock(dur), color = p.muted, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+                }
+            }
+            RoundIcon(AppIcons.MoreHoriz, "", p.text, 40, 22, p.trailingBg, onMenu)
+        }
+    }
+}
+
+@Composable
+private fun MiniBar() {
+    val p = LocalPalette.current
+    val cur = AudioEngine.current ?: return
+    val meta = MediaMeta.cached(cur.key)
+    AppCard(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(meta?.title ?: cur.name, color = p.text, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            RoundIcon(AppIcons.SkipPrevious, "", p.text) { AudioEngine.previous() }
+            RoundIcon(if (AudioEngine.playing) AppIcons.Pause else Icons.Default.PlayArrow, "", p.accent) { AudioEngine.toggle() }
+            RoundIcon(AppIcons.SkipNext, "", p.text) { AudioEngine.next() }
+        }
+    }
+}
+
+// ------------------------------------------------------------------ folders
+
+@Composable
+internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val folders = MediaLib.folders[kind] ?: emptyList()
+    var scanning by remember { mutableStateOf(false) }
+    var scanCount by remember { mutableStateOf(0) }
+    var job by remember { mutableStateOf<Job?>(null) }
+    var menu by remember { mutableStateOf<String?>(null) }
+    val mime = when (kind) { 1 -> "image/*"; 2 -> "audio/*"; else -> "video/*" }
+
+    fun load(uri: String, name: String) {
+        job?.cancel()
+        job = scope.launch {
+            scanning = true
+            scanCount = 0
+            try {
+                val r = withContext(Dispatchers.IO) { MediaScan.scanTree(ctx, Uri.parse(uri), kind, MediaPrefs.subfolders) { scanCount = it } }
+                if (r.isEmpty()) toastMsg(ctx, pl.nothingFound) else {
+                    PlayerHub.set(kind, r, name)
+                    onLoaded()
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+            } finally {
+                scanning = false
+            }
+        }
+    }
+
+    val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) {
+            try { ctx.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) { }
+            val name = uri.lastPathSegment?.substringAfterLast(':')?.substringAfterLast('/')?.ifEmpty { null } ?: pl.tabFolder
+            MediaLib.addFolder(kind, uri, name)
+        }
+    }
+    val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        if (uris.isNotEmpty()) {
+            for (u in uris) try { ctx.contentResolver.takePersistableUriPermission(u, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) { }
+            scope.launch {
+                val list = withContext(Dispatchers.IO) { uris.map { itemOfUri(ctx, it) } }
+                PlayerHub.set(kind, PlayerHub.items(kind) + list, PlayerHub.label[kind] ?: "")
+                onLoaded()
+            }
+        }
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.weight(1f)) { PrimaryButton(pl.addFolder, !scanning) { pickFolder.launch(null) } }
+            Box(Modifier.weight(1f)) { SecondaryButton(pl.addFiles, !scanning) { pickFiles.launch(arrayOf(mime, "application/octet-stream")) } }
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(Modifier.fillMaxWidth().clickableScale(pressed = 0.98f, ripple = false) { MediaPrefs.subfolders = !MediaPrefs.subfolders; MediaPrefs.save() }, verticalAlignment = Alignment.CenterVertically) {
+            Text(pl.subfolders, color = p.text, fontSize = 15.sp, modifier = Modifier.weight(1f))
+            Switch(
+                checked = MediaPrefs.subfolders, onCheckedChange = { MediaPrefs.subfolders = it; MediaPrefs.save() },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = p.accent, checkedTrackColor = p.accent.copy(alpha = 0.45f),
+                    uncheckedThumbColor = p.muted, uncheckedTrackColor = p.muted.copy(alpha = 0.3f),
+                ),
+            )
+        }
+        if (scanning) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                CircularProgressIndicator(Modifier.size(18.dp), color = p.accent, strokeWidth = 2.dp)
+                Spacer(Modifier.width(10.dp))
+                Text(pl.scanning + " " + pl.found(scanCount), color = p.muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                TextButton(onClick = { job?.cancel(); scanning = false }) { Text("✕", color = p.accent) }
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        if (folders.isEmpty()) {
+            EmptyState(AppIcons.Folder, pl.emptyFolders, Modifier.fillMaxWidth().padding(top = 24.dp))
+        } else {
+            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                itemsIndexed(folders, key = { _, f -> f.uri }) { _, f ->
+                    AppCard(Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth().cardClickable { if (!scanning) load(f.uri, f.name) }.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
+                                Icon(AppIcons.Folder, null, tint = p.iconFg, modifier = Modifier.size(24.dp))
+                            }
+                            Text(f.name, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(horizontal = 12.dp))
+                            RoundIcon(AppIcons.MoreHoriz, "", p.text, 40, 22, p.trailingBg) { menu = f.uri }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    val m = menu
+    val mf = folders.firstOrNull { it.uri == m }
+    if (mf != null) {
+        OptionsDialog(
+            mf.name, { menu = null },
+            listOf(
+                pl.loadFolder to { menu = null; if (!scanning) load(mf.uri, mf.name); Unit },
+                pl.removeFolder to { MediaLib.removeFolder(kind, mf.uri); menu = null },
             ),
         )
     }
 }
 
+// ------------------------------------------------------------------ playlists / collections
+
 @Composable
-fun PlayerSettingsScreen(onBack: () -> Unit) {
+internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
-    val ctx = LocalContext.current
-    var msg by remember { mutableStateOf("") }
-    val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument()) { uri ->
-        if (uri != null) {
-            msg = try {
-                ctx.contentResolver.openOutputStream(uri)?.use { it.write(MediaPrefs.exportJson().toByteArray(Charsets.UTF_8)) }
-                pl.exported
-            } catch (e: Exception) { pl.importFail }
-        }
-    }
-    val import = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            val text = try { ctx.contentResolver.openInputStream(uri)?.use { String(it.readBytes(), Charsets.UTF_8) } } catch (e: Exception) { null }
-            msg = if (text != null && MediaPrefs.importJson(text)) pl.imported else pl.importFail
-        }
-    }
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        ScreenHeader(pl.settingsTitle, onBack)
-        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
-            AppCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    PSwitch(pl.setAutoNext, pl.setAutoNextDesc, MediaPrefs.autoNext) { MediaPrefs.autoNext = it; MediaPrefs.save() }
-                    PSwitch(pl.setShuffle, "", MediaPrefs.shuffle) { MediaPrefs.shuffle = it; MediaPrefs.save() }
-                    PSwitch(pl.setRemember, pl.setRememberDesc, MediaPrefs.remember) { MediaPrefs.remember = it; MediaPrefs.save() }
-                    PSwitch(pl.setBackground, pl.setBackgroundDesc, MediaPrefs.background) { MediaPrefs.background = it; MediaPrefs.save() }
-                    PSwitch(pl.setVideoAuto, "", MediaPrefs.videoAutoPlay) { MediaPrefs.videoAutoPlay = it; MediaPrefs.save() }
-                    PSwitch(pl.setKeepOn, "", MediaPrefs.keepScreenOn) { MediaPrefs.keepScreenOn = it; MediaPrefs.save() }
-                    PSwitch(pl.subfolders, "", MediaPrefs.subfolders) { MediaPrefs.subfolders = it; MediaPrefs.save() }
-                }
-            }
-            AppCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(pl.setRepeat, fontSize = 12.sp, color = p.muted)
-                        AppDropdown(pl.setRepeat, MediaPrefs.repeat.toString(), listOf("0" to pl.repeat(0), "1" to pl.repeat(1), "2" to pl.repeat(2)), showLabel = false) {
-                            MediaPrefs.repeat = it.toInt(); MediaPrefs.save()
+    val lists = MediaLib.lists[kind] ?: MediaLib.listsOf(kind)
+    var nameDlg by remember { mutableStateOf(false) }
+    var renameId by remember { mutableStateOf<String?>(null) }
+    var menuId by remember { mutableStateOf<String?>(null) }
+    var delId by remember { mutableStateOf<String?>(null) }
+    val addLabel = if (kind == 1) pl.addCollection else pl.addPlaylist
+    val nameLabel = if (kind == 1) pl.collectionName else pl.playlistName
+
+    Column(Modifier.fillMaxSize()) {
+        PrimaryButton(addLabel, true) { nameDlg = true }
+        Spacer(Modifier.height(12.dp))
+        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            itemsIndexed(lists.chunked(3)) { _, row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (l in row) {
+                        Column(Modifier.weight(1f)) {
+                            val fav = l.id == MediaLib.FAV
+                            Box(
+                                Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(CardRadius)).background(p.iconBg)
+                                    .border(1.dp, p.cardBorder, RoundedCornerShape(CardRadius))
+                                    .clickableScale(pressed = 0.95f) {
+                                        PlayerHub.set(kind, MediaLib.toItems(l), listTitle(pl, l))
+                                        onLoaded()
+                                    },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(if (fav) AppIcons.Heart else if (kind == 1) AppIcons.Collections else AppIcons.PlaylistMusic, null, tint = if (fav) p.accent else p.iconFg, modifier = Modifier.fillMaxSize(0.42f))
+                                if (!fav) {
+                                    Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                                        RoundIcon(AppIcons.MoreHoriz, "", p.text, 32, 20, p.card.copy(alpha = 0.85f)) { menuId = l.id }
+                                    }
+                                }
+                            }
+                            Text(listTitle(pl, l), color = p.text, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+                            Text(pl.pageInfo(l.items.size), color = p.muted, fontSize = 11.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                         }
                     }
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(pl.setSpeed, fontSize = 12.sp, color = p.muted)
-                        AppDropdown(pl.setSpeed, MediaPrefs.speed.toString(), SPEEDS.map { it.toString() to pl.speed(it) }, showLabel = false) {
-                            MediaPrefs.speed = it.toFloat(); MediaPrefs.save()
-                        }
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(pl.setSlideshow, fontSize = 12.sp, color = p.muted)
-                        AppDropdown(pl.setSlideshow, MediaPrefs.slideshowSec.toString(), listOf(2, 3, 4, 5, 8, 10, 15, 30).map { it.toString() to pl.seconds(it) }, showLabel = false) {
-                            MediaPrefs.slideshowSec = it.toInt(); MediaPrefs.save()
-                        }
-                    }
-                }
-            }
-            AppCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(pl.setBackup, fontSize = 12.sp, color = p.muted)
-                    SecondaryButton(pl.exportBtn) { export.launch("furuarc-media-settings.json") }
-                    SecondaryButton(pl.importBtn) { import.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }
-                    SecondaryButton(pl.resetBtn) { MediaPrefs.reset(); msg = pl.resetDone }
-                    if (msg.isNotEmpty()) Text(msg, color = p.muted, fontSize = 13.sp)
+                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
         }
     }
+    if (nameDlg) NameDialog(addLabel, nameLabel, "", pl.add, { nameDlg = false }) { MediaLib.createList(kind, it); nameDlg = false }
+    val rid = renameId
+    val rl = lists.firstOrNull { it.id == rid }
+    if (rl != null) NameDialog(pl.rename, nameLabel, rl.name, pl.save, { renameId = null }) { MediaLib.renameList(kind, rl.id, it); renameId = null }
+    val ml = lists.firstOrNull { it.id == menuId }
+    if (ml != null) {
+        OptionsDialog(
+            ml.name, { menuId = null },
+            listOf(pl.rename to { renameId = ml.id; menuId = null }, pl.delete to { delId = ml.id; menuId = null }),
+        )
+    }
+    val dl = lists.firstOrNull { it.id == delId }
+    if (dl != null) ConfirmDialog(pl.delete, pl.deleteListAsk(dl.name), pl.delete, pl.cancel, { MediaLib.deleteList(kind, dl.id); delId = null }, { delId = null })
 }

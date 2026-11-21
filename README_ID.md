@@ -134,11 +134,12 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 ### Media Player
 
-Alat Pendukung > Media Player punya menu Gambar, Audio, dan Video. Pilih file atau folder (bisa termasuk subfolder), semua media di dalamnya dipindai.
+Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar Video.
 
-- Audio: sebelumnya/berikutnya, acak, ulangi, kecepatan, ulang A-B, pewaktu tidur, putar di latar belakang dengan kontrol notifikasi, posisi terakhir diingat.
-- Gambar: zoom cubit, geser, tayangan slide. Video: posisi terakhir diingat.
-- Halaman Pengaturan Media dengan ekspor dan impor pengaturan.
+- Audio dan Video: tab **Pemutar**, **Antrian**, **Folder**, dan **Daftar Putar**. Folder hanya menampilkan nama; mengetuk satu folder memindainya menjadi Antrian (dengan saklar "termasuk subfolder"). Antrian menampilkan cover dan tag, bisa diurutkan dengan panah atas/bawah, 50 item per halaman, dan punya menu titik tiga (info, putar berikutnya, hapus, favorit, daftar putar, kirim, Pemeriksaan File). Daftar Putar berupa kartu 3 kolom dengan daftar Favorit bawaan.
+- Pemutar: ulangi, acak, kecepatan, ulang A-B, pewaktu tidur, equalizer, putar di latar belakang dengan kontrol notifikasi, posisi terakhir diingat. Video menambah putar layar, layar penuh, ketuk dua kali untuk loncat, dan geser untuk kecerahan / volume.
+- Galeri Gambar: Galeri, Folder, dan Koleksi; tampilan daftar atau kotak, 60 per halaman, zoom cubit, dan slideshow.
+- Pengaturan Media: banyak opsi pemutar serta ekspor / impor pengaturan dan semua daftar.
 - Penampil di Aset Game punya ikon Media Player untuk membuka aset di sini.
 - **Buka dengan...**: file dari aplikasi file manager atau Bagikan / Kirim ke bisa dibuka di FuruArc (media di Media Player, teks/arsip di fitur yang cocok, format tidak dikenal di Pemeriksaan File). Bisa dimatikan di Pengaturan Sistem.
 

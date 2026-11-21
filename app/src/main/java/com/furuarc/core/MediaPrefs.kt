@@ -21,11 +21,11 @@ fun MediaPlayer.seekExact(ms: Int) {
 }
 
 /** One playable / viewable item of the Media Player (a document URI or a plain file path). */
-class MItem(val name: String, val uri: Uri?, val path: String?, val size: Long) {
+class MItem(val name: String, val uri: Uri?, val path: String?, val size: Long, val modified: Long = 0L) {
     val key: String get() = uri?.toString() ?: path ?: name
 }
 
-/** Settings of the Media Player (Media Settings page). Saved on every change; can be exported to / imported from a JSON file. */
+/** Settings of the Media Player (Media Settings page). Saved on every change; exported to / imported from a JSON file together with [MediaLib]. */
 object MediaPrefs {
     private var sp: SharedPreferences? = null
 
@@ -40,45 +40,86 @@ object MediaPrefs {
     var slideshowSec by mutableStateOf(4)
     var videoAutoPlay by mutableStateOf(true)
     var keepScreenOn by mutableStateOf(true)
+    // audio
+    var pauseUnplug by mutableStateOf(true)
+    var audioFocus by mutableStateOf(true)
+    var restoreQueue by mutableStateOf(true)
+    /** Audio files smaller than this many KB are skipped by folder scans (0 = keep all). */
+    var minAudioKb by mutableStateOf(0)
+    // video
+    var skipSec by mutableStateOf(10)
+    var doubleTap by mutableStateOf(true)
+    var swipeGestures by mutableStateOf(true)
+    /** 0 = automatic, 1 = landscape, 2 = portrait. */
+    var videoOrient by mutableStateOf(0)
+    // lists
+    /** 0 = name, 1 = newest first, 2 = largest first. */
+    var sortOrder by mutableStateOf(0)
+    var tagTitle by mutableStateOf(true)
+    var showCover by mutableStateOf(true)
+    var pageQueue by mutableStateOf(50)
+    // gallery
+    var pageGallery by mutableStateOf(60)
+    /** 0 = list, 1 = grid. */
+    var galleryMode by mutableStateOf(1)
+    var gridCols by mutableStateOf(3)
+    /** 0 = fit to screen, 1 = fill the screen width. */
+    var imageFit by mutableStateOf(0)
+    /** 0 = black, 1 = dark gray, 2 = white. */
+    var viewerBg by mutableStateOf(0)
+
+    private class B(val k: String, val get: () -> Boolean, val set: (Boolean) -> Unit, val def: Boolean)
+    private class I(val k: String, val get: () -> Int, val set: (Int) -> Unit, val def: Int, val lo: Int, val hi: Int)
+
+    private val bools = listOf(
+        B("subfolders", { subfolders }, { subfolders = it }, true), B("autoNext", { autoNext }, { autoNext = it }, true),
+        B("shuffle", { shuffle }, { shuffle = it }, false), B("remember", { remember }, { remember = it }, true),
+        B("background", { background }, { background = it }, true), B("videoAutoPlay", { videoAutoPlay }, { videoAutoPlay = it }, true),
+        B("keepScreenOn", { keepScreenOn }, { keepScreenOn = it }, true), B("pauseUnplug", { pauseUnplug }, { pauseUnplug = it }, true),
+        B("audioFocus", { audioFocus }, { audioFocus = it }, true), B("restoreQueue", { restoreQueue }, { restoreQueue = it }, true),
+        B("doubleTap", { doubleTap }, { doubleTap = it }, true), B("swipeGestures", { swipeGestures }, { swipeGestures = it }, true),
+        B("tagTitle", { tagTitle }, { tagTitle = it }, true), B("showCover", { showCover }, { showCover = it }, true),
+    )
+    private val ints = listOf(
+        I("repeat", { repeat }, { repeat = it }, 0, 0, 2), I("slideshowSec", { slideshowSec }, { slideshowSec = it }, 4, 1, 30),
+        I("minAudioKb", { minAudioKb }, { minAudioKb = it }, 0, 0, 10000), I("skipSec", { skipSec }, { skipSec = it }, 10, 1, 120),
+        I("videoOrient", { videoOrient }, { videoOrient = it }, 0, 0, 2), I("sortOrder", { sortOrder }, { sortOrder = it }, 0, 0, 2),
+        I("pageQueue", { pageQueue }, { pageQueue = it }, 50, 10, 500), I("pageGallery", { pageGallery }, { pageGallery = it }, 60, 10, 500),
+        I("galleryMode", { galleryMode }, { galleryMode = it }, 1, 0, 1), I("gridCols", { gridCols }, { gridCols = it }, 3, 2, 4),
+        I("imageFit", { imageFit }, { imageFit = it }, 0, 0, 1), I("viewerBg", { viewerBg }, { viewerBg = it }, 0, 0, 2),
+    )
 
     fun init(ctx: Context) {
         if (sp != null) return
         val s = ctx.applicationContext.getSharedPreferences("media_player", Context.MODE_PRIVATE)
         sp = s
-        subfolders = s.getBoolean("subfolders", true)
-        autoNext = s.getBoolean("autoNext", true)
-        shuffle = s.getBoolean("shuffle", false)
-        repeat = s.getInt("repeat", 0).coerceIn(0, 2)
+        for (b in bools) b.set(s.getBoolean(b.k, b.def))
+        for (i in ints) i.set(s.getInt(i.k, i.def).coerceIn(i.lo, i.hi))
         speed = s.getFloat("speed", 1f).coerceIn(0.25f, 3f)
-        remember = s.getBoolean("remember", true)
-        background = s.getBoolean("background", true)
-        slideshowSec = s.getInt("slideshowSec", 4).coerceIn(1, 30)
-        videoAutoPlay = s.getBoolean("videoAutoPlay", true)
-        keepScreenOn = s.getBoolean("keepScreenOn", true)
     }
 
     fun save() {
-        sp?.edit()
-            ?.putBoolean("subfolders", subfolders)?.putBoolean("autoNext", autoNext)?.putBoolean("shuffle", shuffle)
-            ?.putInt("repeat", repeat)?.putFloat("speed", speed)?.putBoolean("remember", remember)
-            ?.putBoolean("background", background)?.putInt("slideshowSec", slideshowSec)
-            ?.putBoolean("videoAutoPlay", videoAutoPlay)?.putBoolean("keepScreenOn", keepScreenOn)
-            ?.apply()
+        val e = sp?.edit() ?: return
+        for (b in bools) e.putBoolean(b.k, b.get())
+        for (i in ints) e.putInt(i.k, i.get())
+        e.putFloat("speed", speed)
+        e.apply()
     }
 
     fun reset() {
-        subfolders = true; autoNext = true; shuffle = false; repeat = 0; speed = 1f; remember = true
-        background = true; slideshowSec = 4; videoAutoPlay = true; keepScreenOn = true
+        for (b in bools) b.set(b.def)
+        for (i in ints) i.set(i.def)
+        speed = 1f
         save()
     }
 
+    /** Settings plus every folder, playlist, collection and favorite. */
     fun exportJson(): String {
         val o = JSONObject()
-        o.put("subfolders", subfolders); o.put("autoNext", autoNext); o.put("shuffle", shuffle)
-        o.put("repeat", repeat); o.put("speed", speed.toDouble()); o.put("remember", remember)
-        o.put("background", background); o.put("slideshowSec", slideshowSec)
-        o.put("videoAutoPlay", videoAutoPlay); o.put("keepScreenOn", keepScreenOn)
-        return JSONObject().put("furuarc_media_settings", 1).put("settings", o).toString(2)
+        for (b in bools) o.put(b.k, b.get())
+        for (i in ints) o.put(i.k, i.get())
+        o.put("speed", speed.toDouble())
+        return JSONObject().put("furuarc_media_settings", 2).put("settings", o).put("library", MediaLib.exportJson()).toString(2)
     }
 
     fun importJson(text: String): Boolean {
@@ -86,21 +127,20 @@ object MediaPrefs {
             val root = JSONObject(text)
             if (!root.has("furuarc_media_settings")) return false
             val o = root.getJSONObject("settings")
-            subfolders = o.optBoolean("subfolders", subfolders)
-            autoNext = o.optBoolean("autoNext", autoNext)
-            shuffle = o.optBoolean("shuffle", shuffle)
-            repeat = o.optInt("repeat", repeat).coerceIn(0, 2)
+            for (b in bools) b.set(o.optBoolean(b.k, b.get()))
+            for (i in ints) i.set(o.optInt(i.k, i.get()).coerceIn(i.lo, i.hi))
             speed = o.optDouble("speed", speed.toDouble()).toFloat().coerceIn(0.25f, 3f)
-            remember = o.optBoolean("remember", remember)
-            background = o.optBoolean("background", background)
-            slideshowSec = o.optInt("slideshowSec", slideshowSec).coerceIn(1, 30)
-            videoAutoPlay = o.optBoolean("videoAutoPlay", videoAutoPlay)
-            keepScreenOn = o.optBoolean("keepScreenOn", keepScreenOn)
+            root.optJSONObject("library")?.let { MediaLib.importJson(it) }
             save()
             true
         } catch (e: Exception) {
             false
         }
+    }
+
+    fun clearPositions() {
+        posMap = LinkedHashMap()
+        sp?.edit()?.putString("positions", "{}")?.apply()
     }
 
     // ---- remembered playback positions (audio / video), newest last, at most 300 entries
@@ -187,6 +227,7 @@ object MediaScan {
                     arrayOf(
                         DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME,
                         DocumentsContract.Document.COLUMN_MIME_TYPE, DocumentsContract.Document.COLUMN_SIZE,
+                        DocumentsContract.Document.COLUMN_LAST_MODIFIED,
                     ),
                     null, null, null,
                 )?.use { c ->
@@ -198,16 +239,22 @@ object MediaScan {
                             if (recursive) stack.add(id to (if (rel.isEmpty()) name else "$rel/$name"))
                         } else if (kindOf(name) == kind) {
                             val size = if (c.isNull(3)) 0L else c.getLong(3)
-                            out.add(rel to MItem(name, DocumentsContract.buildDocumentUriUsingTree(tree, id), null, size))
+                            val mod = if (c.isNull(4)) 0L else c.getLong(4)
+                            if (kind == 2 && MediaPrefs.minAudioKb > 0 && size in 1 until MediaPrefs.minAudioKb * 1024L) continue
+                            out.add(rel to MItem(name, DocumentsContract.buildDocumentUriUsingTree(tree, id), null, size, mod))
                         }
                     }
                 }
             } catch (e: Exception) { }
             onCount(out.size)
         }
-        out.sortWith { a, b ->
-            val c = natural(a.first, b.first)
-            if (c != 0) c else natural(a.second.name, b.second.name)
+        when (MediaPrefs.sortOrder) {
+            1 -> out.sortByDescending { it.second.modified }
+            2 -> out.sortByDescending { it.second.size }
+            else -> out.sortWith { a, b ->
+                val c = natural(a.first, b.first)
+                if (c != 0) c else natural(a.second.name, b.second.name)
+            }
         }
         return out.map { it.second }
     }

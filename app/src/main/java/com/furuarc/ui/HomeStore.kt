@@ -10,7 +10,7 @@ object HomeStore {
     private const val MAX_RECENT = 8
     private const val MAX_HISTORY = 6
     const val MAX_QUICK = 10
-    val DEFAULT_QUICK = listOf("vn.unpack", "editor", "textedit", "media")
+    val DEFAULT_QUICK = listOf("vn.unpack", "editor", "player", "media")
     private var sp: android.content.SharedPreferences? = null
 
     var recents by mutableStateOf<List<String>>(emptyList())

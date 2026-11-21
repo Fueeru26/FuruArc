@@ -1,6 +1,10 @@
 package com.furuarc.core
 
 import android.content.Context
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.PlaybackParams
 import android.os.SystemClock
@@ -50,6 +54,58 @@ object AudioEngine {
 
     val current: MItem? get() = queue.getOrNull(index)
 
+    /** Audio session of the current track (for the system equalizer); 0 when nothing is loaded. */
+    val sessionId: Int get() = try { mp?.audioSessionId ?: 0 } catch (e: Throwable) { 0 }
+
+    private var resumeOnFocus = false
+    private var noisyRegistered = false
+
+    private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
+        when (change) {
+            AudioManager.AUDIOFOCUS_LOSS -> { resumeOnFocus = false; pause() }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (playing) { resumeOnFocus = true; pause() }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> try { mp?.setVolume(0.25f, 0.25f) } catch (e: Throwable) { }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                try { mp?.setVolume(1f, 1f) } catch (e: Throwable) { }
+                if (resumeOnFocus) { resumeOnFocus = false; if (!playing && mp != null) toggle() }
+            }
+            else -> { }
+        }
+    }
+
+    private val noisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (MediaPrefs.pauseUnplug && playing) pause()
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun requestFocus() {
+        val app = Engine.app
+        if (!noisyRegistered) {
+            try { app.registerReceiver(noisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)); noisyRegistered = true } catch (e: Throwable) { }
+        }
+        if (!MediaPrefs.audioFocus) return
+        try {
+            (app.getSystemService(Context.AUDIO_SERVICE) as AudioManager).requestAudioFocus(focusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
+        } catch (e: Throwable) { }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun abandonFocus() {
+        try { (Engine.app.getSystemService(Context.AUDIO_SERVICE) as AudioManager).abandonAudioFocus(focusListener) } catch (e: Throwable) { }
+    }
+
+    /** Replaces the queue (reordered / items removed / added) without interrupting the playing track when it is still in it. */
+    fun updateQueue(items: List<MItem>) {
+        val key = current?.key
+        queue = items
+        shuffleOrder = emptyList()
+        if (items.isEmpty()) { stop(); return }
+        val ni = if (key == null) -1 else items.indexOfFirst { it.key == key }
+        if (ni >= 0) index = ni else if (index >= 0) playIndex(index.coerceAtMost(items.size - 1))
+    }
+
     fun setQueue(items: List<MItem>, start: Int) {
         queue = items
         shuffleOrder = emptyList()
@@ -82,6 +138,7 @@ object AudioEngine {
                     duration = it.duration
                     val saved = MediaPrefs.savedPos(item.key)
                     if (saved > 0 && saved < duration - 3000) { it.seekExact(saved); position = saved }
+                    requestFocus()
                     it.start()
                     applySpeed()
                     preparing = false
@@ -145,7 +202,7 @@ object AudioEngine {
         val p = mp ?: return
         try {
             if (p.isPlaying) { p.pause(); playing = false; rememberPosition() }
-            else { p.start(); applySpeed(); playing = true; startTicker() }
+            else { requestFocus(); p.start(); applySpeed(); playing = true; startTicker() }
         } catch (e: Exception) { failed = true }
         PlayerService.sync(Engine.app)
     }
@@ -235,6 +292,7 @@ object AudioEngine {
         loopB = null
         sleepAt = 0L
         ticker?.cancel()
+        abandonFocus()
         PlayerService.sync(Engine.app)
     }
 }

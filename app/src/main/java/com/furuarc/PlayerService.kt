@@ -59,7 +59,7 @@ class PlayerService : Service() {
                 ctx, 0, Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
-            val title = AudioEngine.current?.name ?: "FuruArc"
+            val title = AudioEngine.current?.let { com.furuarc.core.MediaMeta.cached(it.key)?.title ?: it.name } ?: "FuruArc"
             val b = NotificationCompat.Builder(ctx, CH)
                 .setSmallIcon(android.R.drawable.ic_media_play)
                 .setContentTitle(title)

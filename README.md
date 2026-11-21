@@ -144,11 +144,12 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 ### Media Player
 
-Support Tools > Media Player has Images, Audio and Video menus. Pick files or a folder (optionally including subfolders) and everything inside is scanned.
+Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
-- Audio: previous/next, shuffle, repeat, speed, A-B loop, sleep timer, background play with notification controls, remembered position.
-- Images: pinch zoom, pan, slideshow. Video: remembered position.
-- Media Settings page with settings export and import.
+- Audio and Video: **Player**, **Queue**, **Folders** and **Playlists** tabs. Folders list only their names; tapping one scans it into the Queue (with an optional "include subfolders" switch). The Queue shows covers and tags, reorders with up/down arrows, pages by 50 and has a three-dot menu (info, play next, remove, favorites, playlists, share, File Inspection). Playlists are cards in 3 columns with a built-in Favorites list.
+- Player: repeat, shuffle, speed, A-B loop, sleep timer, equalizer, background play with notification controls, remembered position. Video adds rotate, fullscreen, double-tap skip and swipe brightness / volume.
+- Image Gallery: Gallery, Folders and Collections; list or grid view, 60 per page, pinch zoom and slideshow.
+- Media Settings: many player options plus export / import of settings and all lists.
 - Game Assets viewers have a Media Player icon to open an asset here.
 - **Open with...**: files from file managers or Share / Send to open in FuruArc (media in Media Player, known text/archive formats in the matching feature, unknown formats in File Inspection). Can be disabled in System settings.
 

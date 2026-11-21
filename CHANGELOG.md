@@ -5,15 +5,24 @@ All notable changes to FuruArc are listed here.
 ## 1.03
 
 ### Added
-- **Media Player** (Support Tools): Images, Audio and Video menus. Pick files or a folder, with a "This folder or subfolders too" toggle; all media in the folder is scanned.
-- **Media Settings** page (button inside Media Player) with settings export and import.
-- **Audio player**: previous/next, shuffle, repeat, playback speed, A-B loop, sleep timer, and background play with notification controls.
-- **Image viewer**: pinch zoom, pan and slideshow.
+- **Media Player** (Support Tools, now placed above the Media Asset Converter, with a new window-and-play icon): Image Gallery, Audio Player and Video Player.
+  - Audio and Video have four toggle buttons: **Player**, **Queue**, **Folders**, **Playlists**.
+  - **Folders**: add folders and see only their names; tapping one scans it and loads its media as the Queue. A "This folder or subfolders too" toggle controls the scan. Single files can be added too.
+  - **Queue**: cover, title, artist, album and duration read from the file tags; move items up or down with arrows; three-dot window with Song info, Play next, Remove from queue, Add to Favorites, Add to playlist, Share and Open in File Inspection; pagination (50 per page, adjustable).
+  - **Playlists** in a 3-column card grid (rename, delete) with a built-in **Favorites** list that cannot be renamed or deleted; tapping a list loads it as the Queue.
+  - **Player**: cover, favorite, info, add to playlist, repeat, shuffle, speed, A-B loop, sleep timer, system equalizer, background play with notification controls. The Video Player adds Rotate Screen, Fullscreen, double-tap skip, and swipe for brightness and volume.
+  - **Image Gallery**: Gallery, Folders and Collections; list or grid view (60 per page, adjustable); Favorites and Collections work like playlists.
+  - Folders, playlists/collections and favorites are kept separately for audio, video and images.
+- **Media Settings** page: audio, video, list and gallery options (pause on headphone unplug, audio focus for calls, restore last queue, skip small audio, skip seconds, default video orientation, sort order, tag titles, covers, page sizes, grid columns, image size, viewer background and more) with export and import of the settings together with all folders, playlists, collections and favorites.
 - **Open with...**: FuruArc can open files from file managers and the Share / Send to menu. Media opens in Media Player, text and archive formats in the matching feature, and unknown formats directly in File Inspection. The current screen is replaced automatically. Can be switched off in System settings.
 - **Media Player icon in Game Assets** viewers to open an asset in Media Player.
 - **Remember last position** for audio and video.
 - **Theme Schedule** mode (dark between chosen hours) and an automatic **Seasonal** display style.
 - Settings switches for **Animations** and **Haptic feedback**.
+
+### Changed
+- Quick Actions default: Media Player replaces Text Editor in the third place (existing custom lists are not changed).
+- The app now handles screen rotation itself instead of restarting.
 
 ### Fixed
 - Tapping the seek bar moved the thumb and time but not the media. Seeking now happens once after the tap and is frame-accurate where supported (API 26+).

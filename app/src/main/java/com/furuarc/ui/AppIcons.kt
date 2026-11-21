@@ -211,4 +211,37 @@ object AppIcons {
                 fill = SolidColor(Color.Black),
             ).build()
     }
+    val QueueMusic: ImageVector by lazy { makeIcon("QueueMusic", "M15,6H3v2h12V6zM15,10H3v2h12v-2zM3,16h8v-2H3v2zM17,6v8.18c-0.31,-0.11 -0.65,-0.18 -1,-0.18 -1.66,0 -3,1.34 -3,3s1.34,3 3,3 3,-1.34 3,-3V8h3V6h-5z") }
+    val PlaylistMusic: ImageVector by lazy { makeIcon("PlaylistMusic", "M20,2H8C6.9,2 6,2.9 6,4v12c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C22,2.9 21.1,2 20,2zM18,6h-3v5.5c0,1.38 -1.12,2.5 -2.5,2.5S10,12.88 10,11.5s1.12,-2.5 2.5,-2.5c0.57,0 1.08,0.19 1.5,0.51V5h4V6zM4,6H2v14c0,1.1 0.9,2 2,2h14v-2H4V6z") }
+    val Collections: ImageVector by lazy { makeIcon("Collections", "M22,16V4c0,-1.1 -0.9,-2 -2,-2H8c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2zM11,12l2.03,2.71L16,11l4,5H8l3,-4zM2,6v14c0,1.1 0.9,2 2,2h14v-2H4V6H2z") }
+    val Heart: ImageVector by lazy { makeIcon("Heart", "M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z") }
+    val HeartOutline: ImageVector by lazy { makeIcon("HeartOutline", "M16.5,3c-1.74,0 -3.41,0.81 -4.5,2.09C10.91,3.81 9.24,3 7.5,3 4.42,3 2,5.42 2,8.5c0,3.78 3.4,6.86 8.55,11.54L12,21.35l1.45,-1.32C18.6,15.36 22,12.28 22,8.5 22,5.42 19.58,3 16.5,3zM12.1,18.55l-0.1,0.1 -0.1,-0.1C7.14,14.24 4,11.39 4,8.5 4,6.5 5.5,5 7.5,5c1.54,0 3.04,0.99 3.57,2.36h1.87C13.46,5.99 14.96,5 16.5,5c2,0 3.5,1.5 3.5,3.5 0,2.89 -3.14,5.74 -7.9,10.05z") }
+    val InfoOutline: ImageVector by lazy { makeIcon("InfoOutline", "M11,7h2v2h-2zM11,11h2v6h-2zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z") }
+    val MoreHoriz: ImageVector by lazy { makeIcon("MoreHoriz", "M6,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM18,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z") }
+    val ArrowUp: ImageVector by lazy { makeIcon("ArrowUp", "M7.41,15.41L12,10.83l4.59,4.58L18,14l-6,-6 -6,6z") }
+    val ArrowDown: ImageVector by lazy { makeIcon("ArrowDown", "M7.41,8.59L12,13.17l4.59,-4.58L18,10l-6,6 -6,-6z") }
+    val ScreenRotation: ImageVector by lazy { makeIcon("ScreenRotation", "M16.48,2.52c3.27,1.55 5.61,4.72 5.97,8.48h1.5C23.44,4.84 18.29,0 12,0l-0.66,0.03 3.81,3.81 1.33,-1.32zM10.23,1.75c-0.59,-0.59 -1.54,-0.59 -2.12,0L1.75,8.11c-0.59,0.59 -0.59,1.54 0,2.12l12.02,12.02c0.59,0.59 1.54,0.59 2.12,0l6.36,-6.36c0.59,-0.59 0.59,-1.54 0,-2.12L10.23,1.75zM14.94,21.12L2.88,9.06l6.36,-6.36 12.06,12.06 -6.36,6.36zM7.52,21.48C4.25,19.94 1.91,16.76 1.55,13L0.05,13C0.56,19.16 5.71,24 12,24l0.66,-0.03 -3.81,-3.81 -1.33,1.32z") }
+    val ViewList: ImageVector by lazy { makeIcon("ViewList", "M3,14h4v-4H3v4zM3,19h4v-4H3v4zM3,9h4V5H3v4zM8,14h13v-4H8v4zM8,19h13v-4H8v4zM8,5v4h13V5H8z") }
+    val GridView: ImageVector by lazy { makeIcon("GridView", "M3,3v8h8V3H3zM9,9H5V5h4v4zM3,13v8h8v-8H3zM9,19H5v-4h4v4zM13,3v8h8V3h-8zM19,9h-4V5h4v4zM13,13v8h8v-8h-8zM19,19h-4v-4h4v4z") }
+    val SkipPrevious: ImageVector by lazy { makeIcon("SkipPrevious", "M6,6h2v12H6zM9.5,12l8.5,6V6z") }
+    val SkipNext: ImageVector by lazy { makeIcon("SkipNext", "M6,18l8.5,-6L6,6v12zM16,6v12h2V6h-2z") }
+    val Shuffle: ImageVector by lazy { makeIcon("Shuffle", "M10.59,9.17L5.41,4 4,5.41l5.17,5.17 1.42,-1.41zM14.5,4l2.04,2.04L4,18.59 5.41,20 17.96,7.46 20,9.5V4h-5.5zM14.83,13.41l-1.41,1.41 3.13,3.13L14.5,20H20v-5.5l-2.04,2.04 -3.13,-3.13z") }
+    val Repeat: ImageVector by lazy { makeIcon("Repeat", "M7,7h10v3l4,-4 -4,-4v3H5v6h2V7zM17,17H7v-3l-4,4 4,4v-3h12v-6h-2v4z") }
+    val RepeatOne: ImageVector by lazy { makeIcon("RepeatOne", "M7,7h10v3l4,-4 -4,-4v3H5v6h2V7zM17,17H7v-3l-4,4 4,4v-3h12v-6h-2v4zM13,15h-1v-4h-1v-1h2v5z") }
+    val Fullscreen: ImageVector by lazy { makeIcon("Fullscreen", "M7,14H5v5h5v-2H7v-3zM5,10h2V7h3V5H5v5zM17,17h-3v2h5v-5h-2v3zM14,5v2h3v3h2V5h-5z") }
+    val FullscreenExit: ImageVector by lazy { makeIcon("FullscreenExit", "M5,16h3v3h2v-5H5v2zM8,8H5v2h5V5H8v3zM14,19h2v-3h3v-2h-5v5zM16,8V5h-2v5h5V8h-3z") }
+    /** Media Player icon: a window with a filled title bar and a play triangle (even-odd: ring, bar and triangle). */
+    val MediaPlayer: ImageVector by lazy {
+        ImageVector.Builder(name = "MediaPlayer", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
+            .addPath(
+                pathData = PathParser().parsePathString(
+                    "M5,3 H19 A3,3 0 0 1 22,6 V18 A3,3 0 0 1 19,21 H5 A3,3 0 0 1 2,18 V6 A3,3 0 0 1 5,3 Z " +
+                        "M5,4.6 H19 A1.4,1.4 0 0 1 20.4,6 V18 A1.4,1.4 0 0 1 19,19.4 H5 A1.4,1.4 0 0 1 3.6,18 V6 A1.4,1.4 0 0 1 5,4.6 Z " +
+                        "M5,4.6 H19 A1.4,1.4 0 0 1 20.4,6 V7.6 H3.6 V6 A1.4,1.4 0 0 1 5,4.6 Z " +
+                        "M10,11.2 L10,17.4 L15.4,14.3 Z",
+                ).toNodes(),
+                pathFillType = androidx.compose.ui.graphics.PathFillType.EvenOdd,
+                fill = SolidColor(Color.Black),
+            ).build()
+    }
 }

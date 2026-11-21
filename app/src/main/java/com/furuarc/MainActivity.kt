@@ -350,6 +350,7 @@ fun App(vm: MainViewModel) {
         navState.enterFromHome()
     }
     SideEffect {
+        com.furuarc.ui.PlayerHub.openInspect = { u -> openFeatureWithFile("filecheck.file", u) }
         com.furuarc.ui.PlayerHub.navigate = { k -> screen = when (k) { 1 -> Screen.MPLAYER_IMAGE; 2 -> Screen.MPLAYER_AUDIO; else -> Screen.MPLAYER_VIDEO } }
     }
     // "Open with…" / "Share": media goes to the Media Player, everything else to the feature that matches the file type
