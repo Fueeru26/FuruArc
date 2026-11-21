@@ -85,7 +85,7 @@ fun StartScreen(onOpen: (String) -> Unit, onOpenWithFile: (String, android.net.U
         )
         Spacer(Modifier.height(ScreenGap))
         Column(
-            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp + LocalBarInset.current),
             verticalArrangement = Arrangement.spacedBy(ScreenGap),
         ) {
             if (searching) {

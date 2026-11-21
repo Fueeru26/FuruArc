@@ -22,6 +22,8 @@ import com.furuarc.ui.AppBottomBar
 import com.furuarc.ui.NavItem
 import com.furuarc.i18n.NavStr
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
@@ -377,15 +379,22 @@ fun App(vm: MainViewModel) {
     }
     val hostView = androidx.compose.ui.platform.LocalView.current
     val focusMgr = androidx.compose.ui.platform.LocalFocusManager.current
-    CompositionLocalProvider(com.furuarc.ui.LocalScrollKeeper provides scrollKeeper) {
+    val barInset = if (tab < 0) 0.dp else when (com.furuarc.ui.theme.AppStyle.nav) {
+        com.furuarc.ui.theme.NavStyle.FLOATING -> 92.dp
+        com.furuarc.ui.theme.NavStyle.FLOAT_ICONS -> 94.dp
+        com.furuarc.ui.theme.NavStyle.FAB -> 76.dp
+        else -> 0.dp
+    }
+    CompositionLocalProvider(com.furuarc.ui.LocalScrollKeeper provides scrollKeeper, com.furuarc.ui.LocalBarInset provides barInset) {
     Column(Modifier.fillMaxSize().clearFocusOnOutsideTap()) {
         Box(Modifier.weight(1f).fillMaxWidth().nestedScroll(headerScroll)) {
             androidx.compose.animation.AnimatedContent(
                 targetState = screen,
-                // every screen change uses the same soft cross-fade
+                // every screen change: cross-fade with a tiny upward slide (same as the Plain Text File screen)
                 transitionSpec = {
                     androidx.compose.animation.ContentTransform(
-                        androidx.compose.animation.fadeIn(tween(220)), androidx.compose.animation.fadeOut(tween(140)))
+                        androidx.compose.animation.fadeIn(tween(200)) + androidx.compose.animation.slideInVertically(tween(220)) { (it * 0.012f).toInt() },
+                        androidx.compose.animation.fadeOut(tween(120)))
                 },
             ) { sc ->
             when (sc) {
@@ -594,6 +603,8 @@ fun App(vm: MainViewModel) {
             }
             }
             if (tab >= 0 && com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FAB) com.furuarc.ui.FabNav(navItems, tab, Modifier, onNavSelect)
+            if (tab >= 0 && (com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FLOATING || com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FLOAT_ICONS))
+                Box(Modifier.align(Alignment.BottomCenter)) { com.furuarc.ui.FloatingNav(navItems, tab, onNavSelect) }
         }
         if (tab >= 0) AppBottomBar(navItems, tab, onNavSelect)
     }

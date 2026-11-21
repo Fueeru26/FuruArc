@@ -228,7 +228,7 @@ fun LibraryScreen(onOpen: (GameEntry) -> Unit) {
             EmptyState(Icons.Default.Search, g.noResult, Modifier.padding(top = 24.dp).fillMaxWidth())
         } else {
             val rows = shown.chunked(3)
-            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp + LocalBarInset.current)) {
                 items(rows) { row ->
                     Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         for (e in row) {

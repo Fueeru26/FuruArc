@@ -6,8 +6,8 @@ All notable changes to FuruArc are listed here.
 
 ### Added
 - **Display Style** (Settings > Display, top): Classic (the previous look), Minimal, Soft, Gradient and Solid, plus themed styles Sakura, Ocean, Forest, Sunset, Neon and Paper. Each has its own colours, corner radius and card style.
-- **Navigation Bar Style** (Settings > Display, below Display Style): Classic, Floating, Floating Icons (larger icons only, in the same floating bar), Icons Only, Sliding Pill, Top Line and Floating Button (a round button that fans out the tabs).
-- **Screen transitions**: all screen changes use one soft cross-fade.
+- **Navigation Bar Style** (Settings > Display, below Display Style): Classic, Floating and Floating Icons (larger icons only), both drawn over the content with no bar behind them, Icons Only, Sliding Pill, Top Line and Floating Button (a round button that fans out the tabs).
+- **Screen transitions**: all screen changes use one soft cross-fade with a tiny upward slide.
 - **Shrinking headers**: page headers get smaller while scrolling down and return when scrolling up.
 - **Illustrated empty states** for empty lists (Game Assets, favorites, quick access, search without results).
 - **Press animations**: buttons, cards, chips, tool tiles, dropdowns and navigation tabs shrink slightly with a springy bounce when pressed.

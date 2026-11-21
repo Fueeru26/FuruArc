@@ -27,7 +27,7 @@ fun SupportScreen(onVnTools: () -> Unit, onRpgmTools: () -> Unit, onEditor: () -
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         HomeHeader(nav.tabTools)
     Column(
-        Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
+        Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp + LocalBarInset.current),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -55,7 +55,7 @@ fun MoreScreen(vm: com.furuarc.MainViewModel, onSettings: () -> Unit, onGuide: (
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         HomeHeader(nav.tabSettings)
     Column(
-        Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
+        Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp + LocalBarInset.current),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) {
         ToolSettingsBlock(vm)

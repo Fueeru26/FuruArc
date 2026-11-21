@@ -64,3 +64,6 @@ class HeaderScrollConnection : androidx.compose.ui.input.nestedscroll.NestedScro
         return androidx.compose.ui.geometry.Offset.Zero
     }
 }
+
+/** Extra bottom space the main tab screens leave for a navigation bar that floats over the content. */
+val LocalBarInset = androidx.compose.runtime.compositionLocalOf { androidx.compose.ui.unit.Dp(0f) }

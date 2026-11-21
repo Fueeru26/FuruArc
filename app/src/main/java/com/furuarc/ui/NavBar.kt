@@ -46,11 +46,11 @@ class NavItem(val icon: ImageVector, val label: String, val badge: Boolean = fal
 fun AppBottomBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) {
     when (AppStyle.nav) {
         NavStyle.CLASSIC -> ClassicBar(items, selected, onSelect)
-        NavStyle.FLOATING -> FloatingBar(items, selected, onSelect)
+        NavStyle.FLOATING -> Unit // drawn over the content by FloatingNav (see MainActivity)
         NavStyle.ICONS -> IconsBar(items, selected, onSelect)
         NavStyle.PILL -> PillBar(items, selected, onSelect)
         NavStyle.TOPLINE -> TopLineBar(items, selected, onSelect)
-        NavStyle.FLOAT_ICONS -> FloatingIconsBar(items, selected, onSelect)
+        NavStyle.FLOAT_ICONS -> Unit
         NavStyle.FAB -> Unit // drawn as an overlay by FabNav (see MainActivity)
     }
 }
@@ -96,6 +96,12 @@ private fun ClassicBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> U
             }
         }
     }
+}
+
+/** The floating bars (Floating, Floating Icons) are drawn over the content, so nothing sits behind or below them. */
+@Composable
+fun FloatingNav(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) {
+    if (AppStyle.nav == NavStyle.FLOAT_ICONS) FloatingIconsBar(items, selected, onSelect) else FloatingBar(items, selected, onSelect)
 }
 
 /** Floating: a rounded bar that hovers above the bottom edge; the active tab expands into icon + label. */
