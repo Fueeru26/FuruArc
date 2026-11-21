@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -88,7 +89,7 @@ fun StartScreen(onOpen: (String) -> Unit, onOpenWithFile: (String, android.net.U
             verticalArrangement = Arrangement.spacedBy(ScreenGap),
         ) {
             if (searching) {
-                if (results.isEmpty()) Text(nav.noResult, color = p.muted, fontSize = 15.sp)
+                if (results.isEmpty()) EmptyState(Icons.Default.Search, nav.noResult)
                 for (f in results) FeatureRow(f, HomeStore.isFav(f.id), { open(f.id, true) }, { HomeStore.toggleFav(f.id) })
             } else {
                 val hist = HomeStore.history
@@ -107,7 +108,7 @@ fun StartScreen(onOpen: (String) -> Unit, onOpenWithFile: (String, android.net.U
                 }
                 SectionHeader(nav.quick, nav.editQuick) { editQuick = true }
                 val quick = HomeStore.quick.mapNotNull { byId[it] }
-                if (quick.isEmpty()) Text(nav.quickEmpty, color = p.muted, fontSize = 14.sp, lineHeight = 20.sp)
+                if (quick.isEmpty()) EmptyState(Icons.Default.Add, nav.quickEmpty)
                 for (row in quick.chunked(2)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         for (f in row) QuickTile(f, Modifier.weight(1f)) { open(f.id, false) }
@@ -118,7 +119,7 @@ fun StartScreen(onOpen: (String) -> Unit, onOpenWithFile: (String, android.net.U
                 MenuCard(AppIcons.File, nav.startFile, nav.startFileSub) { pickFile.launch(arrayOf("*/*")) }
                 SectionHeader(nav.favorites, null) {}
                 val favs = HomeStore.favorites.mapNotNull { byId[it] }
-                if (favs.isEmpty()) Text(nav.favEmpty, color = p.muted, fontSize = 14.sp, lineHeight = 20.sp)
+                if (favs.isEmpty()) EmptyState(Icons.Default.Star, nav.favEmpty)
                 for (f in favs) FeatureRow(f, true, { open(f.id, false) }, { HomeStore.toggleFav(f.id) })
             }
         }
@@ -148,7 +149,7 @@ private fun Chip(text: String, f: Feature?, onClick: () -> Unit) {
     val p = LocalPalette.current
     val shape = RoundedCornerShape(CardRadius)
     Row(
-        Modifier.clip(shape).background(p.card).border(1.dp, p.cardBorder, shape).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 8.dp),
+        Modifier.clip(shape).background(p.card).border(1.dp, p.cardBorder, shape).clickableScale(pressed = 0.94f, onClick = onClick).padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (f != null) {
@@ -163,7 +164,7 @@ private fun Chip(text: String, f: Feature?, onClick: () -> Unit) {
 private fun QuickTile(f: Feature, modifier: Modifier, onClick: () -> Unit) {
     val p = LocalPalette.current
     AppCard(modifier) {
-        Column(Modifier.clickable(onClick = onClick).padding(16.dp).fillMaxWidth()) {
+        Column(Modifier.cardClickable(onClick).padding(16.dp).fillMaxWidth()) {
             Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
                 Icon(f.icon, null, tint = p.iconFg, modifier = Modifier.size(24.dp))
             }
@@ -183,7 +184,7 @@ private fun FeatureRow(f: Feature, fav: Boolean, onClick: () -> Unit, onFav: () 
     val p = LocalPalette.current
     val nav = NavStr.of(LocalLang.current)
     AppCard(Modifier.fillMaxWidth()) {
-        Row(Modifier.clickable(onClick = onClick).padding(start = 12.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.cardClickable(onClick).padding(start = 12.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(40.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
                 Icon(f.icon, null, tint = p.iconFg, modifier = Modifier.size(22.dp))
             }

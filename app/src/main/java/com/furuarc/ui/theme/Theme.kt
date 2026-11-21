@@ -66,7 +66,56 @@ fun accentColor(a: AccentColor, dark: Boolean): Color = when (a) {
     AccentColor.YELLOW -> if (dark) Color(0xFFF2D95B) else Color(0xFF8A6F00)
 }
 
-fun buildPalette(dark: Boolean, accent: AccentColor): Palette {
+/** Palette for the chosen display [style]; [UiStyle.CLASSIC] is the original palette. */
+fun buildPalette(dark: Boolean, accent: AccentColor, style: UiStyle = UiStyle.CLASSIC): Palette {
+    val b = basePalette(dark, accent)
+    fun mk(bg: Color, card: Color, border: Color, iconMix: Float = 0.25f) = Palette(
+        dark = dark, background = bg, card = card,
+        iconBg = lerp(card, b.accent, iconMix), iconFg = b.accent,
+        trailingBg = lerp(card, b.accent, iconMix * 0.7f), trailingFg = b.trailingFg,
+        text = b.text, muted = b.muted, accent = b.accent, onAccent = b.onAccent,
+        disabledBg = lerp(card, if (dark) Color.White else Color.Black, 0.08f), disabledFg = b.disabledFg,
+        outline = b.outline, cardBorder = border,
+    )
+    return when (style) {
+        UiStyle.CLASSIC -> b
+        // flat: no tint, cards blend into the background and are only outlined
+        UiStyle.MINIMAL -> if (dark) mk(Color(0xFF121212), Color(0xFF121212), Color(0xFF3A3D40), 0.18f)
+                           else mk(Color.White, Color.White, Color(0xFFD5D8DC), 0.12f)
+        // soft: pastel-tinted background, lighter cards, hardly any outline
+        UiStyle.SOFT -> if (dark) mk(lerp(Color(0xFF14171B), b.accent, 0.10f), lerp(Color(0xFF22262B), b.accent, 0.10f), Color.Transparent, 0.26f)
+                        else mk(lerp(Color(0xFFF1F3F6), b.accent, 0.12f), Color.White, Color.Transparent, 0.16f)
+        // gradient: the app background is a gradient (see MainActivity); cards are a little translucent-looking
+        UiStyle.GRADIENT -> if (dark) mk(lerp(Color(0xFF101318), b.accent, 0.10f), lerp(Color(0xFF1B1F26), b.accent, 0.14f), lerp(Color(0xFF1B1F26), b.accent, 0.35f), 0.30f)
+                            else mk(lerp(Color(0xFFF4F6F8), b.accent, 0.14f), lerp(Color.White, b.accent, 0.05f), lerp(Color.White, b.accent, 0.30f), 0.20f)
+        // pure black for OLED screens (light mode just gets pure white)
+        UiStyle.SOLID -> if (dark) mk(Color.Black, Color(0xFF0C0C0E), Color(0xFF26282B), 0.22f)
+                         else mk(Color.White, Color(0xFFF6F7F8), Color(0xFFE0E3E6), 0.14f)
+        // themed styles (fixed colours, independent of the accent colour)
+        UiStyle.SAKURA -> if (dark) mk(Color(0xFF1A1316), Color(0xFF281C22), Color(0xFF4A2F3B), 0.22f)
+                          else mk(Color(0xFFFFF1F6), Color(0xFFFFFAFC), Color(0xFFF5CADB), 0.16f)
+        UiStyle.OCEAN -> if (dark) mk(Color(0xFF0A1822), Color(0xFF102534), Color(0xFF1F4258), 0.22f)
+                         else mk(Color(0xFFE8F4FA), Color(0xFFF6FBFE), Color(0xFFBFDDEB), 0.16f)
+        UiStyle.FOREST -> if (dark) mk(Color(0xFF0F1712), Color(0xFF17231B), Color(0xFF2A4333), 0.22f)
+                          else mk(Color(0xFFEEF5EC), Color(0xFFFAFDF8), Color(0xFFC9DEC5), 0.16f)
+        UiStyle.SUNSET -> if (dark) mk(Color(0xFF1A1218), Color(0xFF261A22), Color(0xFF4A2F3C), 0.22f)
+                          else mk(Color(0xFFFFF3E8), Color(0xFFFFFAF5), Color(0xFFF3D2B5), 0.16f)
+        UiStyle.NEON -> if (dark) mk(Color(0xFF07070F), Color(0xFF0E0E1C), lerp(Color(0xFF0E0E1C), b.accent, 0.65f), 0.22f)
+                        else mk(Color(0xFFF7F7FF), Color.White, lerp(Color.White, b.accent, 0.55f), 0.14f)
+        UiStyle.PAPER -> if (dark) mk(Color(0xFF1B1914), Color(0xFF24211A), Color(0xFF3D382C), 0.20f)
+                         else mk(Color(0xFFF5EEDC), Color(0xFFFBF6E9), Color(0xFFDDD1B3), 0.14f)
+    }
+}
+
+/** Top colour of the app background gradient for [style], or null when the background is a plain colour. */
+fun gradientTop(style: UiStyle, p: Palette): Color? = when (style) {
+    UiStyle.GRADIENT -> lerp(p.background, p.accent, if (p.dark) 0.16f else 0.18f)
+    UiStyle.OCEAN -> if (p.dark) Color(0xFF123A52) else Color(0xFFCDE8F5)
+    UiStyle.SUNSET -> if (p.dark) Color(0xFF3A2037) else Color(0xFFFFD6B0)
+    else -> null
+}
+
+private fun basePalette(dark: Boolean, accent: AccentColor): Palette {
     val a = accentColor(accent, dark)
     return if (dark) {
         val card = lerp(Color(0xFF1A1D21), a, 0.08f)
@@ -121,7 +170,7 @@ fun AppSettings.isDark(): Boolean = when (themeMode) {
 @Composable
 fun FuruArcTheme(settings: AppSettings, content: @Composable () -> Unit) {
     val dark = settings.isDark()
-    val p = remember(dark, settings.accent) { buildPalette(dark, settings.accent) }
+    val p = remember(dark, settings.accent, settings.uiStyle) { buildPalette(dark, settings.accent, UiStyle.of(settings.uiStyle)) }
     val str = Strings.of(settings.lang)
     val colors = if (dark) {
         darkColors(

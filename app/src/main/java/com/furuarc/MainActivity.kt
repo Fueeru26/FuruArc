@@ -6,6 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
@@ -99,13 +102,23 @@ class MainActivity : ComponentActivity() {
                 val p = LocalPalette.current
                 // status bar & navigation bar colors follow the theme
                 val darkNow = p.dark
+                val gradTop = com.furuarc.ui.theme.gradientTop(com.furuarc.ui.theme.UiStyle.of(settings.uiStyle), p)
+                val gradient = gradTop != null
+                val top = gradTop ?: p.background
                 SideEffect {
-                    window.statusBarColor = p.background.toArgb()
+                    window.statusBarColor = top.toArgb()
                     val controller = WindowCompat.getInsetsController(window, window.decorView)
                     controller?.isAppearanceLightStatusBars = !darkNow
                     controller?.isAppearanceLightNavigationBars = !darkNow
                 }
-                Surface(Modifier.fillMaxSize(), color = p.background) { App(vm) }
+                Box(Modifier.fillMaxSize()) {
+                    Surface(
+                        Modifier.fillMaxSize().then(
+                            if (gradient) Modifier.background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(top, p.background))) else Modifier
+                        ),
+                        color = if (gradient) androidx.compose.ui.graphics.Color.Transparent else p.background,
+                    ) { App(vm) }
+                }
             }
         }
     }
@@ -117,6 +130,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
 fun App(vm: MainViewModel) {
     val s = com.furuarc.ui.theme.LocalStr.current
@@ -337,7 +351,9 @@ fun App(vm: MainViewModel) {
     // the system navigation bar blends with the app's bottom navigation when shown
     val activity = LocalContext.current as? Activity
     SideEffect {
-        activity?.window?.navigationBarColor = (if (tab >= 0) p.card else p.background).toArgb()
+        val navSt = com.furuarc.ui.theme.AppStyle.nav
+        val solidBar = tab >= 0 && navSt != com.furuarc.ui.theme.NavStyle.FLOATING && navSt != com.furuarc.ui.theme.NavStyle.FLOAT_ICONS && navSt != com.furuarc.ui.theme.NavStyle.FAB
+        activity?.window?.navigationBarColor = (if (solidBar) p.card else p.background).toArgb()
     }
     // workflow: result of Media Asset Converter (Overwrite Original Files) -> Repack with that folder already selected
     SideEffect {
@@ -351,12 +367,28 @@ fun App(vm: MainViewModel) {
     // each screen's scroll position is kept when returning from a menu (going forward = start from the top)
     val scrollKeeper = remember { com.furuarc.ui.ScrollKeeper() }
     remember(screen) { scrollKeeper.onNavigate(screen.name) }
+    androidx.compose.runtime.LaunchedEffect(screen) { com.furuarc.ui.HeaderState.collapsed = false }
+    val headerScroll = remember { com.furuarc.ui.HeaderScrollConnection() }
+    val onNavSelect: (Int) -> Unit = { i ->
+        val target = when (i) { 0 -> Screen.HOME; 1 -> Screen.LIBRARY; 2 -> Screen.SUPPORT; else -> Screen.MORE }
+        navState.clearHome()
+        if (target != screen) scrollKeeper.clearAll()
+        screen = target
+    }
     val hostView = androidx.compose.ui.platform.LocalView.current
     val focusMgr = androidx.compose.ui.platform.LocalFocusManager.current
     CompositionLocalProvider(com.furuarc.ui.LocalScrollKeeper provides scrollKeeper) {
     Column(Modifier.fillMaxSize().clearFocusOnOutsideTap()) {
-        Box(Modifier.weight(1f).fillMaxWidth()) {
-            when (screen) {
+        Box(Modifier.weight(1f).fillMaxWidth().nestedScroll(headerScroll)) {
+            androidx.compose.animation.AnimatedContent(
+                targetState = screen,
+                // every screen change uses the same soft cross-fade
+                transitionSpec = {
+                    androidx.compose.animation.ContentTransform(
+                        androidx.compose.animation.fadeIn(tween(220)), androidx.compose.animation.fadeOut(tween(140)))
+                },
+            ) { sc ->
+            when (sc) {
                 Screen.HOME -> com.furuarc.ui.StartScreen(onOpen = { id -> openFeature(id) }, onOpenWithFile = { id, u -> openFeatureWithFile(id, u) })
                 Screen.LIBRARY -> com.furuarc.ui.LibraryScreen(
                     onOpen = { e -> GameSession.open(e); screen = Screen.GAME },
@@ -560,13 +592,10 @@ fun App(vm: MainViewModel) {
                 Screen.VALUE_JOB -> ValueScreen(vm, onBack = { toParent(Screen.RPGM_CHEAT_MENU) })
                 Screen.SAVE_JOB -> SaveScreen(vm, import = vm.mode() == 8, onBack = { toParent(Screen.RPGM_CHEAT_MENU) })
             }
+            }
+            if (tab >= 0 && com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FAB) com.furuarc.ui.FabNav(navItems, tab, Modifier, onNavSelect)
         }
-        if (tab >= 0) AppBottomBar(navItems, tab) { i ->
-            val target = when (i) { 0 -> Screen.HOME; 1 -> Screen.LIBRARY; 2 -> Screen.SUPPORT; else -> Screen.MORE }
-            navState.clearHome()
-            if (target != screen) scrollKeeper.clearAll()
-            screen = target
-        }
+        if (tab >= 0) AppBottomBar(navItems, tab, onNavSelect)
     }
     }
     if (showUpdate) com.furuarc.ui.UpdateDialog { showUpdate = false }

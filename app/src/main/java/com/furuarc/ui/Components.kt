@@ -46,9 +46,9 @@ import com.furuarc.ui.theme.LocalStr
 import com.furuarc.ui.theme.Qanelas
 
 /** Card & button corners are small (following the cover cards in the reference design): 10dp, 8dp square icon, 16dp spacing between items. */
-val CardRadius = 10.dp
-val ControlRadius = 10.dp
-val IconRadius = 8.dp
+val CardRadius: androidx.compose.ui.unit.Dp get() = com.furuarc.ui.theme.AppStyle.cardRadius
+val ControlRadius: androidx.compose.ui.unit.Dp get() = com.furuarc.ui.theme.AppStyle.controlRadius
+val IconRadius: androidx.compose.ui.unit.Dp get() = com.furuarc.ui.theme.AppStyle.iconRadius
 
 /** Spacing between items within one screen. */
 val ScreenGap = 16.dp
@@ -60,13 +60,18 @@ val ScreenPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
 @Composable
 fun AppCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val p = LocalPalette.current
+    val src = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val st = com.furuarc.ui.theme.AppStyle.ui
+    val soft = st == com.furuarc.ui.theme.UiStyle.SOFT
     Surface(
         shape = RoundedCornerShape(CardRadius),
         color = p.card,
-        border = BorderStroke(1.dp, p.cardBorder),
-        modifier = modifier,
-        content = content,
-    )
+        border = if (soft) null else BorderStroke(1.dp, p.cardBorder),
+        elevation = if (soft && !p.dark) 3.dp else 0.dp,
+        modifier = modifier.pressScale(src, 0.97f),
+    ) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalCardSource provides src) { content() }
+    }
 }
 
 /** 64dp-tall title bar: 24dp back icon aligned with the content edge, 22sp title. */
@@ -74,8 +79,10 @@ fun AppCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
 fun ScreenHeader(title: String, onBack: () -> Unit, trailing: (@Composable () -> Unit)? = null) {
     val p = LocalPalette.current
     val s = LocalStr.current
+    // the header shrinks while the user scrolls down (see HeaderScrollConnection)
+    val shrink by androidx.compose.animation.core.animateFloatAsState(if (HeaderState.collapsed) 1f else 0f)
     Row(
-        Modifier.fillMaxWidth().height(64.dp),
+        Modifier.fillMaxWidth().height((64f - 18f * shrink).dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(
@@ -90,7 +97,7 @@ fun ScreenHeader(title: String, onBack: () -> Unit, trailing: (@Composable () ->
             Icon(imageVector = Icons.Default.ArrowBack, contentDescription = s.back, tint = p.text)
         }
         Spacer(Modifier.width(16.dp))
-        Text(title, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = p.text, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        Text(title, fontSize = (22f - 4f * shrink).sp, fontWeight = FontWeight.SemiBold, color = p.text, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         if (trailing != null) trailing()
     }
 }
@@ -128,7 +135,7 @@ fun PickerCard(
     val s = LocalStr.current
     AppCard(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.clickable(onClick = onClick).padding(16.dp),
+            Modifier.cardClickable(onClick).padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconBox(icon, p.iconBg, p.iconFg)
@@ -161,7 +168,7 @@ fun MenuCard(icon: ImageVector, title: String, subtitle: String, badge: Boolean,
     val p = LocalPalette.current
     AppCard(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.clickable(onClick = onClick).padding(16.dp),
+            Modifier.cardClickable(onClick).padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -206,7 +213,7 @@ fun SegmentedChips(items: List<String>, selected: Int, fontSize: androidx.compos
                     .height(44.dp)
                     .clip(RoundedCornerShape(ControlRadius - 4.dp))
                     .background(if (sel) p.accent else p.trailingBg)
-                    .clickable { onSelect(i) },
+                    .clickableScale(pressed = 0.94f) { onSelect(i) },
                 contentAlignment = Alignment.Center,
             ) {
                 OneLineText(
@@ -223,7 +230,7 @@ fun SegmentedChips(items: List<String>, selected: Int, fontSize: androidx.compos
 
 /** Dropdown choice: field-styled box that opens a list menu. [options] = (id, label). */
 @Composable
-fun AppDropdown(label: String, value: String, options: List<Pair<String, String>>, enabled: Boolean = true, onSelect: (String) -> Unit) {
+fun AppDropdown(label: String, value: String, options: List<Pair<String, String>>, enabled: Boolean = true, showLabel: Boolean = true, onSelect: (String) -> Unit) {
     val p = LocalPalette.current
     var open by remember { mutableStateOf(false) }
     val shown = options.firstOrNull { it.first == value }?.second ?: value
@@ -232,10 +239,10 @@ fun AppDropdown(label: String, value: String, options: List<Pair<String, String>
         Surface(
             shape = RoundedCornerShape(CardRadius), color = p.card,
             border = BorderStroke(1.dp, p.outline),
-            modifier = Modifier.fillMaxWidth().clickable(enabled = enabled) { open = true },
+            modifier = Modifier.fillMaxWidth().clickableScale(enabled = enabled, pressed = 0.98f) { open = true },
         ) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-                Text(label, color = p.muted, fontSize = 12.sp)
+            Column(Modifier.padding(horizontal = 16.dp, vertical = if (showLabel) 10.dp else 0.dp).heightIn(min = if (showLabel) 0.dp else 52.dp), verticalArrangement = Arrangement.Center) {
+                if (showLabel) Text(label, color = p.muted, fontSize = 12.sp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         if (shown.isEmpty()) "-" else shown, color = p.text, fontSize = 16.sp,
@@ -350,9 +357,11 @@ fun OneLineText(
 @Composable
 fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
     val p = LocalPalette.current
+    val src = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     Button(
         onClick = onClick,
         enabled = enabled,
+        interactionSource = src,
         shape = RoundedCornerShape(ControlRadius),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = p.accent,
@@ -361,7 +370,7 @@ fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
             disabledContentColor = p.disabledFg,
         ),
         elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
-        modifier = Modifier.fillMaxWidth().height(44.dp),
+        modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.97f),
     ) {
         OneLineText(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
@@ -373,9 +382,11 @@ fun SecondaryButton(text: String, onClick: () -> Unit) = SecondaryButton(text, t
 @Composable
 fun SecondaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
     val p = LocalPalette.current
+    val src = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     Button(
         onClick = onClick,
         enabled = enabled,
+        interactionSource = src,
         shape = RoundedCornerShape(ControlRadius),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = p.trailingBg,
@@ -384,7 +395,7 @@ fun SecondaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
             disabledContentColor = p.disabledFg,
         ),
         elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
-        modifier = Modifier.fillMaxWidth().height(44.dp),
+        modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.97f),
     ) {
         OneLineText(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
@@ -755,5 +766,32 @@ fun PageNav(page: Int, pages: Int, onPage: (Int) -> Unit, modifier: Modifier = M
                 }
             }
         }
+    }
+}
+
+/** Small illustration for empty lists: soft concentric circles with an icon and a few decorative dots. */
+@Composable
+fun EmptyArt(icon: ImageVector, size: androidx.compose.ui.unit.Dp = 112.dp) {
+    val p = LocalPalette.current
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().clip(androidx.compose.foundation.shape.CircleShape).background(p.accent.copy(alpha = 0.08f)))
+        Box(Modifier.fillMaxSize(0.74f).clip(androidx.compose.foundation.shape.CircleShape).background(p.accent.copy(alpha = 0.14f)))
+        Box(Modifier.fillMaxSize(0.48f).clip(androidx.compose.foundation.shape.CircleShape).background(p.iconBg), contentAlignment = Alignment.Center) {
+            Icon(imageVector = icon, contentDescription = null, tint = p.iconFg, modifier = Modifier.fillMaxSize(0.55f))
+        }
+        Box(Modifier.align(Alignment.TopEnd).padding(top = size * 0.08f, end = size * 0.12f).size(size * 0.09f).clip(androidx.compose.foundation.shape.CircleShape).background(p.accent.copy(alpha = 0.45f)))
+        Box(Modifier.align(Alignment.BottomStart).padding(bottom = size * 0.14f, start = size * 0.06f).size(size * 0.06f).clip(androidx.compose.foundation.shape.CircleShape).background(p.accent.copy(alpha = 0.30f)))
+        Box(Modifier.align(Alignment.TopStart).padding(top = size * 0.20f, start = size * 0.10f).size(size * 0.04f).clip(androidx.compose.foundation.shape.CircleShape).background(p.accent.copy(alpha = 0.55f)))
+    }
+}
+
+/** Illustrated "nothing here" block used where a list is empty. */
+@Composable
+fun EmptyState(icon: ImageVector, text: String, modifier: Modifier = Modifier.fillMaxWidth()) {
+    val p = LocalPalette.current
+    Column(modifier.padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        EmptyArt(icon, 96.dp)
+        Spacer(Modifier.height(8.dp))
+        Text(text, color = p.muted, fontSize = 14.sp, lineHeight = 20.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }

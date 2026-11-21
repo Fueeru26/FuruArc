@@ -27,6 +27,10 @@ data class AppSettings(
     /** 0 = follow system, 1 = light, 2 = dark. */
     val themeMode: Int = 0,
     val accent: AccentColor = AccentColor.BLUE,
+    /** Display style (0 = Classic, 1 = Minimal, 2 = Soft, 3 = Gradient, 4 = Solid, 5..10 = Sakura, Ocean, Forest, Sunset, Neon, Paper). */
+    val uiStyle: Int = 0,
+    /** Navigation bar style (0 = Classic, 1 = Floating, 2 = Icons Only, 3 = Sliding Pill, 4 = Top Line, 5 = Floating Icons, 6 = Floating Button). */
+    val navStyle: Int = 0,
     /** "system" or a language code (en, ja, zh, ko, id). */
     val langPref: String = "system",
     // archive
@@ -54,6 +58,8 @@ class SettingsStore(ctx: Context) {
             themeMode = if (sp.contains("themeMode")) sp.getInt("themeMode", 0).coerceIn(0, 2)
             else if (sp.contains("dark")) (if (sp.getBoolean("dark", true)) 2 else 1) else 0,
             accent = AccentColor.values().firstOrNull { it.id == accentId } ?: AccentColor.BLUE,
+            uiStyle = sp.getInt("uiStyle", 0).coerceIn(0, 10),
+            navStyle = sp.getInt("navStyle", 0).coerceIn(0, 6),
             langPref = sp.getString("langPref", null) ?: (langCode?.takeIf { c -> Lang.values().any { it.code == c } } ?: "system"),
             conflict = sp.getInt("conflict", 0).coerceIn(0, 2),
             ignore = sp.getString("ignore", DEFAULT_IGNORE) ?: DEFAULT_IGNORE,
@@ -78,6 +84,8 @@ class SettingsStore(ctx: Context) {
         sp.edit()
             .putInt("themeMode", s.themeMode)
             .putString("accent", s.accent.id)
+            .putInt("uiStyle", s.uiStyle)
+            .putInt("navStyle", s.navStyle)
             .putString("langPref", s.langPref)
             .putInt("conflict", s.conflict)
             .putString("ignore", s.ignore)

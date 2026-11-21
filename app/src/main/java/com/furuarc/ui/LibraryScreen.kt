@@ -216,7 +216,7 @@ fun LibraryScreen(onOpen: (GameEntry) -> Unit) {
         }
         if (all.isEmpty()) {
             Column(Modifier.fillMaxSize().padding(bottom = 48.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Icon(AppIcons.Library, null, tint = p.muted, modifier = Modifier.size(64.dp))
+                EmptyArt(AppIcons.Library, 132.dp)
                 Spacer(Modifier.height(16.dp))
                 Text(g.emptyTitle, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = p.text)
                 Spacer(Modifier.height(6.dp))
@@ -225,7 +225,7 @@ fun LibraryScreen(onOpen: (GameEntry) -> Unit) {
                 Box(Modifier.width(200.dp)) { PrimaryButton(g.addFolder, true) { resetAdd(); step = 1 } }
             }
         } else if (shown.isEmpty()) {
-            Text(g.noResult, color = p.muted, modifier = Modifier.padding(top = 24.dp).fillMaxWidth(), textAlign = TextAlign.Center)
+            EmptyState(Icons.Default.Search, g.noResult, Modifier.padding(top = 24.dp).fillMaxWidth())
         } else {
             val rows = shown.chunked(3)
             LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
