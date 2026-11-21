@@ -7,6 +7,9 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -160,10 +163,24 @@ private fun basePalette(dark: Boolean, accent: AccentColor): Palette {
 
 /** Effective theme: 0 = follow system, 1 = light, 2 = dark. */
 @Composable
-fun AppSettings.isDark(): Boolean = when (themeMode) {
-    1 -> false
-    2 -> true
-    else -> androidx.compose.foundation.isSystemInDarkTheme()
+fun AppSettings.isDark(): Boolean {
+    // schedule mode: the hour is re-checked every minute
+    var hour by remember { mutableStateOf(java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)) }
+    if (themeMode == 3) {
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            while (true) {
+                kotlinx.coroutines.delay(60_000)
+                hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+            }
+        }
+    }
+    val sys = androidx.compose.foundation.isSystemInDarkTheme()
+    return when (themeMode) {
+        1 -> false
+        2 -> true
+        3 -> if (darkFrom > darkTo) hour >= darkFrom || hour < darkTo else if (darkFrom < darkTo) hour in darkFrom until darkTo else false
+        else -> sys
+    }
 }
 
 @OptIn(androidx.compose.material.ExperimentalMaterialApi::class)

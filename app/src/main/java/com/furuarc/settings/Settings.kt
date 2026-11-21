@@ -24,13 +24,20 @@ fun resolveLang(pref: String): Lang {
 const val DEFAULT_IGNORE = "Thumbs.db, .DS_Store, desktop.ini"
 
 data class AppSettings(
-    /** 0 = follow system, 1 = light, 2 = dark. */
+    /** 0 = follow system, 1 = light, 2 = dark, 3 = schedule. */
     val themeMode: Int = 0,
     val accent: AccentColor = AccentColor.BLUE,
-    /** Display style (0 = Classic, 1 = Minimal, 2 = Soft, 3 = Gradient, 4 = Solid, 5..10 = Sakura, Ocean, Forest, Sunset, Neon, Paper). */
+    /** Display style (0 = Classic, 1 = Minimal, 2 = Soft, 3 = Gradient, 4 = Solid, 5..10 = Sakura, Ocean, Forest, Sunset, Neon, Paper, 11 = Seasonal). */
     val uiStyle: Int = 0,
     /** Navigation bar style (0 = Classic, 1 = Floating, 2 = Icons Only, 3 = Sliding Pill, 4 = Top Line, 5 = Floating Icons, 6 = Floating Button). */
     val navStyle: Int = 0,
+    /** Press animations and screen transitions. */
+    val animations: Boolean = true,
+    /** Light vibration on taps of tabs and buttons. */
+    val haptics: Boolean = false,
+    /** Theme mode 3 (schedule): dark from [darkFrom] o'clock until [darkTo] o'clock. */
+    val darkFrom: Int = 18,
+    val darkTo: Int = 6,
     /** "system" or a language code (en, ja, zh, ko, id). */
     val langPref: String = "system",
     // archive
@@ -55,10 +62,14 @@ class SettingsStore(ctx: Context) {
         val accentId = sp.getString("accent", null)
         val langCode = sp.getString("lang", null)
         return AppSettings(
-            themeMode = if (sp.contains("themeMode")) sp.getInt("themeMode", 0).coerceIn(0, 2)
+            themeMode = if (sp.contains("themeMode")) sp.getInt("themeMode", 0).coerceIn(0, 3)
             else if (sp.contains("dark")) (if (sp.getBoolean("dark", true)) 2 else 1) else 0,
             accent = AccentColor.values().firstOrNull { it.id == accentId } ?: AccentColor.BLUE,
-            uiStyle = sp.getInt("uiStyle", 0).coerceIn(0, 10),
+            uiStyle = sp.getInt("uiStyle", 0).coerceIn(0, 11),
+            animations = sp.getBoolean("animations", true),
+            haptics = sp.getBoolean("haptics", false),
+            darkFrom = sp.getInt("darkFrom", 18).coerceIn(0, 23),
+            darkTo = sp.getInt("darkTo", 6).coerceIn(0, 23),
             navStyle = sp.getInt("navStyle", 0).coerceIn(0, 6),
             langPref = sp.getString("langPref", null) ?: (langCode?.takeIf { c -> Lang.values().any { it.code == c } } ?: "system"),
             conflict = sp.getInt("conflict", 0).coerceIn(0, 2),
@@ -85,6 +96,10 @@ class SettingsStore(ctx: Context) {
             .putInt("themeMode", s.themeMode)
             .putString("accent", s.accent.id)
             .putInt("uiStyle", s.uiStyle)
+            .putBoolean("animations", s.animations)
+            .putBoolean("haptics", s.haptics)
+            .putInt("darkFrom", s.darkFrom)
+            .putInt("darkTo", s.darkTo)
             .putInt("navStyle", s.navStyle)
             .putString("langPref", s.langPref)
             .putInt("conflict", s.conflict)

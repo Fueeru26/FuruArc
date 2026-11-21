@@ -40,6 +40,7 @@ object FeatureCatalog {
         val no = com.furuarc.i18n.nameOptStr(lang)
         val ts = ScriptStrings.of(lang)
         val ab = com.furuarc.i18n.AboutStr.of(lang)
+        val pls = com.furuarc.i18n.playerStr(lang)
         val out = ArrayList<Feature>()
         fun f(id: String, icon: ImageVector, title: String, path: String, keys: String) { out.add(Feature(id, icon, title, path, keys)) }
         val tab = nav.tabTools
@@ -61,6 +62,12 @@ object FeatureCatalog {
         f("textedit.struct", AppIcons.Layers, tx.structTitle, txP, "json csv xml structured terstruktur tree pohon")
         f("textedit.bulk", AppIcons.SwapHoriz, tx.bulkTitle, txP, "replace ganti massal bulk regex cari")
         f("media", AppIcons.SwapHoriz, md.menuTitle, tab, "media converter konverter konversi convert audio gambar image video")
+        val mpP = "$tab › ${pls.menuTitle}"
+        f("player", AppIcons.PhotoLibrary, pls.menuTitle, tab, "media player pemutar putar play gambar audio video galeri gallery slideshow")
+        f("player.image", AppIcons.Image, pls.imageTitle, mpP, "png jpg jpeg webp bmp gif heic gambar image galeri gallery view lihat")
+        f("player.audio", AppIcons.MusicNote, pls.audioTitle, mpP, "mp3 ogg wav flac aac m4a opus audio musik music playlist")
+        f("player.video", AppIcons.Videocam, pls.videoTitle, mpP, "mp4 mkv webm 3gp avi mov video film movie")
+        f("player.settings", AppIcons.Gear, pls.settingsTitle, mpP, "pengaturan media settings ekspor impor export import")
         f("media.audio", AppIcons.MusicNote, md.audioTitle, mdP, "mp3 ogg wav flac aac m4a opus audio suara sound")
         f("media.image", AppIcons.Image, md.imageTitle, mdP, "png jpg jpeg webp bmp gif gambar image")
         f("media.video", AppIcons.Videocam, md.videoTitle, mdP, "mp4 mkv avi webm mpg video")
@@ -129,6 +136,11 @@ object FeatureCatalog {
     /** Feature id for a screen that is a feature on its own (used to fill "Recently used"); null = not recorded. */
     fun idFor(screen: Screen, mode: Int, engineId: String?, engineParent: String?): String? = when (screen) {
         Screen.LIBRARY -> "library"
+        Screen.MPLAYER -> "player"
+        Screen.MPLAYER_IMAGE -> "player.image"
+        Screen.MPLAYER_AUDIO -> "player.audio"
+        Screen.MPLAYER_VIDEO -> "player.video"
+        Screen.MPLAYER_SETTINGS -> "player.settings"
         Screen.TR_EDIT_JOB -> "editor"
         Screen.TEXTEDIT_PLAIN -> "textedit.plain"
         Screen.TEXTEDIT_STRUCT -> "textedit.struct"
@@ -170,7 +182,7 @@ object FeatureCatalog {
     private val PRELOAD = setOf(
         "vn.unpack", "vn.script.list", "editor", "rpgm.save.export", "rpgm.save.import",
         "filecheck.file", "filecheck.tr", "filecheck.hex", "filetools.cut", "filetools.split",
-        "media.audio", "media.image", "media.video", "media.text", "media.special",
+        "media.audio", "media.image", "media.video", "media.text", "media.special", "player.image", "player.audio", "player.video",
         "textedit.plain", "textedit.struct", "rpgm.plugins.scan", "rpgm.plugins.edit", "rpgm.plugins.check",
     )
 

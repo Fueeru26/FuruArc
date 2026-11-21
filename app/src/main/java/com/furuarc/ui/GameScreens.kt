@@ -54,11 +54,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.documentfile.provider.DocumentFile
 import com.furuarc.core.*
 import com.furuarc.i18n.gameStr
+import com.furuarc.i18n.playerStr
 import com.furuarc.ui.theme.LocalLang
 import com.furuarc.ui.theme.LocalPalette
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -381,13 +383,16 @@ fun GameAudioScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(8.dp))
             AppCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp)) {
-                    Text(cur.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = p.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(cur.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = p.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { openAssetInPlayer(cur, idx?.key, 2) }, modifier = Modifier.size(32.dp)) { Icon(AppIcons.PhotoLibrary, playerStr(LocalLang.current).openInPlayer, tint = p.accent) }
+                    }
                     if (GamePlayer.failed) {
                         Text(g.playFail + (SpecialMedia.errorOf(cur.id)?.let { "\n" + it } ?: ""), color = Color(0xFFE57373), fontSize = 12.sp)
                     } else if (GamePlayer.preparing) {
                         Text(if (cur.arc != null) g.arcPrep else g.loadingMedia, color = p.muted, fontSize = 12.sp)
                     } else {
-                        var drag by remember { mutableStateOf<Float?>(null) }
+                        val seekSt = remember(cur.id) { SeekState() }
                         val dur = GamePlayer.duration.coerceAtLeast(1)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = {
@@ -395,15 +400,8 @@ fun GameAudioScreen(onBack: () -> Unit) {
                             }) {
                                 Icon(if (GamePlayer.playing) AppIcons.Pause else Icons.Default.PlayArrow, null, tint = p.accent)
                             }
-                            Slider(
-                                value = drag ?: GamePlayer.position.toFloat().coerceIn(0f, dur.toFloat()),
-                                onValueChange = { drag = it },
-                                onValueChangeFinished = { drag?.let { GamePlayer.seek(it.toInt()) }; drag = null },
-                                valueRange = 0f..dur.toFloat(),
-                                modifier = Modifier.weight(1f),
-                                colors = SliderDefaults.colors(thumbColor = p.accent, activeTrackColor = p.accent),
-                            )
-                            Text(fmtMs((drag ?: GamePlayer.position.toFloat()).toInt()) + " / " + fmtMs(GamePlayer.duration), fontSize = 11.sp, color = p.muted)
+                            SeekSlider(seekSt, GamePlayer.position, dur, { GamePlayer.seek(it) }, Modifier.weight(1f))
+                            Text(fmtMs(seekSt.shown(GamePlayer.position)) + " / " + fmtMs(GamePlayer.duration), fontSize = 11.sp, color = p.muted)
                         }
                     }
                 }
@@ -563,6 +561,7 @@ private fun ImageViewer(list: List<GAsset>, index: Int, key: ByteArray?, onIndex
                     color = Color(0xFFCCCCCC), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
+            IconButton(onClick = { openAssetInPlayer(a, GameSession.index?.key, 1) }) { Icon(AppIcons.PhotoLibrary, playerStr(LocalLang.current).openInPlayer, tint = Color.White) }
             IconButton(onClick = { GameFav.toggle(a.id) }) { Icon(Icons.Default.Star, g.favAdd, tint = if (isFav) STAR else Color.White) }
             IconButton(onClick = { if (index > 0) onIndex(index - 1) }, enabled = index > 0) { Icon(Icons.Default.KeyboardArrowLeft, g.prev, tint = if (index > 0) Color.White else Color.Gray) }
             IconButton(onClick = { if (index < list.size - 1) onIndex(index + 1) }, enabled = index < list.size - 1) { Icon(Icons.Default.KeyboardArrowRight, g.nextImg, tint = if (index < list.size - 1) Color.White else Color.Gray) }
@@ -640,7 +639,8 @@ private fun VideoPlayer(a: GAsset, onClose: () -> Unit) {
     var playing by remember(a.id) { mutableStateOf(true) }
     var dur by remember(a.id) { mutableStateOf(0) }
     var pos by remember(a.id) { mutableStateOf(0) }
-    var drag by remember(a.id) { mutableStateOf<Float?>(null) }
+    val seekSt = remember(a.id) { SeekState() }
+    val mpRef = remember { arrayOfNulls<android.media.MediaPlayer>(1) }
     DisposableEffect(a.id) { onDispose { try { ref[0]?.stopPlayback() } catch (e: Throwable) { } } }
     // videos from archives are extracted to cache first; all failures (including out of memory) are shown as a message
     val res by produceState<VRes?>(null, a.id) {
@@ -659,7 +659,7 @@ private fun VideoPlayer(a: GAsset, onClose: () -> Unit) {
         while (true) {
             delay(300)
             val v = ref[0]
-            if (v != null && drag == null) {
+            if (v != null && seekSt.drag == null) {
                 try { pos = v.currentPosition; playing = v.isPlaying } catch (e: Throwable) { }
             }
         }
@@ -674,7 +674,7 @@ private fun VideoPlayer(a: GAsset, onClose: () -> Unit) {
                 factory = { c ->
                     VideoView(c).also { v ->
                         ref[0] = v
-                        v.setOnPreparedListener { mp -> dur = mp.duration; v.start() }
+                        v.setOnPreparedListener { mp -> mpRef[0] = mp; dur = mp.duration; v.start() }
                         v.setOnCompletionListener { playing = false }
                         v.setOnErrorListener { _, _, _ -> GameSession.markFailed(a.id); failed.value = true; true }
                         if (r.path != null) v.setVideoPath(r.path) else v.setVideoURI(a.uri)
@@ -693,20 +693,18 @@ private fun VideoPlayer(a: GAsset, onClose: () -> Unit) {
                     }
                 }) { Icon(if (playing) AppIcons.Pause else Icons.Default.PlayArrow, null, tint = Color.White) }
                 val d = dur.coerceAtLeast(1)
-                Slider(
-                    value = drag ?: pos.toFloat().coerceIn(0f, d.toFloat()),
-                    onValueChange = { drag = it },
-                    onValueChangeFinished = { drag?.let { x -> try { ref[0]?.seekTo(x.toInt()) } catch (e: Throwable) { } ; pos = x.toInt() }; drag = null },
-                    valueRange = 0f..d.toFloat(),
-                    modifier = Modifier.weight(1f),
-                    colors = SliderDefaults.colors(thumbColor = p.accent, activeTrackColor = p.accent),
-                )
-                Text(fmtMs((drag ?: pos.toFloat()).toInt()) + " / " + fmtMs(dur), fontSize = 11.sp, color = Color.White)
+                SeekSlider(seekSt, pos, d, { x ->
+                    val m = mpRef[0]
+                    if (m != null) m.seekExact(x) else try { ref[0]?.seekTo(x) } catch (e: Throwable) { }
+                    pos = x
+                }, Modifier.weight(1f))
+                Text(fmtMs(seekSt.shown(pos)) + " / " + fmtMs(dur), fontSize = 11.sp, color = Color.White)
             }
         }
         Row(Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color(0x99000000)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) { Icon(Icons.Default.Close, g.close, tint = Color.White) }
-            Text(a.name, color = Color.White, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(a.name, color = Color.White, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            IconButton(onClick = { openAssetInPlayer(a, GameSession.index?.key, 3) }) { Icon(AppIcons.PhotoLibrary, playerStr(LocalLang.current).openInPlayer, tint = Color.White) }
         }
     }
 }
@@ -832,6 +830,31 @@ private fun TextViewer(item: TextItem, onClose: () -> Unit) {
                     }
                 }
             }
+        }
+    }
+}
+
+/** Opens a Game Assets media file in the Media Player (extracts / decrypts it first when needed). kind: 1 image, 2 audio, 3 video. */
+internal fun openAssetInPlayer(a: GAsset, key: ByteArray?, kind: Int) {
+    com.furuarc.Engine.scope.launch {
+        val ctx = com.furuarc.Engine.app
+        val item: com.furuarc.core.PItem? = try {
+            when {
+                a.special -> com.furuarc.core.SpecialMedia.audioFile(ctx, a).let { com.furuarc.core.PItem(it.name, null, it.absolutePath, it.length()) }
+                a.arc != null -> GameArc.toFile(ctx, a).let { com.furuarc.core.PItem(a.name, null, it.absolutePath, it.length()) }
+                a.enc -> {
+                    val f = if (key != null) GameCache.decrypted(ctx, a, key) else null
+                    if (f != null) com.furuarc.core.PItem(RpgmCrypt.decryptedPath(a.name) ?: a.name, null, f.absolutePath, f.length()) else null
+                }
+                else -> com.furuarc.core.PItem(a.name, a.uri, null, a.size)
+            }
+        } catch (e: Throwable) {
+            null
+        }
+        if (item != null) withContext(kotlinx.coroutines.Dispatchers.Main) {
+            GamePlayer.stop()
+            PlayerHub.openSingle(kind, item, "")
+            PlayerHub.navigate?.invoke(kind)
         }
     }
 }

@@ -293,7 +293,7 @@ object GamePlayer {
     }
 
     fun seek(ms: Int) {
-        try { mp?.seekTo(ms); position = ms } catch (e: Exception) { }
+        try { mp?.seekExact(ms); position = ms } catch (e: Exception) { }
     }
 
     fun tick() {

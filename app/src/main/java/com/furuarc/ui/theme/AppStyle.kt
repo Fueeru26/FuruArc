@@ -10,7 +10,20 @@ import androidx.compose.ui.unit.dp
 enum class UiStyle(val id: Int) {
     CLASSIC(0), MINIMAL(1), SOFT(2), GRADIENT(3), SOLID(4), SAKURA(5), OCEAN(6), FOREST(7), SUNSET(8), NEON(9), PAPER(10);
 
-    companion object { fun of(id: Int): UiStyle = values().firstOrNull { it.id == id } ?: CLASSIC }
+    companion object {
+        fun of(id: Int): UiStyle {
+            if (id == 11) {
+                // seasonal (automatic): by month of the year
+                return when (java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1) {
+                    3, 4, 5 -> SAKURA
+                    6, 7, 8 -> OCEAN
+                    9, 10, 11 -> FOREST
+                    else -> SUNSET
+                }
+            }
+            return values().firstOrNull { it.id == id } ?: CLASSIC
+        }
+    }
 }
 
 /** Bottom navigation bar look ("Navigation Bar Style" in Settings). */
@@ -27,6 +40,8 @@ enum class NavStyle(val id: Int) {
 object AppStyle {
     var ui by mutableStateOf(UiStyle.CLASSIC)
     var nav by mutableStateOf(NavStyle.CLASSIC)
+    var animations by mutableStateOf(true)
+    var haptics by mutableStateOf(false)
 
     val cardRadius: Dp get() = when (ui) {
         UiStyle.CLASSIC -> 10.dp
@@ -68,8 +83,10 @@ object AppStyle {
         UiStyle.PAPER -> 4.dp
     }
 
-    fun apply(uiId: Int, navId: Int) {
+    fun apply(uiId: Int, navId: Int, anim: Boolean = true, haptic: Boolean = false) {
         ui = UiStyle.of(uiId)
         nav = NavStyle.of(navId)
+        animations = anim
+        haptics = haptic
     }
 }

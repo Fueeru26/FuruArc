@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.furuarc.core.seekExact
 import com.furuarc.i18n.x
 import com.furuarc.ui.theme.LocalPalette
 import com.furuarc.ui.theme.LocalStr
@@ -87,6 +88,7 @@ fun AudioPreview(bytes: ByteArray, ext: String, name: String) {
     var pos by remember(bytes) { mutableStateOf(0) }
     var dur by remember(bytes) { mutableStateOf(0) }
     val holder = remember(bytes) { arrayOfNulls<MediaPlayer>(1) }
+    val seekSt = remember(bytes) { SeekState() }
 
     DisposableEffect(bytes) {
         onDispose {
@@ -130,14 +132,8 @@ fun AudioPreview(bytes: ByteArray, ext: String, name: String) {
         } else if (!ready) {
             Text(x.audioLoading, color = p.muted)
         } else {
-            Text(fmtTime(pos) + " / " + fmtTime(dur), color = p.text, fontSize = 14.sp)
-            Slider(
-                value = if (dur > 0) pos.toFloat().coerceIn(0f, dur.toFloat()) else 0f,
-                onValueChange = { v -> pos = v.toInt(); try { holder[0]?.seekTo(v.toInt()) } catch (ex: Throwable) { } },
-                valueRange = 0f..maxOf(1f, dur.toFloat()),
-                colors = SliderDefaults.colors(thumbColor = p.accent, activeTrackColor = p.accent),
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Text(fmtTime(seekSt.shown(pos)) + " / " + fmtTime(dur), color = p.text, fontSize = 14.sp)
+            SeekSlider(seekSt, pos, dur, { ms -> pos = ms; holder[0]?.seekExact(ms) })
             PrimaryButton(if (playing) x.audioPause else x.audioPlay, true) {
                 val mp = holder[0]
                 if (mp != null) try {

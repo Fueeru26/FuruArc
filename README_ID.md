@@ -132,6 +132,16 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 - **File Teks Berstruktur**: JSON (tampilan pohon dan teks), CSV / TSV (tabel sel), INI / CFG, XML dan Markdown (dengan pratinjau).
 - **Ganti Massal**: cari dan ganti teks di banyak file dalam satu folder, dengan penghitung kecocokan sebelum apa pun diubah.
 
+### Media Player
+
+Alat Pendukung > Media Player punya menu Gambar, Audio, dan Video. Pilih file atau folder (bisa termasuk subfolder), semua media di dalamnya dipindai.
+
+- Audio: sebelumnya/berikutnya, acak, ulangi, kecepatan, ulang A-B, pewaktu tidur, putar di latar belakang dengan kontrol notifikasi, posisi terakhir diingat.
+- Gambar: zoom cubit, geser, tayangan slide. Video: posisi terakhir diingat.
+- Halaman Pengaturan Media dengan ekspor dan impor pengaturan.
+- Penampil di Aset Game punya ikon Media Player untuk membuka aset di sini.
+- **Buka dengan...**: file dari aplikasi file manager atau Bagikan / Kirim ke bisa dibuka di FuruArc (media di Media Player, teks/arsip di fitur yang cocok, format tidak dikenal di Pemeriksaan File). Bisa dimatikan di Pengaturan Sistem.
+
 ### Pemeriksaan File
 
 - **Pemeriksaan Arsip dan Skrip**: format, checksum, file rusak, enkripsi dan deteksi kode salah dalam satu file.
@@ -152,6 +162,7 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 ### Pengaturan dan pembaruan
 
 - Tema (terang / gelap), bahasa, warna aksen.
+- **Jadwal Tema**, gaya **Musiman** otomatis, serta saklar animasi dan getaran haptik.
 - **Gaya Tampilan** (Klasik, Minimalis, Lembut, Gradien, Warna Pekat, dan bertema Sakura, Samudra, Hutan, Senja, Neon, Kertas) dan **Gaya Navigasi Bar** (Klasik, Melayang, Ikon Layang, Hanya Ikon, Pil Bergeser, Garis Atas, Tombol Mengambang), keduanya di bagian atas Pengaturan Tampilan.
 - Animasi tekan, transisi layar yang halus, header yang menyusut saat di-scroll, dan ilustrasi untuk daftar kosong.
 - **Proses latar belakang**: tugas panjang tetap berjalan saat aplikasi ditutup, dengan notifikasi saat selesai (Android 13+ meminta izin notifikasi saat kamu mengaktifkannya).

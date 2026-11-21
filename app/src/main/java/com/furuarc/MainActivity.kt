@@ -82,6 +82,7 @@ enum class Screen {
     HOME, LIBRARY, SUPPORT, MORE, FILECHECK, INSPECT, INSPECT_FOLDER, INSPECT_COMPARE, INSPECT_DUP, INSPECT_HEX, INSPECT_TR, ABOUT, ABOUT_TROUBLE, ABOUT_HOW, ABOUT_QNA, ABOUT_SRC, ABOUT_DEV,
     VN_TOOLS, VN_ENGINES, AUTO_SCRIPTS, KEYFINDER, TEXTEDIT, TEXTEDIT_PLAIN, TEXTEDIT_STRUCT, TEXTEDIT_BULK, FILETOOLS, NAMEOPT, FILECUT, FILESPLIT, FILEJOIN, FILERENAME, MEDIA, MEDIA_AUDIO, MEDIA_IMAGE, MEDIA_VIDEO, MEDIA_MIXED, MEDIA_TEXT, MEDIA_SPECIAL, ENGINE, UNPACK, PACK, SELECT, BROWSE, SETTINGS,
     GAME, GAME_AUDIO, GAME_IMAGE, GAME_VIDEO, GAME_TEXT,
+    MPLAYER, MPLAYER_IMAGE, MPLAYER_AUDIO, MPLAYER_VIDEO, MPLAYER_SETTINGS,
     RPGM_TOOLS, PLUGIN_MENU, PLUGIN_SCAN, PLUGIN_EDIT, PLUGIN_CHECK, PLUGIN_DIFF, RPGM_ASSETS, RPGM_TR_MENU, RPGM_CHEAT_MENU, ASSET_JOB, TR_JOB, SAVE_JOB, VALUE_JOB, TR_EDIT_JOB, TOOL_JOB,
 }
 
@@ -90,6 +91,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.furuarc.core.MediaPrefs.init(this)
+        if (savedInstanceState == null) com.furuarc.ui.IncomingFiles.handle(intent)
         setContent {
             val settings by vm.settings.collectAsState()
             val st by vm.state.collectAsState()
@@ -123,6 +126,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        com.furuarc.ui.IncomingFiles.handle(intent)
     }
 
     override fun onDestroy() {
@@ -194,6 +203,8 @@ fun App(vm: MainViewModel) {
             Screen.FILETOOLS -> screen = Screen.SUPPORT
             Screen.NAMEOPT -> screen = Screen.SUPPORT
             Screen.MEDIA -> screen = Screen.SUPPORT
+            Screen.MPLAYER -> screen = Screen.SUPPORT
+            Screen.MPLAYER_IMAGE, Screen.MPLAYER_AUDIO, Screen.MPLAYER_VIDEO, Screen.MPLAYER_SETTINGS -> screen = Screen.MPLAYER
             Screen.TEXTEDIT -> screen = Screen.SUPPORT
             Screen.TEXTEDIT_PLAIN, Screen.TEXTEDIT_STRUCT, Screen.TEXTEDIT_BULK -> screen = Screen.TEXTEDIT
             Screen.MEDIA_AUDIO, Screen.MEDIA_IMAGE, Screen.MEDIA_VIDEO, Screen.MEDIA_MIXED, Screen.MEDIA_TEXT -> { MediaJobs.clear(); screen = Screen.MEDIA }
@@ -248,6 +259,11 @@ fun App(vm: MainViewModel) {
             "textedit.struct" -> screen = Screen.TEXTEDIT_STRUCT
             "textedit.bulk" -> screen = Screen.TEXTEDIT_BULK
             "media" -> screen = Screen.MEDIA
+            "player" -> screen = Screen.MPLAYER
+            "player.image" -> screen = Screen.MPLAYER_IMAGE
+            "player.audio" -> screen = Screen.MPLAYER_AUDIO
+            "player.video" -> screen = Screen.MPLAYER_VIDEO
+            "player.settings" -> screen = Screen.MPLAYER_SETTINGS
             "media.audio" -> { MediaJobs.clear(); screen = Screen.MEDIA_AUDIO }
             "media.image" -> { MediaJobs.clear(); screen = Screen.MEDIA_IMAGE }
             "media.video" -> { MediaJobs.clear(); screen = Screen.MEDIA_VIDEO }
@@ -320,6 +336,8 @@ fun App(vm: MainViewModel) {
                 "vn.unpack" -> vm.setArchives(listOf(uri), null)
                 "vn.script.list" -> vm.setArchive(uri, null)
                 "editor", "rpgm.save.export", "rpgm.save.import" -> vm.rpgmInputFile(uri)
+                "player.image", "player.audio", "player.video" ->
+                    com.furuarc.ui.PlayerHub.openSingle(when (id) { "player.image" -> 1; "player.audio" -> 2; else -> 3 }, com.furuarc.ui.itemOfUri(Engine.app, uri), "")
                 "filecheck.file" -> InspectJobs.inspect(uri)
                 "filecheck.tr" -> TrScanJobs.open(uri)
                 "rpgm.plugins.scan" -> PluginScanJobs.pickPluginsJs(uri)
@@ -330,6 +348,36 @@ fun App(vm: MainViewModel) {
             }
         }
         navState.enterFromHome()
+    }
+    SideEffect {
+        com.furuarc.ui.PlayerHub.navigate = { k -> screen = when (k) { 1 -> Screen.MPLAYER_IMAGE; 2 -> Screen.MPLAYER_AUDIO; else -> Screen.MPLAYER_VIDEO } }
+    }
+    // "Open with…" / "Share": media goes to the Media Player, everything else to the feature that matches the file type
+    val allFeatures = com.furuarc.ui.FeatureCatalog.rememberAll()
+    val inCtx = LocalContext.current
+    val incomingToken = com.furuarc.ui.IncomingFiles.token
+    LaunchedEffect(incomingToken) {
+        val uris = com.furuarc.ui.IncomingFiles.take() ?: return@LaunchedEffect
+        val items = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { uris.map { com.furuarc.ui.itemOfUri(inCtx, it) } }
+        val first = items[0]
+        var kind = com.furuarc.core.MediaScan.kindOf(first.name)
+        if (kind == 0) {
+            val mt = try { inCtx.contentResolver.getType(uris[0]) ?: "" } catch (e: Exception) { "" }
+            kind = when { mt.startsWith("image/") -> 1; mt.startsWith("audio/") -> 2; mt.startsWith("video/") -> 3; else -> 0 }
+        }
+        navState.clearHome()
+        if (kind in 1..3) {
+            val same = items.filter { com.furuarc.core.MediaScan.kindOf(it.name) == kind || items.size == 1 }
+            com.furuarc.ui.PlayerHub.set(kind, same.ifEmpty { listOf(first) }, "")
+            com.furuarc.ui.PlayerHub.tree.remove(kind)
+            com.furuarc.ui.PlayerHub.autoOpen = kind to 0
+            screen = when (kind) { 1 -> Screen.MPLAYER_IMAGE; 2 -> Screen.MPLAYER_AUDIO; else -> Screen.MPLAYER_VIDEO }
+        } else {
+            val ext = com.furuarc.core.MediaScan.ext(first.name)
+            val hit = com.furuarc.ui.FeatureCatalog.forExtension(allFeatures, ext)
+                .firstOrNull { !it.id.startsWith("media.") && com.furuarc.ui.FeatureCatalog.canPreload(it.id) }
+            openFeatureWithFile(hit?.id ?: "filecheck.file", uris[0])
+        }
     }
     // Home tab: fill "Recently used" when a screen that is a feature on its own is opened
     val appCtx = LocalContext.current
@@ -392,7 +440,9 @@ fun App(vm: MainViewModel) {
                 targetState = screen,
                 // every screen change: cross-fade with a tiny upward slide (same as the Plain Text File screen)
                 transitionSpec = {
-                    androidx.compose.animation.ContentTransform(
+                    if (!com.furuarc.ui.theme.AppStyle.animations) androidx.compose.animation.ContentTransform(
+                        androidx.compose.animation.EnterTransition.None, androidx.compose.animation.ExitTransition.None)
+                    else androidx.compose.animation.ContentTransform(
                         androidx.compose.animation.fadeIn(tween(200)) + androidx.compose.animation.slideInVertically(tween(220)) { (it * 0.012f).toInt() },
                         androidx.compose.animation.fadeOut(tween(120)))
                 },
@@ -423,7 +473,19 @@ fun App(vm: MainViewModel) {
                     onNameOpt = { screen = Screen.NAMEOPT },
                     onTextEdit = { screen = Screen.TEXTEDIT },
                     onMedia = { screen = Screen.MEDIA },
+                    onPlayer = { screen = Screen.MPLAYER },
                 )
+                Screen.MPLAYER -> com.furuarc.ui.PlayerMenuScreen(
+                    onImage = { screen = Screen.MPLAYER_IMAGE },
+                    onAudio = { screen = Screen.MPLAYER_AUDIO },
+                    onVideo = { screen = Screen.MPLAYER_VIDEO },
+                    onSettings = { screen = Screen.MPLAYER_SETTINGS },
+                    onBack = { screen = Screen.SUPPORT },
+                )
+                Screen.MPLAYER_IMAGE -> com.furuarc.ui.PlayerListScreen(1) { screen = Screen.MPLAYER }
+                Screen.MPLAYER_AUDIO -> com.furuarc.ui.PlayerListScreen(2) { screen = Screen.MPLAYER }
+                Screen.MPLAYER_VIDEO -> com.furuarc.ui.PlayerListScreen(3) { screen = Screen.MPLAYER }
+                Screen.MPLAYER_SETTINGS -> com.furuarc.ui.PlayerSettingsScreen { screen = Screen.MPLAYER }
                 Screen.TEXTEDIT -> com.furuarc.ui.TextEditMenuScreen(
                     onPlain = { screen = Screen.TEXTEDIT_PLAIN },
                     onStruct = { screen = Screen.TEXTEDIT_STRUCT },

@@ -142,6 +142,16 @@ Convert and compress game audio, images and video, one file or a whole folder.
 - **Structured Text**: JSON (tree and text views), CSV / TSV (cell table), INI / CFG, XML and Markdown (with preview).
 - **Bulk Replace**: find and replace text across many files in one folder, with a match counter before anything is changed.
 
+### Media Player
+
+Support Tools > Media Player has Images, Audio and Video menus. Pick files or a folder (optionally including subfolders) and everything inside is scanned.
+
+- Audio: previous/next, shuffle, repeat, speed, A-B loop, sleep timer, background play with notification controls, remembered position.
+- Images: pinch zoom, pan, slideshow. Video: remembered position.
+- Media Settings page with settings export and import.
+- Game Assets viewers have a Media Player icon to open an asset here.
+- **Open with...**: files from file managers or Share / Send to open in FuruArc (media in Media Player, known text/archive formats in the matching feature, unknown formats in File Inspection). Can be disabled in System settings.
+
 ### File Inspection
 
 - **Archive and Script Inspection**: format, checksum, corrupt files, encryption and wrong-code detection in one file.
@@ -162,6 +172,7 @@ Convert and compress game audio, images and video, one file or a whole folder.
 ### Settings and updates
 
 - Theme (light / dark), language, accent color.
+- **Theme Schedule**, a **Seasonal** automatic style, and switches for animations and haptic feedback.
 - **Display Style** (Classic, Minimal, Soft, Gradient, Solid, and the themed Sakura, Ocean, Forest, Sunset, Neon, Paper) and **Navigation Bar Style** (Classic, Floating, Floating Icons, Icons Only, Sliding Pill, Top Line, Floating Button), both at the top of Display settings.
 - Press animations, soft screen transitions, shrinking headers and illustrated empty states.
 - **Run in background**: long jobs keep running when the app is closed, with a notification when they finish (Android 13+ asks for the notification permission when you enable it).

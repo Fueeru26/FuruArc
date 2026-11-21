@@ -22,8 +22,8 @@ android {
         applicationId = "com.furuarc"
         minSdkVersion(24)
         targetSdkVersion(34)
-        versionCode = 102
-        versionName = "1.02"
+        versionCode = 103
+        versionName = "1.03"
     }
 
     // Release signing credentials are never stored in the repository. They are read from environment

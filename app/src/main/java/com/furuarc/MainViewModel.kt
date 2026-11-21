@@ -23,7 +23,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     init {
         Engine.init(app)
         applyToEngine(_settings.value)
-        com.furuarc.ui.theme.AppStyle.apply(_settings.value.uiStyle, _settings.value.navStyle)
+        com.furuarc.ui.theme.AppStyle.apply(_settings.value.uiStyle, _settings.value.navStyle, _settings.value.animations, _settings.value.haptics)
     }
 
     private fun applyToEngine(n: AppSettings) {
@@ -37,7 +37,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _settings.value = n
         store.save(n)
         applyToEngine(n)
-        com.furuarc.ui.theme.AppStyle.apply(n.uiStyle, n.navStyle)
+        com.furuarc.ui.theme.AppStyle.apply(n.uiStyle, n.navStyle, n.animations, n.haptics)
     }
 
     // last-entered preferences (format, file name, filter, etc.)

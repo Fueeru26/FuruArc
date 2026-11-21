@@ -108,7 +108,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
                 sys0.uiStyleLabel, draft.uiStyle.toString(),
                 listOf(
                     "0" to sys0.uiClassic, "1" to sys0.uiMinimal, "2" to sys0.uiSoft, "3" to sys0.uiGradient, "4" to sys0.uiAmoled,
-                    "5" to sys0.uiSakura, "6" to sys0.uiOcean, "7" to sys0.uiForest, "8" to sys0.uiSunset, "9" to sys0.uiNeon, "10" to sys0.uiPaper,
+                    "5" to sys0.uiSakura, "6" to sys0.uiOcean, "7" to sys0.uiForest, "8" to sys0.uiSunset, "9" to sys0.uiNeon, "10" to sys0.uiPaper, "11" to sys0.uiAuto,
                 ),
                 showLabel = false,
             ) { v -> commit(draft.copy(uiStyle = v.toInt())) }
@@ -129,7 +129,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             Text(s.themeMode, fontSize = 12.sp, color = p.muted)
             AppDropdown(
                 sys.themeLabel, draft.themeMode.toString(),
-                listOf("0" to sys.themeSystem, "1" to sys.themeLight, "2" to sys.themeDark),
+                listOf("0" to sys.themeSystem, "1" to sys.themeLight, "2" to sys.themeDark, "3" to sys.themeSchedule),
                 showLabel = false,
             ) { v -> commit(draft.copy(themeMode = v.toInt())) }
         }
@@ -167,6 +167,23 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
                     }
                 }
             }
+        }
+        if (draft.themeMode == 3) {
+            val sysH = SysStr.of(LocalLang.current)
+            val hours = (0..23).map { it.toString() to "%02d:00".format(it) }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(sysH.darkFrom, fontSize = 12.sp, color = p.muted)
+                AppDropdown(sysH.darkFrom, draft.darkFrom.toString(), hours, showLabel = false) { v -> commit(draft.copy(darkFrom = v.toInt())) }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(sysH.darkTo, fontSize = 12.sp, color = p.muted)
+                AppDropdown(sysH.darkTo, draft.darkTo.toString(), hours, showLabel = false) { v -> commit(draft.copy(darkTo = v.toInt())) }
+            }
+        }
+        run {
+            val sysA = SysStr.of(LocalLang.current)
+            SwitchRow(sysA.animLabel, sysA.animDesc, draft.animations) { on -> commit(draft.copy(animations = on)) }
+            SwitchRow(sysA.hapticLabel, sysA.hapticDesc, draft.haptics) { on -> commit(draft.copy(haptics = on)) }
         }
         }
         }
@@ -219,6 +236,22 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
                 checked = draft.confirmExit,
                 onChange = { on -> commit(draft.copy(confirmExit = on)) },
             )
+            run {
+                val sysO = SysStr.of(LocalLang.current)
+                val pm = ctx.packageManager
+                val comp = android.content.ComponentName(ctx.packageName, "com.furuarc.OpenWithAny")
+                var openAll by remember { mutableStateOf(try { pm.getComponentEnabledSetting(comp) != android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED } catch (e: Exception) { true }) }
+                SwitchRow(sysO.openWithLabel, sysO.openWithDesc, openAll) { on ->
+                    openAll = on
+                    try {
+                        pm.setComponentEnabledSetting(
+                            comp,
+                            if (on) android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED else android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                            android.content.pm.PackageManager.DONT_KILL_APP,
+                        )
+                    } catch (e: Exception) { }
+                }
+            }
             SwitchRow(
                 label = s.r.nativeInputLabel,
                 desc = s.r.nativeInputDesc,

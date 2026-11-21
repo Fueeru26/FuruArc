@@ -2,6 +2,22 @@
 
 All notable changes to FuruArc are listed here.
 
+## 1.03
+
+### Added
+- **Media Player** (Support Tools): Images, Audio and Video menus. Pick files or a folder, with a "This folder or subfolders too" toggle; all media in the folder is scanned.
+- **Media Settings** page (button inside Media Player) with settings export and import.
+- **Audio player**: previous/next, shuffle, repeat, playback speed, A-B loop, sleep timer, and background play with notification controls.
+- **Image viewer**: pinch zoom, pan and slideshow.
+- **Open with...**: FuruArc can open files from file managers and the Share / Send to menu. Media opens in Media Player, text and archive formats in the matching feature, and unknown formats directly in File Inspection. The current screen is replaced automatically. Can be switched off in System settings.
+- **Media Player icon in Game Assets** viewers to open an asset in Media Player.
+- **Remember last position** for audio and video.
+- **Theme Schedule** mode (dark between chosen hours) and an automatic **Seasonal** display style.
+- Settings switches for **Animations** and **Haptic feedback**.
+
+### Fixed
+- Tapping the seek bar moved the thumb and time but not the media. Seeking now happens once after the tap and is frame-accurate where supported (API 26+).
+
 ## 1.02
 
 ### Added

@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 fun Modifier.pressScale(source: InteractionSource, pressed: Float = 0.96f): Modifier = composed {
     val down by source.collectIsPressedAsState()
     val sc by animateFloatAsState(
-        targetValue = if (down) pressed else 1f,
+        targetValue = if (down && com.furuarc.ui.theme.AppStyle.animations) pressed else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
     )
     this.graphicsLayer { scaleX = sc; scaleY = sc }
@@ -28,11 +28,15 @@ fun Modifier.pressScale(source: InteractionSource, pressed: Float = 0.96f): Modi
 /** [Modifier.clickable] (with the normal ripple) plus the press animation. */
 fun Modifier.clickableScale(enabled: Boolean = true, pressed: Float = 0.96f, ripple: Boolean = true, onClick: () -> Unit): Modifier = composed {
     val src = remember { MutableInteractionSource() }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     this.pressScale(src, pressed).clickable(
         interactionSource = src,
         indication = if (ripple) LocalIndication.current else null,
         enabled = enabled,
-        onClick = onClick,
+        onClick = {
+            if (com.furuarc.ui.theme.AppStyle.haptics) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+            onClick()
+        },
     )
 }
 
@@ -42,7 +46,11 @@ val LocalCardSource = androidx.compose.runtime.compositionLocalOf<MutableInterac
 /** Clickable for content inside an [AppCard]: the card itself shrinks while pressed. Outside a card it scales itself. */
 fun Modifier.cardClickable(onClick: () -> Unit): Modifier = composed {
     val src = LocalCardSource.current
-    if (src != null) this.clickable(interactionSource = src, indication = LocalIndication.current, onClick = onClick)
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    if (src != null) this.clickable(interactionSource = src, indication = LocalIndication.current, onClick = {
+        if (com.furuarc.ui.theme.AppStyle.haptics) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+        onClick()
+    })
     else this.clickableScale(onClick = onClick)
 }
 

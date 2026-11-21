@@ -33,7 +33,7 @@ class NavState(initial: Screen) {
 
     companion object {
         val MENUS = setOf(
-            Screen.SUPPORT, Screen.MORE, Screen.VN_TOOLS, Screen.RPGM_TOOLS, Screen.TEXTEDIT, Screen.MEDIA,
+            Screen.SUPPORT, Screen.MORE, Screen.MPLAYER, Screen.VN_TOOLS, Screen.RPGM_TOOLS, Screen.TEXTEDIT, Screen.MEDIA,
             Screen.FILECHECK, Screen.FILETOOLS, Screen.RPGM_TR_MENU, Screen.RPGM_CHEAT_MENU, Screen.PLUGIN_MENU,
             Screen.AUTO_SCRIPTS, Screen.VN_ENGINES, Screen.RPGM_ASSETS, Screen.ABOUT, Screen.SETTINGS,
         )
