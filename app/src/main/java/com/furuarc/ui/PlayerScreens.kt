@@ -50,7 +50,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.furuarc.core.AudioEngine
 import com.furuarc.core.MediaPrefs
 import com.furuarc.core.MediaScan
-import com.furuarc.core.PItem
+import com.furuarc.core.MItem
 import com.furuarc.core.seekExact
 import com.furuarc.i18n.playerStr
 import com.furuarc.ui.theme.LocalLang
@@ -66,9 +66,9 @@ import kotlin.math.abs
 
 /** Lists of the Media Player screens (kept while the app is open) and the hand-off used by "Open with" and Game Assets. */
 object PlayerHub {
-    var image by mutableStateOf<List<PItem>>(emptyList())
-    var audio by mutableStateOf<List<PItem>>(emptyList())
-    var video by mutableStateOf<List<PItem>>(emptyList())
+    var image by mutableStateOf<List<MItem>>(emptyList())
+    var audio by mutableStateOf<List<MItem>>(emptyList())
+    var video by mutableStateOf<List<MItem>>(emptyList())
     var label by mutableStateOf<Map<Int, String>>(emptyMap())
     val tree = HashMap<Int, Uri>()
 
@@ -78,15 +78,15 @@ object PlayerHub {
     /** Set by MainActivity: switches to the Media Player screen of a kind (1 image, 2 audio, 3 video). */
     var navigate: ((Int) -> Unit)? = null
 
-    fun items(kind: Int): List<PItem> = when (kind) { 1 -> image; 2 -> audio; else -> video }
+    fun items(kind: Int): List<MItem> = when (kind) { 1 -> image; 2 -> audio; else -> video }
 
-    fun set(kind: Int, list: List<PItem>, text: String) {
+    fun set(kind: Int, list: List<MItem>, text: String) {
         when (kind) { 1 -> image = list; 2 -> audio = list; else -> video = list }
         label = label + (kind to text)
     }
 
     /** Puts one item into the list of its kind and asks the list screen to open it. */
-    fun openSingle(kind: Int, item: PItem, text: String) {
+    fun openSingle(kind: Int, item: MItem, text: String) {
         set(kind, listOf(item), text)
         tree.remove(kind)
         autoOpen = kind to 0
@@ -97,7 +97,7 @@ private val SPEEDS = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
 private fun nextSpeed(cur: Float): Float = SPEEDS.firstOrNull { it > cur + 0.01f } ?: SPEEDS.first()
 
-fun itemOfUri(ctx: android.content.Context, uri: Uri): PItem {
+fun itemOfUri(ctx: android.content.Context, uri: Uri): MItem {
     var name = ""
     var size = 0L
     try {
@@ -109,13 +109,13 @@ fun itemOfUri(ctx: android.content.Context, uri: Uri): PItem {
         }
     } catch (e: Exception) { }
     if (name.isEmpty()) name = uri.lastPathSegment?.substringAfterLast('/') ?: "file"
-    return PItem(name, uri, null, size)
+    return MItem(name, uri, null, size)
 }
 
-private fun openStream(ctx: android.content.Context, it: PItem): InputStream? =
+private fun openStream(ctx: android.content.Context, it: MItem): InputStream? =
     if (it.uri != null) ctx.contentResolver.openInputStream(it.uri) else if (it.path != null) FileInputStream(it.path) else null
 
-private fun decodeBitmap(ctx: android.content.Context, item: PItem, maxDim: Int): ImageBitmap? {
+private fun decodeBitmap(ctx: android.content.Context, item: MItem, maxDim: Int): ImageBitmap? {
     return try {
         val b = BitmapFactory.Options()
         b.inJustDecodeBounds = true
@@ -296,7 +296,7 @@ fun PlayerListScreen(kind: Int, onBack: () -> Unit) {
 }
 
 @Composable
-private fun Thumb(item: PItem) {
+private fun Thumb(item: MItem) {
     val p = LocalPalette.current
     val ctx = LocalContext.current
     val bmp by produceState<ImageBitmap?>(null, item.key) { value = withContext(Dispatchers.IO) { decodeBitmap(ctx, item, 160) } }
@@ -379,7 +379,7 @@ private fun AudioPanel() {
 // ------------------------------------------------------------------ image viewer
 
 @Composable
-fun ImageViewer(items: List<PItem>, start: Int, onClose: () -> Unit) {
+fun ImageViewer(items: List<MItem>, start: Int, onClose: () -> Unit) {
     val pl = playerStr(LocalLang.current)
     val ctx = LocalContext.current
     if (items.isEmpty()) { onClose(); return }
@@ -471,7 +471,7 @@ fun ImageViewer(items: List<PItem>, start: Int, onClose: () -> Unit) {
 // ------------------------------------------------------------------ video
 
 @Composable
-fun VideoOverlay(items: List<PItem>, start: Int, onClose: () -> Unit) {
+fun VideoOverlay(items: List<MItem>, start: Int, onClose: () -> Unit) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
     if (items.isEmpty()) { onClose(); return }

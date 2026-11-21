@@ -838,15 +838,15 @@ private fun TextViewer(item: TextItem, onClose: () -> Unit) {
 internal fun openAssetInPlayer(a: GAsset, key: ByteArray?, kind: Int) {
     com.furuarc.Engine.scope.launch {
         val ctx = com.furuarc.Engine.app
-        val item: com.furuarc.core.PItem? = try {
+        val item: com.furuarc.core.MItem? = try {
             when {
-                a.special -> com.furuarc.core.SpecialMedia.audioFile(ctx, a).let { com.furuarc.core.PItem(it.name, null, it.absolutePath, it.length()) }
-                a.arc != null -> GameArc.toFile(ctx, a).let { com.furuarc.core.PItem(a.name, null, it.absolutePath, it.length()) }
+                a.special -> com.furuarc.core.SpecialMedia.audioFile(ctx, a).let { com.furuarc.core.MItem(it.name, null, it.absolutePath, it.length()) }
+                a.arc != null -> GameArc.toFile(ctx, a).let { com.furuarc.core.MItem(a.name, null, it.absolutePath, it.length()) }
                 a.enc -> {
                     val f = if (key != null) GameCache.decrypted(ctx, a, key) else null
-                    if (f != null) com.furuarc.core.PItem(RpgmCrypt.decryptedPath(a.name) ?: a.name, null, f.absolutePath, f.length()) else null
+                    if (f != null) com.furuarc.core.MItem(RpgmCrypt.decryptedPath(a.name) ?: a.name, null, f.absolutePath, f.length()) else null
                 }
-                else -> com.furuarc.core.PItem(a.name, a.uri, null, a.size)
+                else -> com.furuarc.core.MItem(a.name, a.uri, null, a.size)
             }
         } catch (e: Throwable) {
             null

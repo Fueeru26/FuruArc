@@ -21,7 +21,7 @@ fun MediaPlayer.seekExact(ms: Int) {
 }
 
 /** One playable / viewable item of the Media Player (a document URI or a plain file path). */
-class PItem(val name: String, val uri: Uri?, val path: String?, val size: Long) {
+class MItem(val name: String, val uri: Uri?, val path: String?, val size: Long) {
     val key: String get() = uri?.toString() ?: path ?: name
 }
 
@@ -167,8 +167,8 @@ object MediaScan {
     }
 
     /** Files of [kind] in the picked folder (and its subfolders when [recursive]); sorted by folder, then name (numbers sorted naturally). */
-    suspend fun scanTree(ctx: Context, tree: Uri, kind: Int, recursive: Boolean, onCount: (Int) -> Unit = {}): List<PItem> {
-        val out = ArrayList<Pair<String, PItem>>()
+    suspend fun scanTree(ctx: Context, tree: Uri, kind: Int, recursive: Boolean, onCount: (Int) -> Unit = {}): List<MItem> {
+        val out = ArrayList<Pair<String, MItem>>()
         val cr = ctx.contentResolver
         val rootId = try {
             DocumentsContract.getTreeDocumentId(tree)
@@ -198,7 +198,7 @@ object MediaScan {
                             if (recursive) stack.add(id to (if (rel.isEmpty()) name else "$rel/$name"))
                         } else if (kindOf(name) == kind) {
                             val size = if (c.isNull(3)) 0L else c.getLong(3)
-                            out.add(rel to PItem(name, DocumentsContract.buildDocumentUriUsingTree(tree, id), null, size))
+                            out.add(rel to MItem(name, DocumentsContract.buildDocumentUriUsingTree(tree, id), null, size))
                         }
                     }
                 }

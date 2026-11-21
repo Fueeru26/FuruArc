@@ -20,7 +20,7 @@ import kotlin.random.Random
  * It lives outside the screens so music keeps playing (with a notification) when the app is in the background.
  */
 object AudioEngine {
-    var queue by mutableStateOf<List<PItem>>(emptyList())
+    var queue by mutableStateOf<List<MItem>>(emptyList())
         private set
     var index by mutableStateOf(-1)
         private set
@@ -48,9 +48,9 @@ object AudioEngine {
     private var ticker: Job? = null
     private var shuffleOrder: List<Int> = emptyList()
 
-    val current: PItem? get() = queue.getOrNull(index)
+    val current: MItem? get() = queue.getOrNull(index)
 
-    fun setQueue(items: List<PItem>, start: Int) {
+    fun setQueue(items: List<MItem>, start: Int) {
         queue = items
         shuffleOrder = emptyList()
         playIndex(start)
