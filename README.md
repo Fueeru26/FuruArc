@@ -46,6 +46,8 @@ The app is written in Kotlin with Jetpack Compose. Every tool works through Andr
 
 ### Home
 
+<p align="center"><img src="pictures/1_home.webp" alt="Home" width="100%"></p>
+
 The first tab is a launcher for everything in the app.
 
 - **Feature search**: type a feature name, an engine, or a file extension (for example `xp3`, `tlg`, `translate`) and open the result directly. The menu path is shown under each result, and a star adds it to Favorites.
@@ -56,7 +58,7 @@ The first tab is a launcher for everything in the app.
 
 ### Game Assets (library)
 
-<p align="center"><img src="pictures/1_game_assets.webp" alt="Game Assets" width="100%"></p>
+<p align="center"><img src="pictures/2_game_assets.webp" alt="Game Assets" width="100%"></p>
 
 Add your games as a library and browse what is inside them.
 
@@ -70,7 +72,7 @@ Add your games as a library and browse what is inside them.
 
 ### RPGM Tools
 
-<p align="center"><img src="pictures/2_rpgm_tools.webp" alt="RPGM Tools" width="100%"></p>
+<p align="center"><img src="pictures/3_rpgm_tools.webp" alt="RPGM Tools" width="100%"></p>
 
 Decrypt assets, translate data, edit saves and manage plugins for RPG Maker.
 
@@ -88,7 +90,7 @@ Decrypt assets, translate data, edit saves and manage plugins for RPG Maker.
 
 ### VN Tools
 
-<p align="center"><img src="pictures/3_vn_tools.webp" alt="VN Tools" width="100%"></p>
+<p align="center"><img src="pictures/4_vn_tools.webp" alt="VN Tools" width="100%"></p>
 
 Unpack, pack and translate visual novels across 21 engines (see [Supported engines](#supported-engines)).
 
@@ -106,7 +108,7 @@ Unpack, pack and translate visual novels across 21 engines (see [Supported engin
 
 ### Translation Editor
 
-<p align="center"><img src="pictures/4_translation_editor.webp" alt="Translation Editor" width="100%"></p>
+<p align="center"><img src="pictures/5_translation_editor.webp" alt="Translation Editor" width="100%"></p>
 
 Translate exported game text with drafts, a glossary and online translation.
 
@@ -121,7 +123,7 @@ Translate exported game text with drafts, a glossary and online translation.
 
 ### Media Asset Converter
 
-<p align="center"><img src="pictures/5_media_asset_converter.webp" alt="Media Asset Converter" width="100%"></p>
+<p align="center"><img src="pictures/6_media_asset_converter.webp" alt="Media Asset Converter" width="100%"></p>
 
 Convert and compress game audio, images and video, one file or a whole folder.
 
@@ -136,13 +138,15 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 ### Text Editors
 
-<p align="center"><img src="pictures/6_more_features.webp" alt="More features" width="100%"></p>
+<p align="center"><img src="pictures/7_text_editor.webp" alt="Text Editor" width="100%"></p>
 
 - **Plain Text Editor**: `.txt`, `.ini`, `.ks`, `.rpy` and similar, with find and replace (regex), go to line, syntax highlighting, undo/redo, automatic encoding detection and auto-saved drafts.
 - **Structured Text**: JSON (tree and text views), CSV / TSV (cell table), INI / CFG, XML and Markdown (with preview).
 - **Bulk Replace**: find and replace text across many files in one folder, with a match counter before anything is changed.
 
 ### Media Player
+
+<p align="center"><img src="pictures/8_media_player.webp" alt="Media Player" width="100%"></p>
 
 Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
@@ -157,6 +161,8 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
 ### File Inspection
 
+<p align="center"><img src="pictures/9_file_inspection.webp" alt="File Inspection" width="100%"></p>
+
 - **Archive and Script Inspection**: format, checksum, corrupt files, encryption and wrong-code detection in one file.
 - **Folder Inspection**: inspect every archive and script in a folder at once.
 - **Compare Files**: compare two archives, scripts or translation files.
@@ -166,6 +172,8 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - **Key Finder**: find the encryption key and the files that use it.
 
 ### File Toolkit and File Name Optimizer
+
+<p align="center"><img src="pictures/10_file_toolkit_and_file_name_optimizer.webp" alt="File Toolkit and File Name Optimizer" width="100%"></p>
 
 - **File Cutter**: take the start, middle or end of a large file as a small file, for example to send a sample.
 - **File Splitter / Joiner**: split a large file into numbered parts (`.001`, `.002`, ...) and join them back.

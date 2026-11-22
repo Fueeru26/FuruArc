@@ -36,6 +36,8 @@ Aplikasi ditulis dengan Kotlin dan Jetpack Compose. Semua alat bekerja lewat Sto
 
 ### Beranda
 
+<p align="center"><img src="pictures/1_home.webp" alt="Beranda" width="100%"></p>
+
 Tab pertama adalah peluncur untuk semua fitur di aplikasi.
 
 - **Cari fitur**: ketik nama fitur, engine, atau ekstensi file (misalnya `xp3`, `tlg`, `translate`) lalu buka hasilnya langsung. Jalur menu tampil di bawah tiap hasil, dan bintang menambahkannya ke Favorit.
@@ -46,7 +48,7 @@ Tab pertama adalah peluncur untuk semua fitur di aplikasi.
 
 ### Aset Game (pustaka)
 
-<p align="center"><img src="pictures/1_game_assets.webp" alt="Aset Game" width="100%"></p>
+<p align="center"><img src="pictures/2_game_assets.webp" alt="Aset Game" width="100%"></p>
 
 Tambahkan game sebagai pustaka dan telusuri isinya.
 
@@ -60,7 +62,7 @@ Tambahkan game sebagai pustaka dan telusuri isinya.
 
 ### Alat RPGM
 
-<p align="center"><img src="pictures/2_rpgm_tools.webp" alt="Alat RPGM" width="100%"></p>
+<p align="center"><img src="pictures/3_rpgm_tools.webp" alt="Alat RPGM" width="100%"></p>
 
 Dekripsi aset, terjemahkan data, edit save dan kelola plugin RPG Maker.
 
@@ -78,7 +80,7 @@ Dekripsi aset, terjemahkan data, edit save dan kelola plugin RPG Maker.
 
 ### Alat VN
 
-<p align="center"><img src="pictures/3_vn_tools.webp" alt="Alat VN" width="100%"></p>
+<p align="center"><img src="pictures/4_vn_tools.webp" alt="Alat VN" width="100%"></p>
 
 Bongkar, kemas dan terjemahkan visual novel di 21 engine (lihat [Engine yang didukung](#engine-yang-didukung)).
 
@@ -96,7 +98,7 @@ Bongkar, kemas dan terjemahkan visual novel di 21 engine (lihat [Engine yang did
 
 ### Editor Terjemahan
 
-<p align="center"><img src="pictures/4_translation_editor.webp" alt="Editor Terjemahan" width="100%"></p>
+<p align="center"><img src="pictures/5_translation_editor.webp" alt="Editor Terjemahan" width="100%"></p>
 
 Terjemahkan teks game hasil ekspor dengan draf, glosarium dan terjemahan online.
 
@@ -111,7 +113,7 @@ Terjemahkan teks game hasil ekspor dengan draf, glosarium dan terjemahan online.
 
 ### Konverter Aset Media
 
-<p align="center"><img src="pictures/5_media_asset_converter.webp" alt="Konverter Aset Media" width="100%"></p>
+<p align="center"><img src="pictures/6_media_asset_converter.webp" alt="Konverter Aset Media" width="100%"></p>
 
 Konversi dan kompres audio, gambar dan video game, satu file atau satu folder penuh.
 
@@ -126,13 +128,15 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 ### Editor Teks
 
-<p align="center"><img src="pictures/6_more_features.webp" alt="Fitur lainnya" width="100%"></p>
+<p align="center"><img src="pictures/7_text_editor.webp" alt="Editor Teks" width="100%"></p>
 
 - **Editor File Teks Biasa**: `.txt`, `.ini`, `.ks`, `.rpy` dan sejenisnya, dengan cari dan ganti (regex), lompat ke baris, pewarnaan sintaks, urungkan/ulangi, deteksi encoding otomatis dan draf tersimpan otomatis.
 - **File Teks Berstruktur**: JSON (tampilan pohon dan teks), CSV / TSV (tabel sel), INI / CFG, XML dan Markdown (dengan pratinjau).
 - **Ganti Massal**: cari dan ganti teks di banyak file dalam satu folder, dengan penghitung kecocokan sebelum apa pun diubah.
 
 ### Media Player
+
+<p align="center"><img src="pictures/8_media_player.webp" alt="Media Player" width="100%"></p>
 
 Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar Video.
 
@@ -147,6 +151,8 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 
 ### Pemeriksaan File
 
+<p align="center"><img src="pictures/9_file_inspection.webp" alt="Pemeriksaan File" width="100%"></p>
+
 - **Pemeriksaan Arsip dan Skrip**: format, checksum, file rusak, enkripsi dan deteksi kode salah dalam satu file.
 - **Pemeriksaan Folder**: periksa semua arsip dan skrip dalam satu folder sekaligus.
 - **Bandingkan File**: bandingkan dua arsip, skrip atau file terjemahan.
@@ -156,6 +162,8 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - **Pencari Kunci**: cari kunci enkripsi dan file yang memakainya.
 
 ### Perkakas File dan Pengoptimal Nama File
+
+<p align="center"><img src="pictures/10_file_toolkit_and_file_name_optimizer.webp" alt="Perkakas File dan Pengoptimal Nama File" width="100%"></p>
 
 - **Pemotong File**: ambil bagian awal, tengah atau akhir file besar menjadi file kecil, misalnya untuk mengirim sampel.
 - **Pemisah / Penggabung File**: pecah file besar menjadi bagian bernomor (`.001`, `.002`, ...) dan gabungkan kembali.

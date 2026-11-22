@@ -5,50 +5,33 @@ All notable changes to FuruArc are listed here.
 ## 1.03
 
 ### Added
-- **Media Player** (Support Tools, now placed above the Media Asset Converter, with a new window-and-play icon): Image Gallery, Audio Player and Video Player.
+- **Media Player** (Support Tools, placed above the Media Asset Converter, with a new window-and-play icon): Image Gallery, Audio Player and Video Player. The Audio Player is described as "Play audio, manage playlists, shuffle, repeat and adjust speed".
   - Audio and Video have four toggle buttons: **Player**, **Queue**, **Folders**, **Playlists**.
-  - **Folders**: add folders and see only their names; tapping one scans it and loads its media as the Queue. A "This folder or subfolders too" toggle controls the scan. Single files can be added too.
-  - **Queue**: cover, title, artist, album and duration read from the file tags; move items up or down with arrows; three-dot window with Song info, Play next, Remove from queue, Add to Favorites, Add to playlist, Share and Open in File Inspection; pagination (50 per page, adjustable).
-  - **Playlists** in a 3-column card grid (rename, delete) with a built-in **Favorites** list that cannot be renamed or deleted; tapping a list loads it as the Queue.
-  - **Player**: cover, favorite, info, add to playlist, repeat, shuffle, speed, A-B loop, sleep timer, system equalizer, background play with notification controls. The Video Player adds Rotate Screen, Fullscreen, double-tap skip, and swipe for brightness and volume.
-  - **Image Gallery**: Gallery, Folders and Collections; list or grid view (60 per page, adjustable); Favorites and Collections work like playlists.
+  - **Folders**: add folders and see only their names; a "This folder or subfolders too" toggle controls the scan. Single files can be added too. Folder three-dot menu: Load into Queue/Gallery and Add to Queue/Gallery, plus **View content** (search, 20 per page and Close stay fixed while only the list scrolls) and **Empty**.
+  - **Queue**: cover, title, artist, album and duration read from the file tags; move items up or down with arrows; three-dot window with Song info, Play next, Remove from queue, Add to Favorites, Add to playlist, Share and Open in File Inspection; **Search**; **selection mode** (Favorites, Playlist, Delete, with confirmation before deleting); pagination (50 per page, adjustable). Emptying the Queue also empties the Player.
+  - **Playlists** in a 3-column card grid (rename, delete, View content, Empty) with a built-in **Favorites** list that cannot be renamed or deleted.
+  - **Apply to Queue / Gallery**: Folders, Favorites, Collections and Playlists load directly into an empty Queue/Gallery; otherwise a window offers **Load** (with a direct overwrite warning) or **Add**.
+  - **Player**: cover, favorite, info, add to playlist, repeat, shuffle, speed, A-B loop, sleep timer, system equalizer, **position bookmarks** and background play.
+  - **Audio Player**: media-style notification (cover, title, artist, seek bar, Favorite / Previous / Play-Pause / Next / Close) and synced lyrics (.lrc).
+  - **Video Player**: Rotate Screen, Fullscreen, double-tap skip, swipe for brightness and volume, **picture-in-picture**, and **subtitles** (SRT, VTT, ASS/SSA; icon between the playlist and three-dot icons). Fullscreen hides the status and navigation bars (swipe from the edge to show them) and Back returns to portrait; swiping from the screen edges does not change brightness or volume. The position is kept when switching between the Player, Queue, Folders and Playlists tabs, and leaving and re-entering the player keeps the position without starting playback by itself.
+  - Subtitles and lyrics have timing (±0.5 s), text size and automatic loading of a same-name file.
+  - **Image Gallery**: Gallery, Folders and Collections; list or grid view (60 per page, adjustable); Search; selection mode; Favorites and Collections work like playlists. In grid view, thumbnails change immediately when switching pages or deleting images.
   - Folders, playlists/collections and favorites are kept separately for audio, video and images.
-- **Media Settings** page: audio, video, list and gallery options (pause on headphone unplug, audio focus for calls, restore last queue, skip small audio, skip seconds, default video orientation, sort order, tag titles, covers, page sizes, grid columns, image size, viewer background and more) with export and import of the settings together with all folders, playlists, collections and favorites.
-- **Open with...**: FuruArc can open files from file managers and the Share / Send to menu. Media opens in Media Player, text and archive formats in the matching feature, and unknown formats directly in File Inspection. The current screen is replaced automatically. Can be switched off in System settings.
+  - **Remember last position** for audio and video, set separately for each (off by default). The last played audio / video and its position are restored when the app is opened again.
+- **Media Settings** page: audio, video, list and gallery options (pause on headphone unplug, audio focus for calls, restore last queue, skip small audio, skip seconds, default video orientation, sort order, tag titles, covers, page sizes, grid columns, image size, viewer background, **Arrange the list** with Drag mode or Up-down arrows, **Subtitles & lyrics** options and more), with the Lists section first and larger section titles. Settings can be exported and imported together with all folders, playlists, collections and favorites.
+- **Open with...**: FuruArc can open files from file managers and the Share / Send to menu. Media opens temporarily in Media Player without overwriting the stored Gallery, Player or Queue; text and archive formats open in the matching feature, and unknown formats directly in File Inspection. The current screen is replaced automatically. Can be switched off in System settings.
 - **Media Player icon in Game Assets** viewers to open an asset in Media Player.
-- **Remember last position** for audio and video.
 - **Theme Schedule** mode (dark between chosen hours) and an automatic **Seasonal** display style.
 - Settings switches for **Animations** and **Haptic feedback**.
 
-### Added (Media Player revisions)
-- **Apply to Queue / Gallery**: Folders, Favorites, Collections and Playlists load directly into an empty Queue/Gallery; otherwise a window offers **Load** (with an overwrite warning) or **Add**. Folder three-dot menu: Load into Queue/Gallery and Add to Queue/Gallery. Emptying the Queue also empties the Player.
-- **Subtitles** in the Video Player (SRT, VTT, ASS/SSA; icon between the playlist and three-dot icons).
-- **Media-style notification** for audio (cover, title, artist, seek bar, Favorite / Previous / Play-Pause / Next / Close).
-- **Selection mode** in the Queue and Gallery (Favorites, Playlist/Collection, Delete).
-
-### Added (Media Player, second revision)
-- **Search** (Queue and Gallery), **View content** and **Empty** for Folders, Favorites, Collections and Playlists, confirmation before deleting selected items, direct overwrite warning for "Load into ...".
-- **Synced lyrics (.lrc)** in the Audio Player; subtitle and lyrics **timing (±0.5 s)**, **text size** and **automatic loading** of a same-name file; **position bookmarks**; **picture-in-picture** for video.
-- Media Settings: **Arrange the list** (Drag mode / Up-down arrows), separate **Remember last position** for Audio and Video (off by default), **Subtitles & lyrics** options.
-- The last played audio / video and its position are restored when the app is opened again.
-
 ### Changed
 - "Confirm exit from Editor" is now on by default.
-- "View content" windows: search, pages (20 per page) and Close stay fixed while only the list scrolls.
-- Video position is kept when switching between the Player, Queue, Folders and Playlists tabs.
-- Video fullscreen: swiping from the screen edges no longer changes brightness or volume; leaving and re-entering the video player keeps the position and does not start playing by itself.
-- Gallery grid: thumbnails change immediately when switching pages or deleting images.
 - About > Developer: contact and donation links are on one line each; the donation link notes were removed.
-- Game Assets viewers use the new Media Player icon.
-- "Open with..." media is temporary: it no longer overwrites the stored Gallery, Player or Queue.
-- Audio Player description: "Play audio, manage playlists, shuffle, repeat and adjust speed".
-- Video fullscreen hides the status and navigation bars (swipe from the edge to show them); Back returns to portrait.
-- Media Settings: Lists section first, larger section titles.
 - Quick Actions default: Media Player replaces Text Editor in the third place (existing custom lists are not changed).
 - The app now handles screen rotation itself instead of restarting.
 
 ### Fixed
-- Tapping the seek bar moved the thumb and time but not the media. Seeking now happens once after the tap and is frame-accurate where supported (API 26+).
+- In the Audio and Video previews of Game Assets, tapping the seek bar moved the thumb and time but not the media. Seeking now happens once after the tap and is frame-accurate where supported (API 26+).
 
 ## 1.02
 
