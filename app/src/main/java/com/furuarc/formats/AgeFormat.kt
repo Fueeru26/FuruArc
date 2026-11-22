@@ -17,7 +17,6 @@ object AgeFormat : ArchiveFormat {
     override val id = "age"
     override val displayName = "AGE (Eushully ALF)"
     override val extensions = listOf("alf")
-    override val canPack: Boolean get() = false
     override val explicitOnly: Boolean get() = true
 
     private class Meta
@@ -38,7 +37,21 @@ object AgeFormat : ArchiveFormat {
     )
 
     override val unpackOptions = listOf(IDX_SPEC, ARC_SPEC, ENCODING_SPEC)
-    override val packOptions: List<OptionSpec> = emptyList()
+    private val PACK_ARC_SPEC = OptionSpec(
+        key = "agearc", kind = OptKind.TEXT,
+        en = "ALF name in the index", id = "Nama ALF di indeks",
+        default = "DATA1.ALF",
+        hintEn = "Which ALF of the index is rebuilt (for example DATA1.ALF). A new index is saved next to the ALF.",
+        hintId = "ALF mana di indeks yang dibangun ulang (contoh DATA1.ALF). Indeks baru disimpan di samping ALF.",
+    )
+    private val PACK_IDX_SPEC = OptionSpec(
+        key = "ageidx", kind = OptKind.FILE,
+        en = "Original index file (SYS4INI.BIN / SYS5INI.BIN / .AAI)", id = "File indeks asli (SYS4INI.BIN / SYS5INI.BIN / .AAI)",
+        default = "",
+        hintEn = "Required: its header and the other ALF entries are kept; only this ALF's offsets and sizes change.",
+        hintId = "Wajib: header dan entri ALF lain dipertahankan; hanya offset dan ukuran ALF ini yang diubah.",
+    )
+    override val packOptions = listOf(PACK_IDX_SPEC, PACK_ARC_SPEC, ENCODING_SPEC)
 
     override fun matches(head: ByteArray): Boolean = isIndexMagic(head)
 
@@ -140,7 +153,80 @@ object AgeFormat : ArchiveFormat {
         IoUtil.copyRange(src, entry.offset, entry.size, out)
     }
 
+    /** LZSS stream made only of literals (flag byte 0xFF + 8 bytes): always valid, no match search needed. */
+    private fun lzssLiteral(d: ByteArray): ByteArray {
+        val out = java.io.ByteArrayOutputStream(d.size + d.size / 8 + 16)
+        var i = 0
+        while (i < d.size) {
+            val n = minOf(8, d.size - i)
+            out.write((1 shl n) - 1)
+            out.write(d, i, n)
+            i += n
+        }
+        return out.toByteArray()
+    }
+
     override fun pack(inputs: List<PackInput>, target: File, opts: Options, progress: Progress) {
-        throw IOException("Pengemasan ALF belum didukung")
+        val idxPath = opts.extra["ageidx"].orEmpty().trim()
+        if (idxPath.isEmpty()) throw IOException("Pilih File indeks asli di opsi")
+        val arcName = opts.str("agearc", "").trim()
+        if (arcName.isEmpty()) throw IOException("Isi Nama ALF di indeks")
+        val f = File(idxPath)
+        readIndex(f)  // validates
+        val orig = f.readBytes()
+        val t = String(orig, 1, 3, Charsets.US_ASCII)
+        if (t == "3IN") throw IOException("Indeks versi 3 (S3IN) belum didukung untuk dikemas")
+        val hOff = if (t == "4AC" || t == "5AC") 0x114 else 0x134
+        val idx = readIndex(f)
+        val bb = idx.le()
+        val cs = IoUtil.cs(opts)
+        var p = 0
+        val arcCount = bb.getInt(p); p += 4
+        val names = ArrayList<String>()
+        for (i in 0 until arcCount) { names += IoUtil.cstr(idx, p, 0x100, cs); p += 0x100 }
+        val arcId = names.indexOfFirst { it.equals(arcName, ignoreCase = true) }
+        if (arcId < 0) throw IOException("ALF \"$arcName\" tidak ada di indeks. Isi \"Nama ALF di indeks\" dengan salah satu: " + names.joinToString(", "))
+        val fc = bb.getInt(p); p += 4
+        val recBase = p
+        val byName = HashMap<String, PackInput>()
+        for (inp in inputs) byName[inp.path.replace('\\', '/').substringAfterLast('/').lowercase()] = inp
+        // records of this ALF in index order
+        val order = ArrayList<Int>()
+        val missing = ArrayList<String>()
+        for (i in 0 until fc) {
+            val rp = recBase + i * 0x50
+            val name = IoUtil.cstr(idx, rp, 0x40, cs)
+            if (bb.getInt(rp + 0x40) != arcId || name == "@") continue
+            if (byName[name.lowercase()] == null) missing += name else order += i
+        }
+        if (missing.isNotEmpty())
+            throw IOException("File berikut ada di indeks tetapi tidak ada di folder: " + missing.take(5).joinToString(", ") + (if (missing.size > 5) " …(${missing.size})" else ""))
+        var off = 0L
+        java.io.RandomAccessFile(target, "rw").use { raf ->
+            raf.setLength(0)
+            val buf = ByteArray(256 * 1024)
+            order.forEachIndexed { n, i ->
+                val rp = recBase + i * 0x50
+                val name = IoUtil.cstr(idx, rp, 0x40, cs)
+                val inp = byName[name.lowercase()]!!
+                progress.update(n, order.size, name)
+                val w = IoUtil.appendInput(raf, inp, buf)
+                if (w != inp.size) throw IOException("Ukuran file berubah saat dikemas: $name")
+                if (off + w > 0xFFFFFFFFL) throw IOException("ALF melebihi 4 GB")
+                bb.putInt(rp + 0x48, off.toInt())
+                bb.putInt(rp + 0x4C, w.toInt())
+                off += w
+            }
+        }
+        val packed = lzssLiteral(idx)
+        val out = ByteArray(hOff + 4 + packed.size)
+        System.arraycopy(orig, 0, out, 0, hOff)
+        out.le().putInt(hOff, packed.size)
+        System.arraycopy(packed, 0, out, hOff + 4, packed.size)
+        val xd = File(target.path + ".x")
+        xd.mkdirs()
+        val outName = f.name.replace(Regex("^opt_[A-Za-z0-9]+_"), "")
+        File(xd, outName).writeBytes(out)
+        progress.update(order.size, order.size, "selesai")
     }
 }

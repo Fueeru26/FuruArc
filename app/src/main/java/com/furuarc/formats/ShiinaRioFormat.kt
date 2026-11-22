@@ -8,17 +8,17 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * ShiinaRio WARC archive, read only. Layout follows GARbro ArcFormats/ShiinaRio/ArcWARC.cs (MIT).
+ * ShiinaRio WARC archive. Layout follows GARbro ArcFormats/ShiinaRio/ArcWARC.cs (MIT).
  * Header: "WARC", " 1.", digit (version 1.x), u32 index offset XOR 0xF182AD82. Index at the end of the file,
  * records: name[0x10], u32 offset, u32 size, u32 unpacked size, i64 file time, u32 flags (v1.1x).
  * Entries: "YPK" (zlib) is unpacked; stored entries (size == unpacked size) are copied as they are.
+ * Packing writes WARC 1.1 with stored entries (names up to 15 bytes); untested against a real game.
  * Not supported: WARC 1.2+ (index/data encrypted with a per-title scheme), YH1 and YLZ packing.
  */
 object ShiinaRioFormat : ArchiveFormat {
     override val id = "shiinario"
     override val displayName = "ShiinaRio (WARC)"
     override val extensions = listOf("war", "warc")
-    override val canPack: Boolean get() = false
 
     private const val IDX_KEY = 0xF182AD82L
     private const val REC = 0x10 + 24
@@ -108,6 +108,47 @@ object ShiinaRioFormat : ArchiveFormat {
     }
 
     override fun pack(inputs: List<PackInput>, target: File, opts: Options, progress: Progress) {
-        throw IOException("Pengemasan WARC belum didukung")
+        if (inputs.isEmpty()) throw IOException("Tidak ada file untuk dikemas")
+        val cs = IoUtil.cs(opts)
+        val names = inputs.map { it.path.replace('\\', '/').substringAfterLast('/') }
+        for (n in names) {
+            val b = n.toByteArray(cs)
+            if (b.size > 15) throw IOException("Nama terlalu panjang (maks 15 byte): $n")
+        }
+        val recs = java.io.ByteArrayOutputStream()
+        val rb = ByteBuffer.allocate(REC).order(ByteOrder.LITTLE_ENDIAN)
+        var off = 12L
+        java.io.RandomAccessFile(target, "rw").use { raf ->
+            raf.setLength(0)
+            raf.write(ByteArray(12))
+            val buf = ByteArray(256 * 1024)
+            inputs.forEachIndexed { i, inp ->
+                progress.update(i, inputs.size, names[i])
+                val w = IoUtil.appendInput(raf, inp, buf)
+                if (w != inp.size) throw IOException("Ukuran file berubah saat dikemas: ${names[i]}")
+                if (off + w > 0xFFFFFFFFL) throw IOException("Arsip melebihi 4 GB")
+                rb.clear()
+                rb.put(ByteArray(REC))
+                rb.position(0)
+                rb.put(names[i].toByteArray(cs))
+                rb.position(0x10)
+                rb.putInt(off.toInt()); rb.putInt(w.toInt()); rb.putInt(w.toInt())
+                rb.putLong(0L); rb.putInt(0)
+                recs.write(rb.array())
+                off += w
+            }
+            val idx = recs.toByteArray()
+            val ib = ByteBuffer.wrap(idx).order(ByteOrder.LITTLE_ENDIAN)
+            var i = 0
+            while (i + 4 <= idx.size) { ib.putInt(i, ib.getInt(i) xor off.toInt()); i += 4 }
+            raf.seek(off)
+            raf.write(idx)
+            val hd = ByteBuffer.allocate(12).order(ByteOrder.LITTLE_ENDIAN)
+            hd.put("WARC 1.1".toByteArray(Charsets.US_ASCII))
+            hd.putInt((IDX_KEY xor off).toInt())
+            raf.seek(0)
+            raf.write(hd.array())
+        }
+        progress.update(inputs.size, inputs.size, "selesai")
     }
 }

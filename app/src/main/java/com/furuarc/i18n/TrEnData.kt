@@ -428,5 +428,13 @@ Pengemasan YH1 belum didukung: {0} | YH1 packing is not supported yet: {0}
 Pengemasan YLZ belum didukung: {0} | YLZ packing is not supported yet: {0}
 Pengemasan WARC belum didukung | Packing WARC is not supported yet
 """
-    val ALL = listOf(E0, E1)
+    const val E2 = """
+Pilih File indeks asli di opsi | Pick the Original index file in the options
+Isi Nama ALF di indeks | Fill in the ALF name in the index
+Indeks versi 3 (S3IN) belum didukung untuk dikemas | Version 3 index (S3IN) is not supported for packing yet
+File berikut ada di indeks tetapi tidak ada di folder: {0} | These files are in the index but not in the folder: {0}
+ALF melebihi 4 GB | The ALF exceeds 4 GB
+Nama terlalu panjang (maks 15 byte): {0} | Name too long (max 15 bytes): {0}
+"""
+    val ALL = listOf(E0, E1, E2)
 }

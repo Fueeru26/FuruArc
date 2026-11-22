@@ -736,6 +736,10 @@ object Engine {
                 val out = TreeWriter(app, outDir).open(safeName, if (sameDir) ConflictPolicy.RENAME else ConflictPolicy.OVERWRITE)
                     ?: throw IOException(str.errWriteFailed)
                 out.stream.use { o -> tmp.inputStream().use { it.copyTo(o, 1024 * 1024) } }
+                // extra files made by the format (for example the new AGE index) are saved next to the archive
+                File(tmp.path + ".x").listFiles()?.forEach { xf ->
+                    TreeWriter(app, outDir).open(xf.name, ConflictPolicy.RENAME)?.stream?.use { o -> xf.inputStream().use { it.copyTo(o, 1024 * 1024) } }
+                }
                 lastPack = PackCtx(fmt, out.uri, inputs, opts)
                 resultUri = treeDocUri(outDir)
                 val size = tmp.length()
@@ -752,6 +756,7 @@ object Engine {
                 _state.update { it.copy(running = false) }
             } finally {
                 tmp.delete()
+                File(tmp.path + ".x").deleteRecursively()
             }
         }
     }
