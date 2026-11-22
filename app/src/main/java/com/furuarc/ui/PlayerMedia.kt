@@ -123,6 +123,17 @@ internal fun AudioPane() {
     val remainMin = if (AudioEngine.sleepAt == 0L) 0 else (((AudioEngine.sleepAt - now) / 60000L).toInt() + 1).coerceAtLeast(1)
     val title = (if (MediaPrefs.tagTitle) meta?.title else null) ?: cur.name
     val fav = MediaLib.isFav(2, cur)
+    var lyrDlg by remember { mutableStateOf(false) }
+    var bmDlg by remember { mutableStateOf(false) }
+    var lcues by remember(cur.key) { mutableStateOf(SubStore.get(cur.key)) }
+    var lOff by remember(cur.key) { mutableStateOf(SubStore.offset(cur.key)) }
+    // automatic lyrics: an .lrc file with the same name next to the song
+    LaunchedEffect(cur.key) {
+        if (MediaPrefs.autoSub && SubStore.get(cur.key).isEmpty() && SubStore.markTried(cur.key)) {
+            val found = withContext(Dispatchers.IO) { SubFinder.find(ctx, cur, true) }
+            if (found.isNotEmpty()) { SubStore.put(cur.key, found); lcues = found }
+        }
+    }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
@@ -137,6 +148,22 @@ internal fun AudioPane() {
         Text(title, color = p.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
         meta?.artist?.let { Text(it, color = p.muted, fontSize = 15.sp, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth()) }
         meta?.album?.let { Text(it, color = p.muted, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth()) }
+        if (lcues.isNotEmpty()) {
+            val at = AudioEngine.position - lOff
+            val ci = lcues.indexOfLast { it.start <= at }
+            val sz = MediaPrefs.subSize / 100f
+            Spacer(Modifier.height(8.dp))
+            Column(Modifier.fillMaxWidth().heightIn(min = (74 * sz).dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                for (k in ci - 1..ci + 1) {
+                    val t = lcues.getOrNull(k)?.text ?: ""
+                    Text(
+                        t.ifEmpty { " " }, color = if (k == ci) p.accent else p.muted, fontSize = ((if (k == ci) 17f else 13f) * sz).sp,
+                        fontWeight = if (k == ci) FontWeight.Bold else FontWeight.Normal, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             RoundIcon(if (fav) AppIcons.Heart else AppIcons.HeartOutline, pl.favorites, if (fav) p.accent else p.text) {
@@ -144,6 +171,7 @@ internal fun AudioPane() {
             }
             RoundIcon(AppIcons.InfoOutline, pl.infoSong, p.text) { menu = 1 }
             RoundIcon(AppIcons.PlaylistMusic, pl.addToPlaylist, p.text) { menu = 2 }
+            RoundIcon(AppIcons.Lyrics, pl.lyrics, if (lcues.isNotEmpty()) p.accent else p.text) { lyrDlg = true }
             RoundIcon(AppIcons.MoreHoriz, pl.menuTitleItem, p.text) { menu = 0 }
             Spacer(Modifier.weight(1f))
             RoundIcon(if (MediaPrefs.repeat == 2) AppIcons.RepeatOne else AppIcons.Repeat, pl.repeat(MediaPrefs.repeat), if (MediaPrefs.repeat != 0) p.accent else p.text) {
@@ -184,11 +212,14 @@ internal fun AudioPane() {
                     ctx.startActivity(i)
                 } catch (e: Exception) { toastMsg(ctx, pl.noEqualizer) }
             }
+            PChip(pl.bookmarks, BookmarkStore.get(cur.key).isNotEmpty()) { bmDlg = true }
             PChip(pl.stop) { AudioEngine.stop() }
         }
         Spacer(Modifier.height(8.dp))
     }
     if (menu >= 0) ItemMenu(2, cur, -1, menu) { menu = -1 }
+    if (lyrDlg) SubtitleDialog(cur.key, true, lcues.size, lOff, { lcues = it }, { lOff = it; SubStore.setOffset(cur.key, it) }, { lyrDlg = false })
+    if (bmDlg) BookmarkDialog(cur.key, AudioEngine.position, { AudioEngine.seek(it) }, { bmDlg = false })
 }
 
 // ------------------------------------------------------------------ video player tab / fullscreen
@@ -219,7 +250,16 @@ internal fun VideoPane(fullscreen: Boolean = false) {
     var hint by remember { mutableStateOf("") }
     var menu by remember { mutableStateOf(-1) }
     var subDlg by remember { mutableStateOf(false) }
+    var bmDlg by remember { mutableStateOf(false) }
     var cues by remember(item.key, fullscreen) { mutableStateOf(SubStore.get(item.key)) }
+    var subOff by remember(item.key, fullscreen) { mutableStateOf(SubStore.offset(item.key)) }
+    // automatic subtitle: a file with the same name next to the video
+    LaunchedEffect(item.key) {
+        if (MediaPrefs.autoSub && SubStore.get(item.key).isEmpty() && SubStore.markTried(item.key)) {
+            val found = withContext(Dispatchers.IO) { SubFinder.find(ctx, item, false) }
+            if (found.isNotEmpty()) { SubStore.put(item.key, found); cues = found }
+        }
+    }
     val seek = remember(item.key, fullscreen) { SeekState() }
     val skip = MediaPrefs.skipSec * 1000
     val fav = MediaLib.isFav(3, item)
@@ -228,9 +268,14 @@ internal fun VideoPane(fullscreen: Boolean = false) {
         try { mpRef[0]?.let { if (it.isPlaying) it.playbackParams = PlaybackParams().setSpeed(speed) } } catch (e: Throwable) { }
     }
     fun saveNow() {
-        try { view[0]?.let { MediaPrefs.savePos(item.key, it.currentPosition, dur) } } catch (e: Throwable) { }
+        if (dur <= 0) return
+        val cp = try { view[0]?.currentPosition ?: 0 } catch (e: Throwable) { 0 }
+        val at = if (cp > 0) cp else PlayerHub.sessionPos[item.key] ?: 0
+        PlayerHub.sessionPos[item.key] = at
+        MediaPrefs.savePos(item.key, at, dur, true)
+        MediaPrefs.saveLast(3, item.key, if (at < dur - 3000) at else 0)
     }
-    fun go(d: Int) { saveNow(); PlayerHub.videoIndex = (index + d + items.size) % items.size }
+    fun go(d: Int) { saveNow(); PlayerHub.videoRestore = null; PlayerHub.videoWant = true; PlayerHub.videoIndex = (index + d + items.size) % items.size }
     fun seekTo(ms: Int) {
         val np = ms.coerceIn(0, dur.coerceAtLeast(0))
         val m = mpRef[0]
@@ -244,7 +289,9 @@ internal fun VideoPane(fullscreen: Boolean = false) {
         } catch (e: Throwable) { }
     }
     fun finished() {
-        MediaPrefs.savePos(item.key, 0, dur)
+        MediaPrefs.savePos(item.key, 0, dur, true)
+        PlayerHub.sessionPos[item.key] = 0
+        MediaPrefs.saveLast(3, item.key, 0)
         when {
             MediaPrefs.repeat == 2 -> { mpRef[0]?.seekExact(0); view[0]?.start(); applySpeed(); playing = true }
             MediaPrefs.autoNext && items.size > 1 && (index + 1 < items.size || MediaPrefs.repeat == 1) -> go(1)
@@ -254,6 +301,7 @@ internal fun VideoPane(fullscreen: Boolean = false) {
     fun setFull(on: Boolean) {
         saveNow()
         PlayerHub.videoResume = pos
+        PlayerHub.videoWant = playing
         PlayerHub.videoFull = on
     }
     fun rotate() {
@@ -282,10 +330,16 @@ internal fun VideoPane(fullscreen: Boolean = false) {
     }
     DisposableEffect(item.key, fullscreen) { onDispose { saveNow(); try { view[0]?.stopPlayback() } catch (e: Throwable) { } } }
     LaunchedEffect(item.key, fullscreen) {
+        var n = 0
         while (true) {
             delay(300)
             val v = view[0]
             if (v != null && seek.drag == null) try { pos = v.currentPosition; playing = v.isPlaying } catch (e: Throwable) { }
+            // remember where we are (kept for returning to the screen and for the next app start)
+            if (dur > 0 && pos > 0) {
+                PlayerHub.sessionPos[item.key] = pos
+                if (++n % 7 == 0) MediaPrefs.saveLast(3, item.key, if (pos < dur - 3000) pos else 0)
+            }
         }
     }
     LaunchedEffect(ui, playing, fullscreen) { if (fullscreen && ui && playing) { delay(4000); ui = false } }
@@ -304,9 +358,18 @@ internal fun VideoPane(fullscreen: Boolean = false) {
                                 dur = mp.duration
                                 val resume = PlayerHub.videoResume
                                 PlayerHub.videoResume = 0
-                                val saved = if (resume > 0) resume else MediaPrefs.savedPos(item.key)
-                                if (saved > 0 && saved < dur - 3000) { mp.seekExact(saved); pos = saved }
-                                if (MediaPrefs.videoAutoPlay) { v.start(); playing = true; applySpeed() }
+                                val restoring = PlayerHub.videoRestore == item.key
+                                val saved = when {
+                                    resume > 0 -> resume
+                                    restoring -> PlayerHub.sessionPos[item.key] ?: 0
+                                    else -> MediaPrefs.savedPos(item.key, true)
+                                }
+                                if (restoring) PlayerHub.videoRestore = null
+                                if (saved > 0 && saved < dur - 1500) { mp.seekExact(saved); pos = saved }
+                                val want = PlayerHub.videoWant
+                                PlayerHub.videoWant = false
+                                if (want) { v.start(); playing = true; applySpeed() }
+                                else if (saved <= 0) v.seekTo(1) // paused: show the first picture
                             }
                             v.setOnCompletionListener { finished() }
                             v.setOnErrorListener { _, _, _ -> failed = true; true }
@@ -334,13 +397,17 @@ internal fun VideoPane(fullscreen: Boolean = false) {
                             },
                         )
                     }
-                    .pointerInput(MediaPrefs.swipeGestures) {
+                    .pointerInput(MediaPrefs.swipeGestures, fullscreen) {
                         if (!MediaPrefs.swipeGestures) return@pointerInput
+                        // in fullscreen the screen edges belong to the system bars: swiping there must not change brightness / volume
+                        val edge = 64.dp.toPx()
+                        var ignore = false
                         var left = true
                         var level = 0f
                         val am = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                         detectVerticalDragGestures(
                             onDragStart = { off ->
+                                ignore = fullscreen && (off.y < edge || off.y > size.height - edge || off.x < edge || off.x > size.width - edge)
                                 left = off.x < size.width / 2f
                                 level = if (left) {
                                     val b = act?.window?.attributes?.screenBrightness ?: -1f
@@ -350,6 +417,7 @@ internal fun VideoPane(fullscreen: Boolean = false) {
                                 }
                             },
                         ) { change, dy ->
+                            if (ignore) return@detectVerticalDragGestures
                             change.consumeAllChanges()
                             level = (level - dy / size.height.coerceAtLeast(1) * 1.4f).coerceIn(0f, 1f)
                             if (left) {
@@ -365,10 +433,10 @@ internal fun VideoPane(fullscreen: Boolean = false) {
                     },
             )
             if (cues.isNotEmpty()) {
-                val cue = cues.firstOrNull { pos >= it.start && pos < it.end }
+                val cue = cues.firstOrNull { pos - subOff >= it.start && pos - subOff < it.end }
                 if (cue != null) {
                     Text(
-                        cue.text, color = Color.White, fontSize = if (fullscreen) 18.sp else 14.sp, textAlign = TextAlign.Center,
+                        cue.text, color = Color.White, fontSize = ((if (fullscreen) 18f else 14f) * MediaPrefs.subSize / 100f).sp, textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 16.dp, vertical = if (fullscreen && ui) 96.dp else 14.dp)
                             .background(Color(0x99000000), RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
                     )
@@ -406,10 +474,20 @@ internal fun VideoPane(fullscreen: Boolean = false) {
                 applySpeed()
             }
             PChip(pl.repeat(MediaPrefs.repeat), MediaPrefs.repeat != 0) { MediaPrefs.repeat = (MediaPrefs.repeat + 1) % 3; MediaPrefs.save() }
+            PChip(pl.bookmarks, BookmarkStore.get(item.key).isNotEmpty()) { bmDlg = true }
+            if (android.os.Build.VERSION.SDK_INT >= 26) PChip(pl.pip) {
+                try {
+                    // the picture fills the small window: hide the controls, show the fullscreen layout
+                    ui = false
+                    setFull(true)
+                    act?.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().setAspectRatio(android.util.Rational(16, 9)).build())
+                } catch (e: Throwable) { toastMsg(ctx, pl.pipFail) }
+            }
         }
     }
 
-    if (subDlg) SubtitleDialog(item.key, cues.size, { cues = it }, { subDlg = false })
+    if (subDlg) SubtitleDialog(item.key, false, cues.size, subOff, { cues = it }, { subOff = it; SubStore.setOffset(item.key, it) }, { subDlg = false })
+    if (bmDlg) BookmarkDialog(item.key, pos, { seekTo(it) }, { bmDlg = false })
     if (fullscreen) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             videoArea(Modifier.fillMaxSize())

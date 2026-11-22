@@ -127,6 +127,11 @@ object MediaLib {
         saveLists(kind, listsOf(kind).map { if (it.id == id) MList(it.id, name.trim(), it.items) else it })
     }
 
+    /** Removes every item of a list (the list itself stays; also works for Favorites). */
+    fun clearList(kind: Int, id: String) {
+        saveLists(kind, listsOf(kind).map { if (it.id == id) MList(it.id, it.name, emptyList()) else it })
+    }
+
     fun deleteList(kind: Int, id: String) {
         if (id == FAV) return
         saveLists(kind, listsOf(kind).filter { it.id != id })

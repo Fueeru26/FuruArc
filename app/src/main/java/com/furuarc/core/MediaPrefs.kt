@@ -35,7 +35,15 @@ object MediaPrefs {
     /** 0 = off, 1 = all, 2 = one. */
     var repeat by mutableStateOf(0)
     var speed by mutableStateOf(1f)
-    var remember by mutableStateOf(true)
+    /** Resume any audio / video from its last position (both off by default). */
+    var rememberAudio by mutableStateOf(false)
+    var rememberVideo by mutableStateOf(false)
+    /** Queue ordering: 0 = drag handle, 1 = up / down arrows. */
+    var listOrder by mutableStateOf(0)
+    /** Look for a subtitle / lyrics file with the same name next to the media. */
+    var autoSub by mutableStateOf(true)
+    /** Subtitle / lyrics text size in percent. */
+    var subSize by mutableStateOf(100)
     var background by mutableStateOf(true)
     var slideshowSec by mutableStateOf(4)
     var videoAutoPlay by mutableStateOf(true)
@@ -73,7 +81,7 @@ object MediaPrefs {
 
     private val bools = listOf(
         B("subfolders", { subfolders }, { subfolders = it }, true), B("autoNext", { autoNext }, { autoNext = it }, true),
-        B("shuffle", { shuffle }, { shuffle = it }, false), B("remember", { remember }, { remember = it }, true),
+        B("shuffle", { shuffle }, { shuffle = it }, false), B("rememberAudio", { rememberAudio }, { rememberAudio = it }, false), B("rememberVideo", { rememberVideo }, { rememberVideo = it }, false), B("autoSub", { autoSub }, { autoSub = it }, true),
         B("background", { background }, { background = it }, true), B("videoAutoPlay", { videoAutoPlay }, { videoAutoPlay = it }, true),
         B("keepScreenOn", { keepScreenOn }, { keepScreenOn = it }, true), B("pauseUnplug", { pauseUnplug }, { pauseUnplug = it }, true),
         B("audioFocus", { audioFocus }, { audioFocus = it }, true), B("restoreQueue", { restoreQueue }, { restoreQueue = it }, true),
@@ -85,7 +93,7 @@ object MediaPrefs {
         I("minAudioKb", { minAudioKb }, { minAudioKb = it }, 0, 0, 10000), I("skipSec", { skipSec }, { skipSec = it }, 10, 1, 120),
         I("videoOrient", { videoOrient }, { videoOrient = it }, 0, 0, 2), I("sortOrder", { sortOrder }, { sortOrder = it }, 0, 0, 2),
         I("pageQueue", { pageQueue }, { pageQueue = it }, 50, 10, 500), I("pageGallery", { pageGallery }, { pageGallery = it }, 60, 10, 500),
-        I("galleryMode", { galleryMode }, { galleryMode = it }, 1, 0, 1), I("gridCols", { gridCols }, { gridCols = it }, 3, 2, 4),
+        I("listOrder", { listOrder }, { listOrder = it }, 0, 0, 1), I("subSize", { subSize }, { subSize = it }, 100, 60, 200), I("galleryMode", { galleryMode }, { galleryMode = it }, 1, 0, 1), I("gridCols", { gridCols }, { gridCols = it }, 3, 2, 4),
         I("imageFit", { imageFit }, { imageFit = it }, 0, 0, 1), I("viewerBg", { viewerBg }, { viewerBg = it }, 0, 0, 2),
     )
 
@@ -157,10 +165,19 @@ object MediaPrefs {
         return m
     }
 
-    fun savedPos(key: String): Int = if (remember) posStore()[key] ?: 0 else 0
+    fun savedPos(key: String, video: Boolean): Int = if (if (video) rememberVideo else rememberAudio) posStore()[key] ?: 0 else 0
 
-    fun savePos(key: String, ms: Int, duration: Int) {
-        if (!remember) return
+    // ---- last playback of each kind (2 audio, 3 video): restored when the app is opened again
+    fun saveLast(kind: Int, key: String, ms: Int) {
+        if (!restoreQueue) return
+        sp?.edit()?.putString("lastKey$kind", key)?.putInt("lastPos$kind", ms.coerceAtLeast(0))?.apply()
+    }
+
+    fun lastKey(kind: Int): String? = sp?.getString("lastKey$kind", null)
+    fun lastPos(kind: Int): Int = sp?.getInt("lastPos$kind", 0) ?: 0
+
+    fun savePos(key: String, ms: Int, duration: Int, video: Boolean) {
+        if (!(if (video) rememberVideo else rememberAudio)) return
         val m = posStore()
         m.remove(key)
         // near the start or the end: forget the position so the next play starts from the beginning

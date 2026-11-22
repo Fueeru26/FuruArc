@@ -141,6 +141,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - Galeri Gambar: Galeri, Folder, dan Koleksi; tampilan daftar atau kotak, 60 per halaman, zoom cubit, dan slideshow.
 - Pengaturan Media: banyak opsi pemutar serta ekspor / impor pengaturan dan semua daftar.
 - Terapkan ke Antrian / Galeri: Folder, Favorit, Koleksi, dan Daftar Putar langsung dimuat ke daftar yang kosong, jika tidak pilih Muat (dengan peringatan) atau Tambahkan. Subtitle Pemutar Video (SRT, VTT, ASS/SSA). Notifikasi bergaya media dengan bilah geser. Media dari "Buka dengan..." bersifat sementara dan tidak menimpa daftar Anda.
+- Pencarian di Antrian dan Galeri, Lihat isi / Kosongkan untuk daftar, lirik (.lrc), pengaturan waktu dan muat otomatis subtitle, bookmark, jendela mini (PiP), pengurutan drag atau panah, serta pemulihan audio / video terakhir.
 - Penampil di Aset Game punya ikon Media Player untuk membuka aset di sini.
 - **Buka dengan...**: file dari aplikasi file manager atau Bagikan / Kirim ke bisa dibuka di FuruArc (media di Media Player, teks/arsip di fitur yang cocok, format tidak dikenal di Pemeriksaan File). Bisa dimatikan di Pengaturan Sistem.
 

@@ -43,7 +43,9 @@ import com.furuarc.i18n.playerStr
 import com.furuarc.ui.theme.LocalLang
 import com.furuarc.ui.theme.LocalPalette
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
+import androidx.compose.material.icons.filled.Search
 import kotlinx.coroutines.withContext
 import java.io.FileInputStream
 import java.io.InputStream
@@ -79,18 +81,23 @@ internal fun imageDimensions(ctx: android.content.Context, item: MItem): String 
     }
 }
 
-private val thumbCache = android.util.LruCache<String, ImageBitmap>(100)
+private val thumbCache = android.util.LruCache<String, ImageBitmap>(160)
+
+/** A few decoder threads, so a page of thumbnails fills in quickly without flooding the IO pool. */
+private val thumbPool = java.util.concurrent.Executors.newFixedThreadPool(3).asCoroutineDispatcher()
 
 /** Square thumbnail (cached; decoded lazily while scrolling). */
 @Composable
-private fun Thumb(item: MItem, modifier: Modifier) {
+internal fun Thumb(item: MItem, modifier: Modifier) {
     val p = LocalPalette.current
     val ctx = LocalContext.current
-    val bmp by produceState<ImageBitmap?>(thumbCache.get(item.key), item.key) {
-        if (value == null) {
-            val b = withContext(Dispatchers.IO) { decodeBitmap(ctx, item, 256) }
+    // keyed state: when the cell shows another image the old picture disappears at once (no stale bitmap)
+    var bmp by remember(item.key) { mutableStateOf(thumbCache.get(item.key)) }
+    LaunchedEffect(item.key) {
+        if (bmp == null) {
+            val b = withContext(thumbPool) { decodeBitmap(ctx, item, 200) }
             if (b != null) thumbCache.put(item.key, b)
-            value = b
+            bmp = b
         }
     }
     Box(modifier.background(p.iconBg), contentAlignment = Alignment.Center) {
@@ -108,11 +115,15 @@ internal fun GalleryTab(onOpen: (Int) -> Unit) {
     val p = LocalPalette.current
     val items = PlayerHub.image
     val size = MediaPrefs.pageGallery
-    val pages = ((items.size + size - 1) / size).coerceAtLeast(1)
+    var filt by remember { mutableStateOf(false) }
+    var q by remember { mutableStateOf("") }
+    val vis = if (q.isBlank()) items.indices.toList() else items.indices.filter { items[it].name.contains(q.trim(), true) }
+    var confirmDel by remember { mutableStateOf(false) }
+    val pages = ((vis.size + size - 1) / size).coerceAtLeast(1)
     var page by remember { mutableStateOf(0) }
     val pg = page.coerceIn(0, pages - 1)
     val from = pg * size
-    val to = minOf(items.size, from + size)
+    val to = minOf(vis.size, from + size)
     var menu by remember { mutableStateOf(-1) }
     val grid = MediaPrefs.galleryMode == 1
     val ctx = LocalContext.current
@@ -131,37 +142,41 @@ internal fun GalleryTab(onOpen: (Int) -> Unit) {
                 if (items.isNotEmpty()) (if (lb.isNotEmpty()) "$lb · " else "") + pl.pageInfo(items.size) else "",
                 color = p.muted, fontSize = 13.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
-            if (items.isNotEmpty()) RoundIcon(AppIcons.Checklist, pl.selMode, if (selMode) p.accent else p.text, 40, 24) { if (selMode) endSel() else selMode = true }
+            if (items.isNotEmpty()) {
+                RoundIcon(Icons.Default.Search, pl.search, if (filt) p.accent else p.text, 40, 24) { filt = !filt; if (!filt) q = "" }
+                RoundIcon(AppIcons.Checklist, pl.selMode, if (selMode) p.accent else p.text, 40, 24) { if (selMode) endSel() else selMode = true }
+            }
             RoundIcon(if (grid) AppIcons.ViewList else AppIcons.GridView, if (grid) pl.viewList else pl.viewGrid, p.text, 40, 24) {
                 MediaPrefs.galleryMode = if (grid) 0 else 1
                 MediaPrefs.save()
             }
         }
+        if (filt) {
+            Spacer(Modifier.height(4.dp))
+            AppTextField(q, { q = it; page = 0 }, pl.searchHint)
+        }
         if (selMode) {
             Spacer(Modifier.height(4.dp))
             SelectionBar(
-                1, sel.size, { sel = items.indices.toSet() }, { endSel() },
+                1, sel.size, { sel = vis.toSet() }, { endSel() },
                 {
                     val n = MediaLib.addItems(1, MediaLib.FAV, chosen())
                     toastMsg(ctx, if (n > 0) pl.addedTo(n, pl.favorites) else pl.alreadyIn(pl.favorites))
                     endSel()
                 },
                 { pickList = true },
-                {
-                    PlayerHub.update(1, items.filterIndexed { i, _ -> i !in sel })
-                    endSel()
-                },
+                { if (sel.isNotEmpty()) confirmDel = true },
             )
             Spacer(Modifier.height(6.dp))
         }
         if (items.isEmpty()) {
             EmptyState(AppIcons.Image, pl.emptyGallery, Modifier.fillMaxWidth().padding(top = 24.dp))
         } else {
-            val sub = items.subList(from, to)
+            val sub = vis.subList(from, to)
             if (!grid) {
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    itemsIndexed(sub, key = { l, it -> (from + l).toString() + it.key }) { l, it ->
-                        val gi = from + l
+                    itemsIndexed(sub, key = { l, gi -> (from + l).toString() + items[gi].key }) { l, gi ->
+                        val it = items[gi]
                         AppCard(Modifier.fillMaxWidth()) {
                             Row(
                                 Modifier.fillMaxWidth().background(if (gi in sel) p.accent.copy(alpha = 0.18f) else Color.Transparent).cardClickable { tap(gi) }.padding(10.dp),
@@ -181,10 +196,10 @@ internal fun GalleryTab(onOpen: (Int) -> Unit) {
             } else {
                 val cols = MediaPrefs.gridCols.coerceIn(2, 4)
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    itemsIndexed(sub.chunked(cols)) { r, row ->
+                    itemsIndexed(sub.chunked(cols), key = { _, row -> row.joinToString("|") { items[it].key } }) { r, row ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            row.forEachIndexed { c, it ->
-                                val gi = from + r * cols + c
+                            row.forEachIndexed { c, gi ->
+                                val it = items[gi]
                                 Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(IconRadius)).clickableScale(pressed = 0.96f) { tap(gi) }) {
                                     Thumb(it, Modifier.fillMaxSize())
                                     if (selMode) {
@@ -215,6 +230,13 @@ internal fun GalleryTab(onOpen: (Int) -> Unit) {
     }
     items.getOrNull(menu)?.let { ItemMenu(1, it, menu) { menu = -1 } }
     if (pickList) PickListDialog(1, { pickList = false }) { l -> addChosen(ctx, pl, 1, chosen(), l); pickList = false; endSel() }
+    if (confirmDel) {
+        ConfirmDialog(
+            pl.deleteConfirmTitle, pl.deleteConfirmAsk(sel.size, true), pl.deleteBtn, pl.cancel,
+            { PlayerHub.update(1, items.filterIndexed { i, _ -> i !in sel }); confirmDel = false; endSel() },
+            { confirmDel = false },
+        )
+    }
 }
 
 // ------------------------------------------------------------------ image viewer

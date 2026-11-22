@@ -133,11 +133,12 @@ fun DeveloperScreen(vm: com.furuarc.MainViewModel, onBack: () -> Unit) {
     @Composable
     fun Link(c: com.furuarc.i18n.ContactItem) {
         val icon = if (c.label == "Github") AppIcons.Github else AppIcons.Email
-        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, null, tint = p.iconFg, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(10.dp))
             Text(
                 c.label, color = p.accent, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline,
+                maxLines = 1, softWrap = false,
                 modifier = Modifier.clickable { openLink(ctx, c.url, a.openFail) }.padding(vertical = 4.dp),
             )
         }
@@ -145,13 +146,11 @@ fun DeveloperScreen(vm: com.furuarc.MainViewModel, onBack: () -> Unit) {
     // "Ko-fi (For Global)": only the platform name is the hyperlink
     @Composable
     fun Donate(d: com.furuarc.i18n.DonateItem) {
-        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                d.name, color = p.accent, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable { openLink(ctx, d.url, a.openFail) }.padding(vertical = 4.dp),
-            )
-            Text(" " + d.note, color = p.muted)
-        }
+        Text(
+            d.name, color = p.accent, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline,
+            maxLines = 1, softWrap = false,
+            modifier = Modifier.clickable { openLink(ctx, d.url, a.openFail) }.padding(vertical = 4.dp),
+        )
     }
     val st by vm.state.collectAsState()
     var withLog by remember { mutableStateOf(false) }
@@ -173,11 +172,11 @@ fun DeveloperScreen(vm: com.furuarc.MainViewModel, onBack: () -> Unit) {
                 }
             }
         }
-        item { SectionCard(a.contactHeader) { Column { a.contacts.forEach { Link(it) } } } }
+        item { SectionCard(a.contactHeader) { Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) { a.contacts.forEach { Link(it) } } } }
         item {
             SectionCard(a.donateHeader) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    a.donations.forEach { Donate(it) }
+                    Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) { a.donations.forEach { Donate(it) } }
                     Text(a.donateNote, color = p.muted, fontSize = 13.sp, lineHeight = 19.sp)
                 }
             }

@@ -112,7 +112,14 @@ object AudioEngine {
         playIndex(start)
     }
 
-    fun playIndex(i: Int) {
+    /** Loads [items] with track [idx] prepared at [pos] but paused (used to restore the last playback). */
+    fun restore(items: List<MItem>, idx: Int, pos: Int) {
+        queue = items
+        shuffleOrder = emptyList()
+        playIndex(idx, false, pos)
+    }
+
+    fun playIndex(i: Int, auto: Boolean = true, startAt: Int = -1) {
         if (i !in queue.indices) return
         val old = mp
         if (old != null) rememberPosition()
@@ -136,15 +143,17 @@ object AudioEngine {
                 p.setOnPreparedListener {
                     if (token != my) return@setOnPreparedListener
                     duration = it.duration
-                    val saved = MediaPrefs.savedPos(item.key)
-                    if (saved > 0 && saved < duration - 3000) { it.seekExact(saved); position = saved }
-                    requestFocus()
-                    it.start()
-                    applySpeed()
+                    val saved = if (startAt >= 0) startAt else MediaPrefs.savedPos(item.key, false)
+                    if (saved > 0 && saved < duration - 1000) { it.seekExact(saved); position = saved }
                     preparing = false
-                    playing = true
-                    startTicker()
-                    PlayerService.sync(ctx)
+                    if (auto) {
+                        requestFocus()
+                        it.start()
+                        applySpeed()
+                        playing = true
+                        startTicker()
+                        PlayerService.sync(ctx)
+                    }
                 }
                 p.setOnCompletionListener { if (token == my) onCompleted() }
                 p.setOnErrorListener { _, _, _ ->
@@ -156,7 +165,7 @@ object AudioEngine {
                 try { p.release() } catch (x: Exception) { }
                 if (token == my) { failed = true; preparing = false }
             }
-            PlayerService.sync(ctx)
+            if (auto) PlayerService.sync(ctx)
         }
     }
 
@@ -248,7 +257,11 @@ object AudioEngine {
 
     private fun rememberPosition() {
         val c = current ?: return
-        try { MediaPrefs.savePos(c.key, mp?.currentPosition ?: position, duration) } catch (e: Throwable) { }
+        try {
+            val at = mp?.currentPosition ?: position
+            MediaPrefs.savePos(c.key, at, duration, false)
+            MediaPrefs.saveLast(2, c.key, if (at < duration - 3000) at else 0)
+        } catch (e: Throwable) { }
     }
 
     private fun startTicker() {
@@ -264,7 +277,7 @@ object AudioEngine {
                         position = pos
                         val a = loopA; val b = loopB
                         if (a != null && b != null && pos >= b) p.seekExact(a)
-                        if (++n % 40 == 0) rememberPosition()
+                        if (++n % 20 == 0) rememberPosition()
                     } catch (e: Throwable) { }
                 }
                 if (sleepAt != 0L && SystemClock.elapsedRealtime() >= sleepAt) { sleepAt = 0L; pause() }

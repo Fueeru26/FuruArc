@@ -151,6 +151,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - Image Gallery: Gallery, Folders and Collections; list or grid view, 60 per page, pinch zoom and slideshow.
 - Media Settings: many player options plus export / import of settings and all lists.
 - Apply to Queue / Gallery: Folders, Favorites, Collections and Playlists load directly into an empty list, otherwise choose Load (with a warning) or Add. Video Player subtitles (SRT, VTT, ASS/SSA). Media-style notification with seek bar. "Open with..." media is temporary and never overwrites your lists.
+- Search in Queue and Gallery, View content / Empty for lists, lyrics (.lrc), subtitle timing and auto-load, bookmarks, picture-in-picture, drag or arrow ordering, and restoring the last played audio / video.
 - Game Assets viewers have a Media Player icon to open an asset here.
 - **Open with...**: files from file managers or Share / Send to open in FuruArc (media in Media Player, known text/archive formats in the matching feature, unknown formats in File Inspection). Can be disabled in System settings.
 

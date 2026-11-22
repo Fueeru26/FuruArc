@@ -385,7 +385,7 @@ fun GameAudioScreen(onBack: () -> Unit) {
                 Column(Modifier.padding(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(cur.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = p.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { openAssetInPlayer(cur, idx?.key, 2) }, modifier = Modifier.size(32.dp)) { Icon(AppIcons.PhotoLibrary, playerStr(LocalLang.current).openInPlayer, tint = p.accent) }
+                        IconButton(onClick = { openAssetInPlayer(cur, idx?.key, 2) }, modifier = Modifier.size(32.dp)) { Icon(AppIcons.MediaPlayer, playerStr(LocalLang.current).openInPlayer, tint = p.accent) }
                     }
                     if (GamePlayer.failed) {
                         Text(g.playFail + (SpecialMedia.errorOf(cur.id)?.let { "\n" + it } ?: ""), color = Color(0xFFE57373), fontSize = 12.sp)
@@ -561,7 +561,7 @@ private fun ImageViewer(list: List<GAsset>, index: Int, key: ByteArray?, onIndex
                     color = Color(0xFFCCCCCC), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
-            IconButton(onClick = { openAssetInPlayer(a, GameSession.index?.key, 1) }) { Icon(AppIcons.PhotoLibrary, playerStr(LocalLang.current).openInPlayer, tint = Color.White) }
+            IconButton(onClick = { openAssetInPlayer(a, GameSession.index?.key, 1) }) { Icon(AppIcons.MediaPlayer, playerStr(LocalLang.current).openInPlayer, tint = Color.White) }
             IconButton(onClick = { GameFav.toggle(a.id) }) { Icon(Icons.Default.Star, g.favAdd, tint = if (isFav) STAR else Color.White) }
             IconButton(onClick = { if (index > 0) onIndex(index - 1) }, enabled = index > 0) { Icon(Icons.Default.KeyboardArrowLeft, g.prev, tint = if (index > 0) Color.White else Color.Gray) }
             IconButton(onClick = { if (index < list.size - 1) onIndex(index + 1) }, enabled = index < list.size - 1) { Icon(Icons.Default.KeyboardArrowRight, g.nextImg, tint = if (index < list.size - 1) Color.White else Color.Gray) }
@@ -704,7 +704,7 @@ private fun VideoPlayer(a: GAsset, onClose: () -> Unit) {
         Row(Modifier.align(Alignment.TopStart).fillMaxWidth().background(Color(0x99000000)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) { Icon(Icons.Default.Close, g.close, tint = Color.White) }
             Text(a.name, color = Color.White, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-            IconButton(onClick = { openAssetInPlayer(a, GameSession.index?.key, 3) }) { Icon(AppIcons.PhotoLibrary, playerStr(LocalLang.current).openInPlayer, tint = Color.White) }
+            IconButton(onClick = { openAssetInPlayer(a, GameSession.index?.key, 3) }) { Icon(AppIcons.MediaPlayer, playerStr(LocalLang.current).openInPlayer, tint = Color.White) }
         }
     }
 }

@@ -83,6 +83,7 @@ fun PlayerSettingsScreen(onBack: () -> Unit) {
             Section(pl.secLists) {
                 PSwitch(pl.subfolders, "", MediaPrefs.subfolders) { MediaPrefs.subfolders = it; MediaPrefs.save() }
                 PDrop(pl.setSort, MediaPrefs.sortOrder, listOf(0 to pl.sortName, 1 to pl.sortDate, 2 to pl.sortSize)) { MediaPrefs.sortOrder = it }
+                PDrop(pl.setListOrder, MediaPrefs.listOrder, listOf(0 to pl.orderDrag, 1 to pl.orderArrows)) { MediaPrefs.listOrder = it }
                 PSwitch(pl.setTagTitle, pl.setTagTitleDesc, MediaPrefs.tagTitle) { MediaPrefs.tagTitle = it; MediaPrefs.save() }
                 PSwitch(pl.setShowCover, "", MediaPrefs.showCover) { MediaPrefs.showCover = it; MediaPrefs.save() }
                 PDrop(pl.setPageQueue, MediaPrefs.pageQueue, listOf(25, 50, 100, 200).map { it to pl.pageInfo(it) }) { MediaPrefs.pageQueue = it }
@@ -92,7 +93,7 @@ fun PlayerSettingsScreen(onBack: () -> Unit) {
                 PSwitch(pl.setShuffle, "", MediaPrefs.shuffle) { MediaPrefs.shuffle = it; MediaPrefs.save() }
                 PDrop(pl.setRepeat, MediaPrefs.repeat, rep) { MediaPrefs.repeat = it }
                 PDrop(pl.setSpeed, (MediaPrefs.speed * 100).toInt(), listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f).map { (it * 100).toInt() to pl.speed(it) }) { MediaPrefs.speed = it / 100f }
-                PSwitch(pl.setRemember, pl.setRememberDesc, MediaPrefs.remember) { MediaPrefs.remember = it; MediaPrefs.save() }
+                PSwitch(pl.setRemember, pl.setRememberDesc, MediaPrefs.rememberAudio) { MediaPrefs.rememberAudio = it; MediaPrefs.save() }
                 PSwitch(pl.setBackground, pl.setBackgroundDesc, MediaPrefs.background) { MediaPrefs.background = it; MediaPrefs.save() }
                 PSwitch(pl.setPauseUnplug, "", MediaPrefs.pauseUnplug) { MediaPrefs.pauseUnplug = it; MediaPrefs.save() }
                 PSwitch(pl.setAudioFocus, pl.setAudioFocusDesc, MediaPrefs.audioFocus) { MediaPrefs.audioFocus = it; MediaPrefs.save() }
@@ -101,6 +102,9 @@ fun PlayerSettingsScreen(onBack: () -> Unit) {
                 Text(pl.setMinAudioDesc, color = p.muted, fontSize = 12.sp)
             }
             Section(pl.secVideo) {
+                PSwitch(pl.setRememberVideo, pl.setRememberDesc, MediaPrefs.rememberVideo) { MediaPrefs.rememberVideo = it; MediaPrefs.save() }
+                PSwitch(pl.setAutoSub, pl.setAutoSubDesc, MediaPrefs.autoSub) { MediaPrefs.autoSub = it; MediaPrefs.save() }
+                PDrop(pl.setSubSize, MediaPrefs.subSize, listOf(70, 85, 100, 125, 150, 180).map { it to "$it%" }) { MediaPrefs.subSize = it }
                 PSwitch(pl.setVideoAuto, "", MediaPrefs.videoAutoPlay) { MediaPrefs.videoAutoPlay = it; MediaPrefs.save() }
                 PSwitch(pl.setKeepOn, "", MediaPrefs.keepScreenOn) { MediaPrefs.keepScreenOn = it; MediaPrefs.save() }
                 PDrop(pl.setSkip, MediaPrefs.skipSec, listOf(5, 10, 15, 30).map { it to pl.seconds(it) }) { MediaPrefs.skipSec = it }

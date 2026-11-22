@@ -26,7 +26,17 @@ All notable changes to FuruArc are listed here.
 - **Media-style notification** for audio (cover, title, artist, seek bar, Favorite / Previous / Play-Pause / Next / Close).
 - **Selection mode** in the Queue and Gallery (Favorites, Playlist/Collection, Delete).
 
+### Added (Media Player, second revision)
+- **Search** (Queue and Gallery), **View content** and **Empty** for Folders, Favorites, Collections and Playlists, confirmation before deleting selected items, direct overwrite warning for "Load into ...".
+- **Synced lyrics (.lrc)** in the Audio Player; subtitle and lyrics **timing (±0.5 s)**, **text size** and **automatic loading** of a same-name file; **position bookmarks**; **picture-in-picture** for video.
+- Media Settings: **Arrange the list** (Drag mode / Up-down arrows), separate **Remember last position** for Audio and Video (off by default), **Subtitles & lyrics** options.
+- The last played audio / video and its position are restored when the app is opened again.
+
 ### Changed
+- Video fullscreen: swiping from the screen edges no longer changes brightness or volume; leaving and re-entering the video player keeps the position and does not start playing by itself.
+- Gallery grid: thumbnails change immediately when switching pages or deleting images.
+- About > Developer: contact and donation links are on one line each; the donation link notes were removed.
+- Game Assets viewers use the new Media Player icon.
 - "Open with..." media is temporary: it no longer overwrites the stored Gallery, Player or Queue.
 - Audio Player description: "Play audio, manage playlists, shuffle, repeat and adjust speed".
 - Video fullscreen hides the status and navigation bars (swipe from the edge to show them); Back returns to portrait.

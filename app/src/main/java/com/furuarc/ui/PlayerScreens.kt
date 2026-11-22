@@ -20,6 +20,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.zIndex
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +74,12 @@ object PlayerHub {
     var videoFull by mutableStateOf(false)
     /** Position (ms) the next video start resumes from (used when the video view is rebuilt, e.g. fullscreen). */
     var videoResume = 0
+    /** true = the next prepared video starts playing (chosen by the user / next video); false = stay paused (re-entering the screen). */
+    var videoWant = false
+    /** Key of the video that must continue from [sessionPos] when it is prepared again (screen re-entered, app reopened). */
+    var videoRestore: String? = null
+    /** Last known position (ms) of videos played while the app is open. */
+    val sessionPos = HashMap<String, Int>()
 
     /** Selected tab per kind, kept while the app is open. */
     val tab = HashMap<Int, Int>()
@@ -92,6 +105,17 @@ object PlayerHub {
                 if (items(k).isNotEmpty()) continue
                 val (l, lb) = MediaLib.loadQueue(k)
                 if (l.isNotEmpty()) setRaw(k, l, lb)
+            }
+            // bring back the last played audio / video (paused, at its last position)
+            val ak = MediaPrefs.lastKey(2)
+            if (ak != null && AudioEngine.current == null) {
+                val i = audio.indexOfFirst { it.key == ak }
+                if (i >= 0) AudioEngine.restore(audio, i, MediaPrefs.lastPos(2))
+            }
+            val vk = MediaPrefs.lastKey(3)
+            if (vk != null && videoIndex < 0) {
+                val i = video.indexOfFirst { it.key == vk }
+                if (i >= 0) { videoIndex = i; sessionPos[vk] = MediaPrefs.lastPos(3); videoRestore = vk }
             }
         }
     }
@@ -444,6 +468,7 @@ fun PlayerListScreen(kind: Int, onBack: () -> Unit) {
     DisposableEffect(kind) {
         onDispose {
             if (kind == 2 && !MediaPrefs.background) AudioEngine.stop()
+            if (kind == 3) PlayerHub.videoRestore = PlayerHub.video.getOrNull(PlayerHub.videoIndex)?.key
             PlayerHub.endTemp(kind)
             if (kind == 3) {
                 PlayerHub.videoFull = false
@@ -469,7 +494,7 @@ fun PlayerListScreen(kind: Int, onBack: () -> Unit) {
         goTab(0)
         when (kind) {
             2 -> AudioEngine.setQueue(PlayerHub.audio, a.second)
-            3 -> PlayerHub.videoIndex = a.second
+            3 -> { PlayerHub.videoWant = MediaPrefs.videoAutoPlay; PlayerHub.videoRestore = null; PlayerHub.videoIndex = a.second }
             else -> viewer = a.second
         }
     }
@@ -581,26 +606,37 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
     val ctx = LocalContext.current
     val items = PlayerHub.items(kind)
     val size = MediaPrefs.pageQueue
-    val pages = ((items.size + size - 1) / size).coerceAtLeast(1)
+    var filt by remember { mutableStateOf(false) }
+    var q by remember { mutableStateOf("") }
+    // indexes (into the whole queue) of the rows that match the search
+    val vis = if (q.isBlank()) items.indices.toList() else items.indices.filter {
+        val m = MediaMeta.cached(items[it].key)
+        val t = q.trim()
+        items[it].name.contains(t, true) || m?.title?.contains(t, true) == true || m?.artist?.contains(t, true) == true || m?.album?.contains(t, true) == true
+    }
+    val pages = ((vis.size + size - 1) / size).coerceAtLeast(1)
     val curIdx = if (kind == 2 && AudioEngine.queue === items) AudioEngine.index else if (kind == 3) PlayerHub.videoIndex else -1
     var page by remember { mutableStateOf(if (curIdx >= 0) curIdx / size else 0) }
     val pg = page.coerceIn(0, pages - 1)
     val from = pg * size
-    val to = minOf(items.size, from + size)
+    val to = minOf(vis.size, from + size)
     var menu by remember { mutableStateOf(-1) }
     var selMode by remember { mutableStateOf(false) }
     var sel by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var pickList by remember { mutableStateOf(false) }
+    var confirmDel by remember { mutableStateOf(false) }
     BackHandler(enabled = selMode) { selMode = false; sel = emptySet() }
 
     fun move(a: Int, b: Int) {
-        if (a !in items.indices || b !in items.indices) return
+        if (a !in items.indices || b !in items.indices || a == b) return
         val m = items.toMutableList()
-        val x = m[a]; m[a] = m[b]; m[b] = x
+        val x = m.removeAt(a)
+        m.add(b, x)
         PlayerHub.update(kind, m)
     }
     fun chosen(): List<MItem> = sel.sorted().mapNotNull { items.getOrNull(it) }
     fun endSel() { selMode = false; sel = emptySet() }
+    val canMove = q.isBlank()
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -609,12 +645,19 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
                 if (items.isNotEmpty()) (if (lb.isNotEmpty()) "$lb · " else "") + pl.pageInfo(items.size) else "",
                 color = p.muted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
             )
-            if (items.isNotEmpty()) RoundIcon(AppIcons.Checklist, pl.selMode, if (selMode) p.accent else p.text, 40, 24) { if (selMode) endSel() else selMode = true }
+            if (items.isNotEmpty()) {
+                RoundIcon(Icons.Default.Search, pl.search, if (filt) p.accent else p.text, 40, 24) { filt = !filt; if (!filt) q = "" }
+                RoundIcon(AppIcons.Checklist, pl.selMode, if (selMode) p.accent else p.text, 40, 24) { if (selMode) endSel() else selMode = true }
+            }
+        }
+        if (filt) {
+            Spacer(Modifier.height(4.dp))
+            AppTextField(q, { q = it; page = 0 }, pl.searchHint)
         }
         if (selMode) {
             Spacer(Modifier.height(4.dp))
             SelectionBar(
-                kind, sel.size, { sel = items.indices.toSet() }, { endSel() },
+                kind, sel.size, { sel = vis.toSet() }, { endSel() },
                 {
                     val c = chosen()
                     val n = MediaLib.addItems(kind, MediaLib.FAV, c)
@@ -622,10 +665,7 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
                     endSel()
                 },
                 { pickList = true },
-                {
-                    PlayerHub.update(kind, items.filterIndexed { i, _ -> i !in sel })
-                    endSel()
-                },
+                { if (sel.isNotEmpty()) confirmDel = true },
             )
             Spacer(Modifier.height(6.dp))
         }
@@ -633,9 +673,12 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
             EmptyState(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, pl.emptyQueue, Modifier.fillMaxWidth().padding(top = 24.dp))
         } else {
             LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                itemsIndexed(items.subList(from, to), key = { l, it -> (from + l).toString() + it.key }) { l, it ->
-                    val gi = from + l
+                itemsIndexed(vis.subList(from, to), key = { l, gi -> (from + l).toString() + items[gi].key }) { l, gi ->
+                    val it = items[gi]
                     val active = if (kind == 2) AudioEngine.current?.key == it.key && AudioEngine.queue === items else PlayerHub.videoIndex == gi
+                    // rows of this page that can take the dragged row's place
+                    val pageFirst = vis.getOrElse(from) { 0 }
+                    val pageLast = vis.getOrElse(to - 1) { 0 }
                     QueueRow(
                         kind, it, active, selMode, gi in sel,
                         onClick = {
@@ -644,13 +687,17 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
                             } else if (kind == 2) {
                                 if (AudioEngine.queue === items) AudioEngine.playIndex(gi) else AudioEngine.setQueue(items, gi)
                             } else {
+                                PlayerHub.videoWant = MediaPrefs.videoAutoPlay
+                                PlayerHub.videoRestore = null
                                 PlayerHub.videoIndex = gi
                                 onPlayVideo()
                             }
                         },
-                        onUp = if (gi > 0) ({ move(gi, gi - 1) }) else null,
-                        onDown = if (gi < items.size - 1) ({ move(gi, gi + 1) }) else null,
+                        onUp = if (canMove && gi > 0) ({ move(gi, gi - 1) }) else null,
+                        onDown = if (canMove && gi < items.size - 1) ({ move(gi, gi + 1) }) else null,
                         onMenu = { menu = gi },
+                        canMove = canMove,
+                        onDragTo = { rows -> move(gi, (gi + rows).coerceIn(pageFirst, pageLast)) },
                     )
                 }
             }
@@ -666,10 +713,17 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
     }
     items.getOrNull(menu)?.let { ItemMenu(kind, it, menu) { menu = -1 } }
     if (pickList) PickListDialog(kind, { pickList = false }) { l -> addChosen(ctx, pl, kind, chosen(), l); pickList = false; endSel() }
+    if (confirmDel) {
+        ConfirmDialog(
+            pl.deleteConfirmTitle, pl.deleteConfirmAsk(sel.size, kind == 1), pl.deleteBtn, pl.cancel,
+            { PlayerHub.update(kind, items.filterIndexed { i, _ -> i !in sel }); confirmDel = false; endSel() },
+            { confirmDel = false },
+        )
+    }
 }
 
 @Composable
-private fun QueueRow(kind: Int, item: MItem, active: Boolean, selMode: Boolean, selected: Boolean, onClick: () -> Unit, onUp: (() -> Unit)?, onDown: (() -> Unit)?, onMenu: () -> Unit) {
+private fun QueueRow(kind: Int, item: MItem, active: Boolean, selMode: Boolean, selected: Boolean, onClick: () -> Unit, onUp: (() -> Unit)?, onDown: (() -> Unit)?, onMenu: () -> Unit, canMove: Boolean, onDragTo: (Int) -> Unit) {
     val p = LocalPalette.current
     val ctx = LocalContext.current
     val meta by produceState<MMeta?>(MediaMeta.cached(item.key), item.key) {
@@ -678,7 +732,11 @@ private fun QueueRow(kind: Int, item: MItem, active: Boolean, selMode: Boolean, 
     val title = (if (MediaPrefs.tagTitle) meta?.title else null) ?: item.name
     val sub2 = meta?.album ?: if (item.size > 0) sizeText(item.size) else ""
     val dur = meta?.durationMs ?: 0
-    AppCard(Modifier.fillMaxWidth()) {
+    var dragY by remember { mutableStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
+    var rowH by remember { mutableStateOf(1f) }
+    val gap = with(androidx.compose.ui.platform.LocalDensity.current) { 8.dp.toPx() }
+    AppCard(Modifier.fillMaxWidth().onSizeChanged { rowH = it.height.toFloat() + gap }.zIndex(if (dragging) 1f else 0f).graphicsLayer { translationY = dragY; alpha = if (dragging) 0.9f else 1f }) {
         Row(
             Modifier.fillMaxWidth().background(if (selected) p.accent.copy(alpha = 0.18f) else if (active) p.accent.copy(alpha = 0.12f) else Color.Transparent).cardClickable(onClick).padding(vertical = 8.dp, horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -686,6 +744,21 @@ private fun QueueRow(kind: Int, item: MItem, active: Boolean, selMode: Boolean, 
             if (selMode) {
                 Box(Modifier.width(30.dp), contentAlignment = Alignment.Center) {
                     Checkbox(checked = selected, onCheckedChange = { onClick() }, colors = CheckboxDefaults.colors(checkedColor = p.accent))
+                }
+            } else if (MediaPrefs.listOrder == 0) {
+                Box(
+                    Modifier.size(30.dp, 54.dp).then(
+                        if (canMove) Modifier.pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = { dragging = true },
+                                onDragEnd = { val r = Math.round(dragY / rowH); dragging = false; dragY = 0f; if (r != 0) onDragTo(r) },
+                                onDragCancel = { dragging = false; dragY = 0f },
+                            ) { change, d -> change.consumeAllChanges(); dragY += d.y }
+                        } else Modifier,
+                    ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(AppIcons.DragHandle, null, tint = if (canMove) (if (dragging) p.accent else p.text) else p.muted.copy(alpha = 0.25f), modifier = Modifier.size(24.dp))
                 }
             } else {
                 Column(Modifier.width(30.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -745,11 +818,11 @@ internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
     var menu by remember { mutableStateOf<String?>(null) }
     val mime = when (kind) { 1 -> "image/*"; 2 -> "audio/*"; else -> "video/*" }
 
-    var pending by remember { mutableStateOf<Pair<List<MItem>, String>?>(null) }
-    var addMode by remember { mutableStateOf(false) }
+    var pending by remember { mutableStateOf<PendApply?>(null) }
+    var viewing by remember { mutableStateOf<Pair<String, List<MItem>>?>(null) }
 
-    fun load(uri: String, name: String, add: Boolean = false) {
-        addMode = add
+    /** mode: 0 = ask (Muat / Tambahkan window), 1 = load (overwrite warning only), 2 = add, 3 = just look at the content. */
+    fun load(uri: String, name: String, mode: Int = 0) {
         job?.cancel()
         job = scope.launch {
             scanning = true
@@ -757,10 +830,11 @@ internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
             try {
                 val r = withContext(Dispatchers.IO) { MediaScan.scanTree(ctx, Uri.parse(uri), kind, MediaPrefs.subfolders) { scanCount = it } }
                 if (r.isEmpty()) toastMsg(ctx, pl.nothingFound) else {
-                    if (addMode) {
-                        PlayerHub.apply(kind, r, name, true)
-                        onLoaded()
-                    } else pending = r to name
+                    when (mode) {
+                        2 -> { PlayerHub.apply(kind, r, name, true); onLoaded() }
+                        3 -> viewing = name to r
+                        else -> pending = PendApply(r, name, mode == 1)
+                    }
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -833,14 +907,16 @@ internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
         }
     }
     ApplyHost(kind, pending, { pending = null }, onLoaded)
+    viewing?.let { v -> ContentViewDialog(kind, v.first, v.second) { viewing = null } }
     val m = menu
     val mf = folders.firstOrNull { it.uri == m }
     if (mf != null) {
         OptionsDialog(
             mf.name, { menu = null },
             listOf(
-                pl.loadFolder(kind == 1) to { menu = null; if (!scanning) load(mf.uri, mf.name, false); Unit },
-                pl.addFolderTo(kind == 1) to { menu = null; if (!scanning) load(mf.uri, mf.name, true); Unit },
+                pl.viewFolder to { menu = null; if (!scanning) load(mf.uri, mf.name, 3); Unit },
+                pl.loadFolder(kind == 1) to { menu = null; if (!scanning) load(mf.uri, mf.name, 1); Unit },
+                pl.addFolderTo(kind == 1) to { menu = null; if (!scanning) load(mf.uri, mf.name, 2); Unit },
                 pl.removeFolder to { MediaLib.removeFolder(kind, mf.uri); menu = null },
             ),
         )
@@ -854,7 +930,9 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
     val lists = MediaLib.lists[kind] ?: MediaLib.listsOf(kind)
-    var pending by remember { mutableStateOf<Pair<List<MItem>, String>?>(null) }
+    var pending by remember { mutableStateOf<PendApply?>(null) }
+    var viewId by remember { mutableStateOf<String?>(null) }
+    var clearId by remember { mutableStateOf<String?>(null) }
     var nameDlg by remember { mutableStateOf(false) }
     var renameId by remember { mutableStateOf<String?>(null) }
     var menuId by remember { mutableStateOf<String?>(null) }
@@ -875,15 +953,13 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
                                 Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(CardRadius)).background(p.iconBg)
                                     .border(1.dp, p.cardBorder, RoundedCornerShape(CardRadius))
                                     .clickableScale(pressed = 0.95f) {
-                                        pending = MediaLib.toItems(l) to listTitle(pl, l)
+                                        pending = PendApply(MediaLib.toItems(l), listTitle(pl, l))
                                     },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(if (fav) AppIcons.Heart else if (kind == 1) AppIcons.Collections else AppIcons.PlaylistMusic, null, tint = if (fav) p.accent else p.iconFg, modifier = Modifier.fillMaxSize(0.42f))
-                                if (!fav) {
-                                    Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                                        RoundIcon(AppIcons.MoreHoriz, "", p.text, 32, 20, p.card.copy(alpha = 0.85f)) { menuId = l.id }
-                                    }
+                                Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                                    RoundIcon(AppIcons.MoreHoriz, "", p.text, 32, 20, p.card.copy(alpha = 0.85f)) { menuId = l.id }
                                 }
                             }
                             Text(listTitle(pl, l), color = p.text, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
@@ -903,9 +979,23 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
     val ml = lists.firstOrNull { it.id == menuId }
     if (ml != null) {
         OptionsDialog(
-            ml.name, { menuId = null },
-            listOf(pl.rename to { renameId = ml.id; menuId = null }, pl.delete to { delId = ml.id; menuId = null }),
+            listTitle(pl, ml), { menuId = null },
+            if (ml.id == MediaLib.FAV) listOf(
+                pl.viewContent(kind, true) to { viewId = ml.id; menuId = null },
+                pl.clearContent(kind, true) to { clearId = ml.id; menuId = null },
+            ) else listOf(
+                pl.rename to { renameId = ml.id; menuId = null },
+                pl.viewContent(kind, false) to { viewId = ml.id; menuId = null },
+                pl.clearContent(kind, false) to { clearId = ml.id; menuId = null },
+                pl.delete to { delId = ml.id; menuId = null },
+            ),
         )
+    }
+    lists.firstOrNull { it.id == viewId }?.let { vl -> ContentViewDialog(kind, listTitle(pl, vl), MediaLib.toItems(vl)) { viewId = null } }
+    val cl = lists.firstOrNull { it.id == clearId }
+    if (cl != null) {
+        val ct = pl.clearContent(kind, cl.id == MediaLib.FAV)
+        ConfirmDialog(ct, pl.clearAsk(listTitle(pl, cl)), ct, pl.cancel, { MediaLib.clearList(kind, cl.id); clearId = null }, { clearId = null })
     }
     val dl = lists.firstOrNull { it.id == delId }
     if (dl != null) ConfirmDialog(pl.delete, pl.deleteListAsk(dl.name), pl.delete, pl.cancel, { MediaLib.deleteList(kind, dl.id); delId = null }, { delId = null })
@@ -914,20 +1004,23 @@ internal fun ListsTab(kind: Int, onLoaded: () -> Unit) {
 
 // ------------------------------------------------------------------ "Terapkan ke Galeri / Antrian"
 
+/** [direct] = true when the user already chose "Muat ke ..." in a menu (skips the Muat / Tambahkan window). */
+internal class PendApply(val list: List<MItem>, val text: String, val direct: Boolean = false)
+
 /**
- * Loads [list] into the gallery / queue of [kind]. An empty target is filled directly; otherwise the user chooses
- * Muat (replace, after a warning) or Tambahkan (append).
+ * Loads a list into the gallery / queue of [kind]. An empty target is filled directly; otherwise the user chooses
+ * Muat (replace, after a warning) or Tambahkan (append). With [PendApply.direct] only the overwrite warning is shown.
  */
 @Composable
-internal fun ApplyHost(kind: Int, pending: Pair<List<MItem>, String>?, onClose: () -> Unit, onDone: () -> Unit) {
+internal fun ApplyHost(kind: Int, pending: PendApply?, onClose: () -> Unit, onDone: () -> Unit) {
     val pl = playerStr(LocalLang.current)
     val p = LocalPalette.current
-    var confirm by remember(pending) { mutableStateOf(false) }
+    var confirm by remember(pending) { mutableStateOf(pending?.direct == true) }
     val pend = pending ?: return
     val gallery = kind == 1
     LaunchedEffect(pend) {
         if (PlayerHub.items(kind).isEmpty()) {
-            PlayerHub.set(kind, pend.first, pend.second)
+            PlayerHub.set(kind, pend.list, pend.text)
             onClose()
             onDone()
         }
@@ -936,15 +1029,65 @@ internal fun ApplyHost(kind: Int, pending: Pair<List<MItem>, String>?, onClose: 
     if (confirm) {
         ConfirmDialog(
             pl.applyTitle(gallery), pl.overwriteAsk(gallery), pl.load, pl.cancel,
-            { PlayerHub.set(kind, pend.first, pend.second); onClose(); onDone() },
-            { confirm = false },
+            { PlayerHub.set(kind, pend.list, pend.text); onClose(); onDone() },
+            { if (pend.direct) onClose() else confirm = false },
         )
         return
     }
     AppDialog(pl.applyTitle(gallery), onClose, buttons = { TextButton(onClick = onClose) { Text(pl.cancel, color = p.accent) } }) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(1f)) { SecondaryButton(pl.load, true) { confirm = true } }
-            Box(Modifier.weight(1f)) { SecondaryButton(pl.add2, true) { PlayerHub.apply(kind, pend.first, pend.second, true); onClose(); onDone() } }
+            Box(Modifier.weight(1f)) { SecondaryButton(pl.add2, true) { PlayerHub.apply(kind, pend.list, pend.text, true); onClose(); onDone() } }
+        }
+    }
+}
+
+// ------------------------------------------------------------------ "Lihat isi ..." preview window
+
+/** Preview of the content of a folder / favorites / playlist / collection, with search and pages. */
+@Composable
+internal fun ContentViewDialog(kind: Int, title: String, items: List<MItem>, onClose: () -> Unit) {
+    val pl = playerStr(LocalLang.current)
+    val p = LocalPalette.current
+    var q by remember { mutableStateOf("") }
+    var page by remember { mutableStateOf(0) }
+    val shown = if (q.isBlank()) items else items.filter { it.name.contains(q.trim(), true) || MediaMeta.cached(it.key)?.title?.contains(q.trim(), true) == true }
+    val per = 20
+    val pages = ((shown.size + per - 1) / per).coerceAtLeast(1)
+    val pg = page.coerceIn(0, pages - 1)
+    AppDialog(title, onClose, buttons = { TextButton(onClick = onClose) { Text(pl.close, color = p.accent) } }) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(pl.pageInfo(shown.size), color = p.muted, fontSize = 12.sp)
+            AppTextField(q, { q = it; page = 0 }, pl.searchHint)
+            if (shown.isEmpty()) Text(if (items.isEmpty()) pl.emptyContent else pl.nothingFound, color = p.muted, fontSize = 14.sp, modifier = Modifier.padding(vertical = 12.dp))
+            shown.subList(pg * per, minOf(shown.size, pg * per + per)).forEach { ViewRow(kind, it) }
+            if (pages > 1) PageNav(pg, pages, { page = it })
+        }
+    }
+}
+
+@Composable
+private fun ViewRow(kind: Int, item: MItem) {
+    val p = LocalPalette.current
+    val ctx = LocalContext.current
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        if (kind == 1) {
+            Thumb(item, Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)))
+            Text(item.name, color = p.text, fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(start = 10.dp))
+        } else {
+            val meta by produceState<MMeta?>(MediaMeta.cached(item.key), item.key) {
+                if (value == null) value = withContext(Dispatchers.IO) { MediaMeta.load(ctx, item, kind == 3, 96) }
+            }
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
+                val art = meta?.art
+                if (art != null) Image(art, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                else Icon(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, null, tint = p.iconFg, modifier = Modifier.size(22.dp))
+            }
+            Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                Text(meta?.title ?: item.name, color = p.text, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val sub = meta?.artist ?: if (item.size > 0) sizeText(item.size) else ""
+                if (sub.isNotEmpty()) Text(sub, color = p.muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }
