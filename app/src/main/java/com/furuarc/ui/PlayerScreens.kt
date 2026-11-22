@@ -1049,6 +1049,7 @@ internal fun ApplyHost(kind: Int, pending: PendApply?, onClose: () -> Unit, onDo
  * Preview of the content of a folder / favorites / playlist / collection: title, search and page buttons stay at the top,
  * only the list scrolls, and the Close button stays at the bottom. 20 items per page.
  */
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 internal fun ContentViewDialog(kind: Int, title: String, items: List<MItem>, onClose: () -> Unit) {
     val pl = playerStr(LocalLang.current)
