@@ -81,8 +81,7 @@ fun PackScreen(vm: MainViewModel, engine: VnEngine?, onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(if (engine?.rpgm == true) s.assetPackTitle else s.packTitle, requestBack)
-LazyColumn(
-        Modifier.weight(1f).fillMaxWidth(),
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(),
         contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) { 

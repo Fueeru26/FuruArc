@@ -82,7 +82,7 @@ Dekripsi aset, terjemahkan data, edit save dan kelola plugin RPG Maker.
 
 <p align="center"><img src="pictures/4_vn_tools.webp" alt="Alat VN" width="100%"></p>
 
-Bongkar, kemas dan terjemahkan visual novel di 21 engine (lihat [Engine yang didukung](#engine-yang-didukung)).
+Bongkar, kemas dan terjemahkan visual novel di 24 engine (lihat [Engine yang didukung](#engine-yang-didukung)).
 
 | Alat | Fungsi |
 | --- | --- |
@@ -182,9 +182,9 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 
 ## Engine yang didukung
 
-**Visual novel (21)**
+**Visual novel (24)**
 
-Artemis (`.pfs`), Kirikiri (`.xp3`), Ren'Py (`.rpa`), BGI / Ethornell (`.arc`), Softpal ADV System (`.pac`), WillPlus / AdvHD (`.arc`), NScripter (`.sar`), Tyrano Script (`.nw`), FVP / Favorite (`.bin`), Adv32 / Circus (`.pck`, `.dat`, `.crm`), Silky Engine (`.arc`), CatSystem 2 (`.int`), Siglus Engine (`.pck`, `Gameexe.dat`, suara `.ovk`), QLIE (`.pack`), Yu-Ris (`.ypf`), Escu:de (`.bin`), Yaneurao Itufuru (`.scd`), EntisGLS (`.noa`), NeXAS (`.pac`), Majiro (`.arc`) dan HexenHaus (`.arc`, ODIO, WAG).
+Artemis (`.pfs`), Kirikiri (`.xp3`), Ren'Py (`.rpa`), BGI / Ethornell (`.arc`), Softpal ADV System (`.pac`), WillPlus / AdvHD (`.arc`), NScripter (`.sar`), Tyrano Script (`.nw`), FVP / Favorite (`.bin`), Adv32 / Circus (`.pck`, `.dat`, `.crm`), Silky Engine (`.arc`), CatSystem 2 (`.int`), Siglus Engine (`.pck`, `Gameexe.dat`, suara `.ovk`), QLIE (`.pack`), Yu-Ris (`.ypf`), Escu:de (`.bin`), Yaneurao Itufuru (`.scd`), EntisGLS (`.noa`), NeXAS (`.pac`), Majiro (`.arc`), AGE / Eushully (`.alf`, hanya bongkar), Shiina Rio (`.war`, hanya WARC 1.1), Unity (UnityFS `.unity3d`, `.bundle`) dan HexenHaus (`.arc`, ODIO, WAG).
 
 Alat teks skrip (ekspor / impor) tersedia untuk sebagian engine di atas; daftar engine di aplikasi menunjukkan apa yang didukung tiap engine.
 

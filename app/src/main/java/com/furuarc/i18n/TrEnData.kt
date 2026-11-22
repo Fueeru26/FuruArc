@@ -374,5 +374,59 @@ Bukan file MIO/EMI yang dikenali | Not a recognised MIO/EMI file
 Dekoder Android gagal membaca gambar | The Android decoder failed to read the image
 Gagal menulis JPG | Failed to write JPG
 """
-    val ALL = listOf(E0)
+    const val E1 = """
+Bukan bundle UnityFS | Not a UnityFS bundle
+Header Unity terpotong | Unity header is truncated
+Data Unity terpotong | Unity data is truncated
+String Unity tidak berakhir | Unity string is not terminated
+Blok Unity tidak lengkap | Unity block is incomplete
+Kompresi Unity {0} tidak dikenal | Unknown Unity compression {0}
+Versi UnityFS {0} belum didukung | UnityFS version {0} is not supported yet
+Ukuran info blok Unity tidak valid | Invalid Unity block info size
+Kompresi info blok tidak dikenal | Unknown block info compression
+File terpotong: ukuran header {0} > {1} | File truncated: header size {0} > {1}
+Info blok Unity di luar file | Unity block info is outside the file
+Info blok terpotong | Block info is truncated
+Jumlah blok Unity tidak valid | Invalid Unity block count
+Blok Unity terlalu besar | Unity block is too large
+Data blok Unity melewati akhir file | Unity block data goes past the end of the file
+Jumlah node Unity tidak valid | Invalid Unity node count
+Node Unity di luar data: {0} | Unity node is outside the data: {0}
+Bundle Unity tidak berisi file | The Unity bundle contains no files
+Memori tidak cukup untuk membuka blok {0} MB | Not enough memory to open a {0} MB block
+Entri Unity tidak valid | Invalid Unity entry
+Data Unity berakhir lebih awal: {0} | Unity data ended early: {0}
+Tidak ada file untuk dikemas | No files to pack
+Ukuran file berubah saat dikemas: {0} | File size changed while packing: {0}
+Data LZMA terlalu pendek | LZMA data is too short
+Properti LZMA tidak valid | Invalid LZMA properties
+Data LZMA rusak | LZMA data is corrupted
+Data LZMA berakhir lebih awal | LZMA data ended early
+Data LZ4 terpotong | LZ4 data is truncated
+Data LZ4 rusak | LZ4 data is corrupted
+Ukuran hasil LZ4 tidak cocok | LZ4 output size does not match
+File indeks tidak ditemukan — pilih lagi di opsi | Index file not found — pick it again in the options
+Bukan file indeks Eushully (SYS4INI.BIN / SYS5INI.BIN / .AAI) | Not an Eushully index file (SYS4INI.BIN / SYS5INI.BIN / .AAI)
+File indeks terpotong | Index file is truncated
+Ukuran indeks tidak valid | Invalid index size
+Ini file indeks, bukan arsip. Buka file .ALF (mis. DATA1.ALF) dan pilih file indeks ini di opsi | This is an index file, not an archive. Open an .ALF file (e.g. DATA1.ALF) and pick this index in the options
+Pilih File indeks (SYS4INI.BIN / SYS5INI.BIN / .AAI) di opsi | Pick the Index file (SYS4INI.BIN / SYS5INI.BIN / .AAI) in the options
+Indeks kosong | The index is empty
+Indeks Eushully tidak valid | Invalid Eushully index
+ALF "{0}" tidak ada di indeks. Isi "Nama ALF di indeks" dengan salah satu: {1} | ALF "{0}" is not in the index. Fill "ALF name in the index" with one of: {1}
+Jumlah file indeks tidak valid | Invalid number of files in the index
+Tidak ada file yang cocok untuk "{0}" — pastikan indeks dan ALF dari game yang sama | No files match "{0}" — make sure the index and the ALF come from the same game
+Pengemasan ALF belum didukung | Packing ALF is not supported yet
+Bukan arsip WARC ShiinaRio | Not a ShiinaRio WARC archive
+WARC versi 1.{0} memakai enkripsi per judul game — belum didukung (hanya WARC 1.1 yang terbaca) | WARC version 1.{0} uses per-title encryption — not supported yet (only WARC 1.1 can be read)
+Offset indeks WARC tidak valid | Invalid WARC index offset
+Indeks WARC terlalu besar | The WARC index is too large
+Indeks WARC tidak terbaca (mungkin skema enkripsi lain) | The WARC index cannot be read (possibly another encryption scheme)
+Entri terlalu besar | The entry is too large
+Data YPK rusak: {0} | YPK data is corrupted: {0}
+Pengemasan YH1 belum didukung: {0} | YH1 packing is not supported yet: {0}
+Pengemasan YLZ belum didukung: {0} | YLZ packing is not supported yet: {0}
+Pengemasan WARC belum didukung | Packing WARC is not supported yet
+"""
+    val ALL = listOf(E0, E1)
 }

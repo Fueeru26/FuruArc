@@ -81,7 +81,7 @@ private fun PluginInfoPage(files: List<com.furuarc.core.PluginFileInfo>, onClose
     val pageItems = remember(shown, cur) { shown.drop(cur * PLUGIN_PAGE).take(PLUGIN_PAGE) }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(pl.infoPageTitle, onClose)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { AppTextField(query, { query = it }, pl.infoSearch) }
         if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
         if (shown.isEmpty()) item { Hint(pl.noneMatch) }
@@ -232,7 +232,7 @@ fun PluginScanScreen(confirmExit: Boolean = false, onBack: () -> Unit) {
     )
     if (showInfo) PluginInfoPage(st.files) { showInfo = false } else Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(pl.scanTitle, back)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Folder, pl.folderLabel, st.folder, AppIcons.Folder) { if (!st.busy) pickFolder.launch(null) } }
         item { PickerCard(AppIcons.File, pl.pluginsJsLabel, st.jsName, AppIcons.File) { if (!st.busy) pickJsFile.launch(arrayOf("*/*")) } }
         if (st.folder == null) item { DetailHint(pl.scanHint + " " + pl.pluginsJsHint) }
@@ -397,7 +397,7 @@ fun PluginEditorScreen(vm: MainViewModel, onBack: () -> Unit) {
         PluginIssuesPage(st.issues) { showIssues = false }
     } else Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(pl.editTitle, { if (askLeave) showLeave = true else onBack() })
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.File, pl.upPluginsJs, st.name, AppIcons.File) { pickJs.launch(arrayOf("*/*")) } }
         item { PickerCard(AppIcons.Folder, pl.folderOptLabel, st.folderName, AppIcons.Folder) { pickFolder.launch(null) } }
         item { PickerCard(AppIcons.FolderUpload, pl.outLabel, st.outName, AppIcons.Folder) { pickOut.launch(null) } }
@@ -624,7 +624,7 @@ fun PluginCheckScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(pl.chkTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.File, pl.chkJsLabel, st.jsName, AppIcons.File) { pickJs.launch(arrayOf("*/*")) } }
         item { PickerCard(AppIcons.Folder, pl.chkFolderLabel, st.folderName, AppIcons.Folder) { pickFolder.launch(null) } }
         if (!st.ran) item { DetailHint(pl.chkHint) }
@@ -693,7 +693,7 @@ fun PluginDiffScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(pl.cmpTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.File, pl.cmpA, st.nameA, AppIcons.File) { pickA.launch(arrayOf("*/*")) } }
         item { PickerCard(AppIcons.File, pl.cmpB, st.nameB, AppIcons.File) { pickB.launch(arrayOf("*/*")) } }
         if (!st.compared) item { Hint(pl.cmpHint) }
@@ -742,7 +742,7 @@ private fun PluginIssuesPage(issues: List<PluginIssue>, onClose: () -> Unit) {
     val pageItems = remember(issues, cur) { issues.drop(cur * PLUGIN_PAGE).take(PLUGIN_PAGE) }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(pl.issuesPageTitle, onClose)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item {
             Text(
                 pl.issuesCount(issues.count { it.level == 3 }, issues.count { it.level == 2 }, issues.count { it.level == 1 }),
@@ -776,7 +776,7 @@ private fun PluginParamsPage(entry: PluginEntry, onClose: () -> Unit) {
     val pageItems = remember(shown, cur) { shown.drop(cur * PLUGIN_PAGE).take(PLUGIN_PAGE) }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(pl.paramsPageTitle, onClose)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { Text(entry.name, color = p.accent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis) }
         item { AppTextField(query, { query = it }, pl.paramsSearch) }
         if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }

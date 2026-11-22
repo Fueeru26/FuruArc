@@ -330,7 +330,7 @@ object Engine {
                         log(msg)
                     } else {
                         // sorted so folder contents are in order (needed by the selection tree)
-                        val list = fmt.list(src, Options(extra = unpackExtra)).sortedBy { it.name }
+                        val list = fmt.list(src, Options(extra = unpackExtra + ("_arc" to name))).sortedBy { it.name }
                         val key = try {
                             fmt.detectKey(src, list)
                         } catch (e: Exception) {
@@ -396,7 +396,7 @@ object Engine {
                             bad++
                             log(str.r.batchSkip(name, com.furuarc.i18n.ScriptStrings.of(lang).unknownArchive))
                         } else {
-                            val list = fmt.list(src, Options(extra = unpackExtra)).sortedBy { it.name }
+                            val list = fmt.list(src, Options(extra = unpackExtra + ("_arc" to name))).sortedBy { it.name }
                             items.add(BatchItem(uri, name, fmt, list))
                             log(str.logFound(name + " · " + fmt.displayName, list.size))
                         }

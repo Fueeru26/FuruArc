@@ -37,8 +37,7 @@ class EngineTile(val badge: String, val name: String, val id: String = "", val o
 fun EngineGrid(title: String, tiles: List<EngineTile>, onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(title, onBack)
-LazyColumn(
-        Modifier.weight(1f).fillMaxWidth(),
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(),
         contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) { 
@@ -183,9 +182,9 @@ fun EngineScreen(
             }
             else -> {
                 Text(ts.archiveHeader, color = p.accent, fontWeight = FontWeight.SemiBold)
-                MenuCard(AppIcons.Unarchive, s.menuUnpackTitle, s.engineUnpackSub(engine.ext), onUnpack)
+                MenuCard(AppIcons.Unarchive, s.menuUnpackTitle + " (" + engine.ext.uppercase() + ")", s.engineUnpackSub(engine.ext), onUnpack)
                 if (FormatRegistry.byId(engine.formatId).canPack) {
-                    MenuCard(AppIcons.Archive, s.menuPackTitle, s.enginePackSub(engine.ext), onPack)
+                    MenuCard(AppIcons.Archive, s.menuPackTitle + " (" + engine.ext.uppercase() + ")", s.enginePackSub(engine.ext), onPack)
                 }
                 variants.forEach { v ->
                     MenuCard(AppIcons.Unarchive, s.menuUnpackTitle + " (" + v.suffix + ")", s.engineUnpackSub(v.ext)) { onVariantUnpack(v) }

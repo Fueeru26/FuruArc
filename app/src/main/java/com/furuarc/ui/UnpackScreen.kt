@@ -61,8 +61,7 @@ fun UnpackScreen(vm: MainViewModel, engine: VnEngine?, onSelect: () -> Unit, onB
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(if (engine?.rpgm == true) s.assetUnpackTitle else s.unpackTitle, requestBack)
-LazyColumn(
-        Modifier.weight(1f).fillMaxWidth(),
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(),
         contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) { 

@@ -47,7 +47,7 @@ fun KeyFinderScreen(engine: String, onBack: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(c.kfTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Folder, c.kfPicker, st.name, AppIcons.Folder) { if (!st.running) { pages.clear(); pick.launch(null) } } }
         item { Hint("${c.kfScope}: $scope") }
         if (st.name == null) item { DetailHint(c.kfHint) }

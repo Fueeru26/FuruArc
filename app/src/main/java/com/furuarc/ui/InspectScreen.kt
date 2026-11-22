@@ -42,8 +42,7 @@ fun InspectScreen(vm: MainViewModel, onBrowse: () -> Unit, onUnpack: () -> Unit,
     androidx.activity.compose.BackHandler(enabled = tp != null) { InspectJobs.hideText() }
     if (tp != null) TextFullView(st.name ?: "", tp, st.textTruncated) { InspectJobs.hideText() } else Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(ts.inspectTitle, onBack)
-LazyColumn(
-        Modifier.weight(1f).fillMaxWidth(),
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(),
         contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) { 

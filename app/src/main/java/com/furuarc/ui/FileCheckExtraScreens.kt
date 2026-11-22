@@ -230,7 +230,7 @@ fun DupFinderScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(f.dupTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Folder, f.dupPicker, dirName, AppIcons.Folder) { if (!busy) pickDir.launch(null) } }
         item { DetailHint(f.dupHint) }
 
@@ -416,7 +416,7 @@ fun HexViewerScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(f.hexTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item {
             PickerCard(AppIcons.File, f.hexPicker, srcName?.let { f.info(it, fmtBytes(srcSize)) }, AppIcons.File) { if (!searching) pickSrc.launch(arrayOf("*/*")) }
         }

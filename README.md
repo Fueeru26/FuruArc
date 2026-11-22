@@ -31,6 +31,7 @@ The app is written in Kotlin with Jetpack Compose. Every tool works through Andr
   - [Translation Editor](#translation-editor)
   - [Media Asset Converter](#media-asset-converter)
   - [Text Editors](#text-editors)
+  - [Media Player](#media-player)
   - [File Inspection](#file-inspection)
   - [File Toolkit and File Name Optimizer](#file-toolkit-and-file-name-optimizer)
   - [Settings and updates](#settings-and-updates)
@@ -92,7 +93,7 @@ Decrypt assets, translate data, edit saves and manage plugins for RPG Maker.
 
 <p align="center"><img src="pictures/4_vn_tools.webp" alt="VN Tools" width="100%"></p>
 
-Unpack, pack and translate visual novels across 21 engines (see [Supported engines](#supported-engines)).
+Unpack, pack and translate visual novels across 24 engines (see [Supported engines](#supported-engines)).
 
 | Tool | What it does |
 | --- | --- |
@@ -192,9 +193,9 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
 ## Supported engines
 
-**Visual novels (21)**
+**Visual novels (24)**
 
-Artemis (`.pfs`), Kirikiri (`.xp3`), Ren'Py (`.rpa`), BGI / Ethornell (`.arc`), Softpal ADV System (`.pac`), WillPlus / AdvHD (`.arc`), NScripter (`.sar`), Tyrano Script (`.nw`), FVP / Favorite (`.bin`), Adv32 / Circus (`.pck`, `.dat`, `.crm`), Silky Engine (`.arc`), CatSystem 2 (`.int`), Siglus Engine (`.pck`, `Gameexe.dat`, voice `.ovk`), QLIE (`.pack`), Yu-Ris (`.ypf`), Escu:de (`.bin`), Yaneurao Itufuru (`.scd`), EntisGLS (`.noa`), NeXAS (`.pac`), Majiro (`.arc`) and HexenHaus (`.arc`, ODIO, WAG).
+Artemis (`.pfs`), Kirikiri (`.xp3`), Ren'Py (`.rpa`), BGI / Ethornell (`.arc`), Softpal ADV System (`.pac`), WillPlus / AdvHD (`.arc`), NScripter (`.sar`), Tyrano Script (`.nw`), FVP / Favorite (`.bin`), Adv32 / Circus (`.pck`, `.dat`, `.crm`), Silky Engine (`.arc`), CatSystem 2 (`.int`), Siglus Engine (`.pck`, `Gameexe.dat`, voice `.ovk`), QLIE (`.pack`), Yu-Ris (`.ypf`), Escu:de (`.bin`), Yaneurao Itufuru (`.scd`), EntisGLS (`.noa`), NeXAS (`.pac`), Majiro (`.arc`), AGE / Eushully (`.alf`, list-and-extract), Shiina Rio (`.war`, WARC 1.1 only), Unity (UnityFS `.unity3d`, `.bundle`) and HexenHaus (`.arc`, ODIO, WAG).
 
 Script text tools (export / import) are available for a subset of these engines; the in-app engine list shows what each engine supports.
 

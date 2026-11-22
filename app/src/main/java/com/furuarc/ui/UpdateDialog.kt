@@ -152,8 +152,8 @@ private fun UpdateBody(info: UpdateInfo, installed: String) {
     Text("${nav.updInstalled}: $installed  ·  ${nav.updLatestLabel}: ${info.tag}", color = p.muted, fontSize = 13.sp)
     if (info.notes.isNotBlank()) {
         Text(nav.updNotes, color = p.muted, fontSize = 12.sp)
-        Column(Modifier.heightIn(max = 160.dp).verticalScroll(rememberScrollState())) {
-            Text(cleanNotes(info.notes).take(1500), color = p.text, fontSize = 14.sp, lineHeight = 20.sp)
+        Column(Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState())) {
+            Text(cleanNotes(info.notes), color = p.text, fontSize = 14.sp, lineHeight = 20.sp)
         }
     }
     if (info.apkUrl == null) Text(nav.updNoApk, color = p.muted, fontSize = 12.sp)

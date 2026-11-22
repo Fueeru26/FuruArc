@@ -229,7 +229,7 @@ fun FileSplitterScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(f.splitTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item {
             PickerCard(AppIcons.File, f.source, srcName?.let { f.info(it, fmtBytes(srcSize)) }, AppIcons.File) { if (!busy) pickSrc.launch(arrayOf("*/*")) }
         }
@@ -507,7 +507,7 @@ fun FileJoinerScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(f.joinTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item {
             PickerCard(AppIcons.File, f.joinPicker, if (manual == null) null else f.joinPicked(manual.names.size), AppIcons.File) {
                 if (!busy) pickParts.launch(arrayOf("*/*"))

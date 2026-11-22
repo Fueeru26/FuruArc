@@ -35,7 +35,7 @@ data class Options(
     fun bool(key: String, def: Boolean): Boolean = extra[key]?.let { it == "1" } ?: def
 }
 
-enum class OptKind { CHOICE, TEXT, NUMBER, BOOL }
+enum class OptKind { CHOICE, TEXT, NUMBER, BOOL, FILE }
 
 /** One dropdown choice. [value] is stored; [en]/[id] = display text. */
 class Choice(val value: String, val en: String, val id: String = en)
@@ -98,6 +98,9 @@ interface ArchiveFormat {
     /** false = format is read-only (the Pack Archive menu is hidden). */
     val canPack: Boolean get() = true
 
+    /** true = format without magic bytes that is only used when its engine is chosen (never by automatic detection). */
+    val explicitOnly: Boolean get() = false
+
     /** Check magic bytes from the start of the file. */
     fun matches(head: ByteArray): Boolean
 
@@ -150,6 +153,11 @@ object FormatRegistry {
             com.furuarc.formats.SiglusPckFormat,
             com.furuarc.formats.SiglusOvkFormat,
             com.furuarc.formats.SiglusGameexeFormat,
+            // distinct magic
+            com.furuarc.formats.UnityFormat,
+            com.furuarc.formats.ShiinaRioFormat,
+            // no magic at all: only when the engine is chosen
+            com.furuarc.formats.AgeFormat,
         )
     }
 
@@ -159,6 +167,6 @@ object FormatRegistry {
         val n = minOf(16L, src.length).toInt()
         if (n <= 0) return null
         val head = src.readFully(0, n)
-        return all.firstOrNull { it.detects(src, head) }
+        return all.firstOrNull { !it.explicitOnly && it.detects(src, head) }
     }
 }

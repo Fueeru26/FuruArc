@@ -49,7 +49,7 @@ fun HowToScreen(onBack: () -> Unit) {
     val p = LocalPalette.current
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
     ScreenHeader(a.howTitle, onBack)
-    LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
         items(a.howTo.size) { i ->
             val (h, b) = a.howTo[i]
             SectionCard(h) { Text(b, color = p.text, fontSize = 14.sp, lineHeight = 21.sp) }
@@ -65,7 +65,7 @@ fun QnaScreen(onBack: () -> Unit) {
     var open by remember { mutableStateOf(-1) }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
     ScreenHeader(a.qnaTitle, onBack)
-    LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
         items(a.qna.size) { i ->
             val (q, ans) = a.qna[i]
             AppCard(Modifier.fillMaxWidth()) {
@@ -91,7 +91,7 @@ fun TroubleScreen(onBack: () -> Unit) {
     val p = LocalPalette.current
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
     ScreenHeader(a.troubleTitle, onBack)
-    LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
         items(a.trouble.size) { i ->
             val (h, b) = a.trouble[i]
             SectionCard(h) { Text(b, color = p.text, fontSize = 14.sp, lineHeight = 21.sp) }
@@ -107,7 +107,7 @@ fun SourceScreen(onBack: () -> Unit) {
     val ctx = LocalContext.current
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
     ScreenHeader(a.srcTitle, onBack)
-    LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
         item { Text(a.srcIntro, color = p.muted, fontSize = 13.sp, lineHeight = 19.sp) }
         items(a.sources.size) { i ->
             val s = a.sources[i]
@@ -156,7 +156,7 @@ fun DeveloperScreen(vm: com.furuarc.MainViewModel, onBack: () -> Unit) {
     var withLog by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
     ScreenHeader(a.devTitle, onBack)
-    LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
         item {
             AppCard(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {

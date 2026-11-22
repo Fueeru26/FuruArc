@@ -240,7 +240,7 @@ fun NameOptScreen(onBack: () -> Unit, onMixed: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(n.menuTitle, { if (!busy) onBack() })
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Folder, n.srcFolder, srcName, AppIcons.Folder) { if (!busy) pickSrc.launch(null) } }
         item { DetailHint(n.intro) }
 
@@ -399,7 +399,7 @@ private fun CheckedListPage(
     val pageItems = remember(shown, cur) { shown.drop(cur * NO_PER_PAGE).take(NO_PER_PAGE) }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(n.checkedTitle, onClose)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { SegmentedChips(listOf(n.tabEdited, n.tabUnref), tab, 14.sp) { onTab(it) } }
         item { AppTextField(value = query, onValueChange = { onQuery(it) }, label = f.renSearch) }
         if (all.isEmpty()) item { Hint(n.listEmpty) } else if (shown.isEmpty()) item { Hint(f.renNoMatch) }

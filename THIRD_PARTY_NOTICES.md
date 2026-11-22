@@ -17,5 +17,8 @@ FuruArc includes the following source code directly in `app/src/main/java` (no n
 ## FLAC
 The FLAC encoder (`core/AudioWriters.kt`) was written from scratch following the FLAC format specification (RFC 9639); it contains no third-party code.
 
+## AGE, Shiina Rio and Unity formats
+The ALF index layout (`formats/AgeFormat.kt`) and the WARC layout (`formats/ShiinaRioFormat.kt`) follow the format descriptions in GARbro (MIT License, Copyright (c) morkt). The LZMA decoder (`core/UnityCodec.kt`) is an independent implementation of the public LZMA algorithm and the LZ4 block decoder follows the public LZ4 block format; both were tested against reference data. UnityFS handling follows the publicly documented bundle layout.
+
 ## References
 Archive and script format behavior was checked against the open-source tools GARbro (https://github.com/morkt/GARbro) and msg-tool (https://github.com/lifegpc/msg-tool).

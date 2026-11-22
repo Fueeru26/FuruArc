@@ -2,6 +2,23 @@
 
 All notable changes to FuruArc are listed here.
 
+## 1.04
+
+### Added
+- **Three new visual novel engines** (24 in total), each with its own cover card in the engine list:
+  - **AGE (Eushully)**: list and extract `.alf` archives. An ALF has no table of its own, so choose the **Index file** (`SYS4INI.BIN`, `SYS5INI.BIN` or `.AAI` from the same game folder) in the options; the ALF name is taken from the opened file. Several ALF files can be unpacked in one batch with the same index. Packing is not available.
+  - **Shiina Rio**: list and extract WARC 1.1 archives (YPK/zlib entries are unpacked). Later WARC versions use a per-title encryption scheme and are reported as not supported. Packing is not available.
+  - **Unity**: open UnityFS asset bundles (`.unity3d`, `.bundle`), with LZMA and LZ4 block compression, list the contained nodes (`CAB-*`, `.resS`, ...) and extract them. Packing writes an uncompressed UnityFS bundle (format version 6 or 7 and Unity version string are set in the options). Encrypted bundles and the objects inside serialized files are not processed.
+- Option fields can now pick a file (used by the AGE index file).
+- Folder statistics recognise AGE (Eushully) and Shiina Rio files.
+
+### Changed
+- Engine List: the Unpack / Pack Archive menus now show the format, for example "Unpack Archive (PFS)".
+
+### Fixed
+- The release notes in the "New version available" window are no longer cut off: the full text is shown in a larger scrollable area.
+- Scroll positions are kept when returning from a sub-screen to the Engine List and to other list screens (Guide, Game Assets lists, Library, File Check, File Tools, Name Optimizer, Plugin tools, Unpack / Pack).
+
 ## 1.03
 
 ### Added

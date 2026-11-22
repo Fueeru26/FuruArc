@@ -365,7 +365,7 @@ fun GameAudioScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(8.dp))
         }
         if (all.isEmpty()) Text(g.empty, color = p.muted)
-        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(pageItems, key = { it.id }) { a ->
                 val active = cur?.id == a.id
                 ItemRow(a.id in sel, a.id in fav, { GameFav.toggle(a.id) },
@@ -470,7 +470,7 @@ fun GameImageScreen(onBack: () -> Unit) {
         }
         if (all.isEmpty()) Text(g.empty, color = p.muted)
         val rows = remember(list, pg) { list.withIndex().toList().drop(pg * per).take(per).chunked(3) }
-        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(rows) { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     for (iv in row) {
@@ -611,7 +611,7 @@ fun GameVideoScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(8.dp))
         }
         if (all.isEmpty()) Text(g.empty, color = p.muted)
-        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(pageItems, key = { it.id }) { a ->
                 ItemRow(a.id in sel, a.id in fav, { GameFav.toggle(a.id) },
                     { if (selMode) sel = toggled(sel, a.id) else play = a },
@@ -757,7 +757,7 @@ fun GameTextScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(8.dp))
         }
         if (texts != null && all.isEmpty()) Text(g.empty, color = p.muted)
-        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(pageItems, key = { it.id }) { t ->
                 ItemRow(t.id in sel, t.id in fav, { GameFav.toggle(t.id) },
                     { if (selMode) sel = toggled(sel, t.id) else open = t },

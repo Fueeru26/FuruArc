@@ -1,6 +1,13 @@
 package com.furuarc.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.Checkbox
@@ -89,6 +96,42 @@ private fun OptionRow(sp: OptionSpec, value: String, lang: Lang, enabled: Boolea
                         sp.choices.forEachIndexed { i, ch ->
                             DropdownOption(labels[i], i == cur) { open = false; onChange(ch.value) }
                         }
+                    }
+                }
+                HintText(sp.hint(lang))
+            }
+        }
+        OptKind.FILE -> {
+            val ctx = LocalContext.current
+            val scope = rememberCoroutineScope()
+            val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                if (uri != null) scope.launch {
+                    val f = withContext(Dispatchers.IO) {
+                        try {
+                            var nm = "file"
+                            ctx.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+                                if (c.moveToFirst()) c.getString(0)?.let { nm = it }
+                            }
+                            val dst = java.io.File(ctx.cacheDir, "opt_" + sp.key + "_" + nm.replace(Regex("[^A-Za-z0-9._-]"), "_"))
+                            ctx.contentResolver.openInputStream(uri)?.use { i -> dst.outputStream().use { o -> i.copyTo(o) } }
+                            dst.takeIf { it.isFile && it.length() <= 64L * 1024 * 1024 }
+                        } catch (e: Exception) { null }
+                    }
+                    if (f != null) onChange(f.absolutePath)
+                }
+            }
+            val shown = if (value.isEmpty()) (if (lang == Lang.ID) "Belum dipilih" else "Not selected")
+                else java.io.File(value).name.removePrefix("opt_" + sp.key + "_")
+            Column {
+                AppCard(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.clickable(enabled = enabled) { launcher.launch(arrayOf("*/*")) }.padding(16.dp),
+                    ) {
+                        Text(sp.label(lang), fontSize = 12.sp, lineHeight = 16.sp, color = p.muted)
+                        Text(
+                            shown, fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight.Medium,
+                            color = p.text, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
                 HintText(sp.hint(lang))

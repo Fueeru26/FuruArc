@@ -166,7 +166,7 @@ fun FolderCheckScreen(onOpenFile: (FolderItem) -> Unit, onBack: () -> Unit) {
     val pageItems = remember(shown, curPage) { shown.drop(curPage * pageSize).take(pageSize) }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(c.folderTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Folder, c.folderPicker, st.name, AppIcons.Folder) { if (!st.running) pick.launch(null) } }
         if (st.name == null) item { Hint(c.folderHint) }
         st.error?.let { e -> item { ErrorCard(e) } }
@@ -265,7 +265,7 @@ fun CompareScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(c.compareTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.File, c.labelA, st.nameA, AppIcons.Folder) { if (!st.running) pickA.launch(arrayOf("*/*")) } }
         item { PickerCard(AppIcons.File, c.labelB, st.nameB, AppIcons.Folder) { if (!st.running) pickB.launch(arrayOf("*/*")) } }
         if (st.nameA == null || st.nameB == null) item { Hint(c.compareHint) }
@@ -372,7 +372,7 @@ fun TrScanScreen(onBack: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
 ScreenHeader(c.trScanTitle, onBack)
-LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
+LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Translate, c.trPicker, st.name, AppIcons.Folder) { if (!st.busy) pick.launch(arrayOf("*/*")) } }
         if (st.name == null) item { Hint(c.trHint) }
         if (st.busy) item { BusyBar() }
