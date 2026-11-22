@@ -653,6 +653,7 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
         if (filt) {
             Spacer(Modifier.height(4.dp))
             AppTextField(q, { q = it; page = 0 }, pl.searchHint)
+            Spacer(Modifier.height(10.dp))
         }
         if (selMode) {
             Spacer(Modifier.height(4.dp))
@@ -1044,7 +1045,10 @@ internal fun ApplyHost(kind: Int, pending: PendApply?, onClose: () -> Unit, onDo
 
 // ------------------------------------------------------------------ "Lihat isi ..." preview window
 
-/** Preview of the content of a folder / favorites / playlist / collection, with search and pages. */
+/**
+ * Preview of the content of a folder / favorites / playlist / collection: title, search and page buttons stay at the top,
+ * only the list scrolls, and the Close button stays at the bottom. 20 items per page.
+ */
 @Composable
 internal fun ContentViewDialog(kind: Int, title: String, items: List<MItem>, onClose: () -> Unit) {
     val pl = playerStr(LocalLang.current)
@@ -1055,13 +1059,25 @@ internal fun ContentViewDialog(kind: Int, title: String, items: List<MItem>, onC
     val per = 20
     val pages = ((shown.size + per - 1) / per).coerceAtLeast(1)
     val pg = page.coerceIn(0, pages - 1)
-    AppDialog(title, onClose, buttons = { TextButton(onClick = onClose) { Text(pl.close, color = p.accent) } }) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(pl.pageInfo(shown.size), color = p.muted, fontSize = 12.sp)
-            AppTextField(q, { q = it; page = 0 }, pl.searchHint)
-            if (shown.isEmpty()) Text(if (items.isEmpty()) pl.emptyContent else pl.nothingFound, color = p.muted, fontSize = 14.sp, modifier = Modifier.padding(vertical = 12.dp))
-            shown.subList(pg * per, minOf(shown.size, pg * per + per)).forEach { ViewRow(kind, it) }
-            if (pages > 1) PageNav(pg, pages, { page = it })
+    val maxH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.9f
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(
+            shape = RoundedCornerShape(CardRadius), color = p.card, contentColor = p.text,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 24.dp).heightIn(max = maxH),
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = p.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(pl.pageInfo(shown.size), color = p.muted, fontSize = 12.sp)
+                AppTextField(q, { q = it; page = 0 }, pl.searchHint)
+                if (pages > 1) PageNav(pg, pages, { page = it })
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (shown.isEmpty()) Text(if (items.isEmpty()) pl.emptyContent else pl.nothingFound, color = p.muted, fontSize = 14.sp, modifier = Modifier.padding(vertical = 12.dp))
+                    shown.subList(pg * per, minOf(shown.size, pg * per + per)).forEach { ViewRow(kind, it) }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onClose) { Text(pl.close, color = p.accent) }
+                }
+            }
         }
     }
 }

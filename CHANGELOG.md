@@ -33,6 +33,9 @@ All notable changes to FuruArc are listed here.
 - The last played audio / video and its position are restored when the app is opened again.
 
 ### Changed
+- "Confirm exit from Editor" is now on by default.
+- "View content" windows: search, pages (20 per page) and Close stay fixed while only the list scrolls.
+- Video position is kept when switching between the Player, Queue, Folders and Playlists tabs.
 - Video fullscreen: swiping from the screen edges no longer changes brightness or volume; leaving and re-entering the video player keeps the position and does not start playing by itself.
 - Gallery grid: thumbnails change immediately when switching pages or deleting images.
 - About > Developer: contact and donation links are on one line each; the donation link notes were removed.

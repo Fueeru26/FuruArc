@@ -328,7 +328,14 @@ internal fun VideoPane(fullscreen: Boolean = false) {
         // some actions (dialogs, focus changes) reset the flags: apply them again whenever the controls toggle
         LaunchedEffect(ui) { applyImmersive(act, true) }
     }
-    DisposableEffect(item.key, fullscreen) { onDispose { saveNow(); try { view[0]?.stopPlayback() } catch (e: Throwable) { } } }
+    DisposableEffect(item.key, fullscreen) {
+        onDispose {
+            saveNow()
+            // coming back to the player tab (or the screen) continues from here, paused
+            PlayerHub.videoRestore = item.key
+            try { view[0]?.stopPlayback() } catch (e: Throwable) { }
+        }
+    }
     LaunchedEffect(item.key, fullscreen) {
         var n = 0
         while (true) {

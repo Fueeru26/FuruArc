@@ -154,6 +154,7 @@ internal fun GalleryTab(onOpen: (Int) -> Unit) {
         if (filt) {
             Spacer(Modifier.height(4.dp))
             AppTextField(q, { q = it; page = 0 }, pl.searchHint)
+            Spacer(Modifier.height(10.dp))
         }
         if (selMode) {
             Spacer(Modifier.height(4.dp))

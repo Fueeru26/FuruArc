@@ -48,7 +48,7 @@ data class AppSettings(
     // system
     val bgProcess: Boolean = false,
     val keepScreenOn: Boolean = false,
-    val confirmExit: Boolean = false,
+    val confirmExit: Boolean = true,
     val nativeInput: Boolean = true,
     val showEngineLabel: Boolean = false,
 ) {
@@ -78,7 +78,7 @@ class SettingsStore(ctx: Context) {
             defaultOutName = sp.getString("defaultOutName", "") ?: "",
             bgProcess = sp.getBoolean("bgProcess", false),
             keepScreenOn = sp.getBoolean("keepScreenOn", false),
-            confirmExit = sp.getBoolean("confirmExit", sp.getBoolean("confirmExitTr", false) || sp.getBoolean("confirmExitVal", false)),
+            confirmExit = sp.getBoolean("confirmExit", true),
             nativeInput = sp.getBoolean("nativeInput", true),
             showEngineLabel = sp.getBoolean("showEngineLabel", false),
         )
