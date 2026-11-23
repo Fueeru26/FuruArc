@@ -67,6 +67,8 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.1.1")
     implementation("androidx.compose.material:material:1.1.1")
     implementation("androidx.compose.material:material-icons-core:1.1.1")
+
+    testImplementation("junit:junit:4.13.2")
 }
 
 // Diagnostics: run `./gradlew printKotlinCompiler` to see which Kotlin compiler version is used

@@ -40,7 +40,7 @@ Keterangan: ✔ didukung, – tidak didukung.
 Catatan:
 
 - Arsip tanpa magic bytes (Circus, FVP, WillPlus, Silky, NScripter, dan lainnya) dikenali dari strukturnya. Jika deteksi gagal, pilih engine sendiri di Daftar Engine.
-- **Uji Coba Format** (Pemeriksa File dan Folder) mengemas file contoh dengan setiap format yang bisa dikemas di perangkatmu lalu membongkarnya lagi, sehingga cepat terlihat apakah sebuah format berfungsi di ponselmu.
+- **Uji Coba Format** (Pemeriksa File dan Folder) mengemas file contoh dengan setiap format yang bisa dikemas di perangkatmu lalu membongkarnya lagi, sehingga cepat terlihat apakah sebuah format berfungsi di ponselmu. Ia juga memeriksa contoh tepi, kemas ulang, codec, teks skrip dan arsip asli kecil (`assets/formattest`).
 - **Pencari Kunci** mencari kunci enkripsi di folder game dan menampilkan file yang memakainya.
 - Nama file di dalam arsip bisa dibaca sebagai Otomatis, Shift-JIS, UTF-8, GBK, Big5 atau EUC-KR (**Encoding Nama File**).
 - Game sering menyimpan gambar, audio dan skrip dalam format khusus engine. Penampil Aset Game dan **Konverter Aset Khusus** menangani banyak di antaranya (misalnya `.crx`, `.pgd`, `.tlg`, `.g00`, OVK, NWA, MIO).

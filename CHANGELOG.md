@@ -5,10 +5,16 @@ All notable changes to FuruArc are listed here.
 ## 1.05
 
 ### Added
-- **Format Test** (Indonesian: Uji Coba Format) in the File & Folder Inspector: packs generated sample files with every format that can be packed, unpacks them again on the device and compares names and contents. Each result is passed, warning (the round trip works but automatic detection picks another format), failed (with the reason) or skipped (formats that need files from a real game: AGE and Siglus PCK). Filter All / ! / ✕ / ✓, and a report (copy or .txt) that includes the app version, Android version and device. Texts in Indonesian, English, Japanese, Chinese and Korean; the Guide and the feature search know the new tool.
+- **Format Test** In the File & Folder Inspector: packs generated sample files with every format that can be packed, unpacks them again on the device and compares names and contents. Each result is passed, warning (the round trip works but automatic detection picks another format), failed (with the reason) or skipped (formats that need files from a real game: AGE and Siglus PCK). Filter All / ! / ✕ / ✓, and a report (copy or .txt) that includes the app version, Android version and device. Texts in Indonesian, English, Japanese, Chinese and Korean; the Guide and the feature search know the new tool.
+  - Edge samples for every format: an empty file, a file of exactly 1 MiB, Japanese and spaced names, subfolders and 300 files. A problem found with them is a warning, because it can be a known limit of the format.
+  - The unpacked files are packed again and the new archive is checked (contents and, as a warning, byte equality).
+  - Automatic detection lists every format that accepts the archive.
+  - **Real archives**: small archives from real games placed in `assets/formattest` with a `.golden` manifest are unpacked and the SHA-256 of each file is compared, which proves that a format matches the game and not only itself.
+  - Codec tests (LZMA, LZ4, LZSS) against reference data, and script text export/import tests (the script must not change when the texts are unchanged).
+  - The test also runs on the JVM in GitHub Actions (`testDebugUnitTest`), so a broken format is found before a release.
 
 ### Changed
-- The **File Inspection** menu is now **File & Folder Inspector** (Indonesian: Pemeriksa File dan Folder). Its single-file tool, formerly "Archive and Script Inspection", is now **File Inspection** (Pemeriksaan File). The tools are listed in this order: File Inspection, Folder Inspection, Compare Files, Hex Viewer, Format Test, Duplicate File Finder, Translation Scan.
+- The **File Inspection** menu is now **File & Folder Inspector**. Its single-file tool, formerly "Archive and Script Inspection", is now **File Inspection** (Pemeriksaan File). The tools are listed in this order: File Inspection, Folder Inspection, Compare Files, Hex Viewer, Format Test, Duplicate File Finder, Translation Scan.
 - Guide, hints and report titles use the new names.
 
 ### Fixed

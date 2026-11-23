@@ -169,4 +169,12 @@ object FormatRegistry {
         val head = src.readFully(0, n)
         return all.firstOrNull { !it.explicitOnly && it.detects(src, head) }
     }
+
+    /** Every format whose detection accepts the file, in registry order (the first one wins in [detect]). */
+    fun detectAll(src: RandomSource): List<ArchiveFormat> {
+        val n = minOf(16L, src.length).toInt()
+        if (n <= 0) return emptyList()
+        val head = src.readFully(0, n)
+        return all.filter { f -> !f.explicitOnly && (try { f.detects(src, head) } catch (e: Exception) { false }) }
+    }
 }

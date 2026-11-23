@@ -26,6 +26,13 @@ data class FormatTestState(
 )
 
 /** Runs [FormatSelfTest] in the background and keeps the results for the screen and the report. */
+/** Real (golden) archives shipped as Android assets in assets/formattest/. */
+private class AssetGolden : FtGoldenSource {
+    private val am get() = Engine.app.assets
+    override fun names(): List<String> = try { am.list("formattest")?.filter { it.endsWith(".golden") } ?: emptyList() } catch (e: Exception) { emptyList() }
+    override fun read(name: String): ByteArray? = try { am.open("formattest/$name").use { it.readBytes() } } catch (e: Exception) { null }
+}
+
 object FormatTestJobs {
     private val _state = MutableStateFlow(FormatTestState())
     val state: StateFlow<FormatTestState> = _state.asStateFlow()
@@ -47,7 +54,7 @@ object FormatTestJobs {
         if (_state.value.running) return
         stop = false
         val me = ++run
-        _state.value = FormatTestState(running = true, total = FormatSelfTest.cases().size)
+        _state.value = FormatTestState(running = true, total = FormatSelfTest.totalCount(AssetGolden()))
         job = Engine.scope.launch(Dispatchers.IO) {
             try {
                 FormatSelfTest.run(
@@ -55,6 +62,7 @@ object FormatTestJobs {
                     isCancelled = { stop || me != run },
                     progress = { d, n, label -> if (me == run) _state.update { it.copy(done = d, total = n, label = label) } },
                     onResult = { r -> if (me == run) _state.update { it.copy(results = it.results + r, done = it.results.size + 1) } },
+                    golden = AssetGolden(),
                 )
                 if (me == run) _state.update { it.copy(running = false, finished = !stop, stopped = stop, label = "") }
             } catch (e: CancellationException) {

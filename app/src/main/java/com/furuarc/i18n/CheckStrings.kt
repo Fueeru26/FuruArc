@@ -25,8 +25,8 @@ class CheckStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID
     val ftTitle get() = t("Uji Coba Format", "Format Test")
     val ftSub get() = t("Kemas data contoh dengan tiap format, bongkar lagi, dan pastikan hasilnya sama", "Pack sample data with each format, unpack it again and confirm the result is identical")
     val ftHint get() = t(
-        "Aplikasi membuat file contoh kecil di penyimpanan sementara, mengemasnya dengan setiap format yang bisa dikemas, membongkarnya lagi, lalu membandingkan nama dan isinya. File di perangkat tidak dibaca atau diubah.",
-        "The app creates small sample files in temporary storage, packs them with every format that can be packed, unpacks them again and compares names and contents. None of your files are read or changed.",
+        "Aplikasi membuat file contoh kecil di penyimpanan sementara, mengemasnya dengan setiap format yang bisa dikemas (juga contoh tepi: file kosong, nama Jepang, subfolder, 300 file), membongkar, mengemas ulang, dan membandingkan. Ia juga menguji arsip asli kecil bila ada, codec kompresi, dan ekspor/impor teks skrip. File di perangkat tidak dibaca atau diubah.",
+        "The app creates small sample files in temporary storage, packs them with every format that can be packed (also edge samples: empty file, Japanese names, subfolders, 300 files), unpacks, packs again and compares. It also tests small real archives when present, the compression codecs and script text export/import. None of your files are read or changed.",
     )
     val ftNote get() = t(
         "Uji coba ini hanya membuktikan bahwa hasil kemas aplikasi bisa dibongkar lagi oleh aplikasi yang sama. Game asli tetap bisa menolak arsip bila engine-nya butuh kunci atau tata letak khusus.",
@@ -41,15 +41,25 @@ class CheckStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID
     val ftStopped get() = t("Dihentikan sebelum selesai", "Stopped before finishing")
     val ftReportTitle get() = t("Laporan Uji Coba Format", "Format Test Report")
 
+    /** Lists every format that accepts the archive when more than one does. */
+    private fun detectNote(r: FtResult): String =
+        if (r.detectedBy.size > 1) tt(" · cocok dengan: ${r.detectedBy.joinToString(", ")}", " · also accepted by: {0}", r.detectedBy.joinToString(", ")) else ""
+
     /** One line that explains a result of the Format Test. */
     fun ftDetail(r: FtResult): String = when (r.kind) {
-        FtKind.OK -> tt("${r.files} file · ${(r.bytes + 512) / 1024} KB · ${r.ms} ms", "{0} files · {1} KB · {2} ms", r.files, (r.bytes + 512) / 1024, r.ms)
+        FtKind.OK -> tt("${r.files} file · ${(r.bytes + 512) / 1024} KB · ${r.ms} ms", "{0} files · {1} KB · {2} ms", r.files, (r.bytes + 512) / 1024, r.ms) + detectNote(r)
         FtKind.ERROR -> tt("Gagal: ${r.arg}", "Failed: {0}", Tr.msg(lang, r.arg))
         FtKind.COUNT -> tt("Jumlah file berbeda: seharusnya ${r.n1}, hasil ${r.n2} (${r.arg})", "Different number of files: expected {0}, got {1} ({2})", r.n1, r.n2, r.arg)
         FtKind.MISSING -> tt("File tidak kembali setelah dibongkar: ${r.arg}", "File did not come back after unpacking: {0}", r.arg)
         FtKind.CONTENT -> tt("Isi file berbeda setelah dibongkar: ${r.arg}", "File content differs after unpacking: {0}", r.arg)
-        FtKind.DETECT_OTHER -> tt("Lulus, tetapi deteksi otomatis memilih ${r.arg}", "Passed, but automatic detection picks {0}", r.arg)
+        FtKind.DETECT_OTHER -> tt("Lulus, tetapi deteksi otomatis memilih ${r.arg}", "Passed, but automatic detection picks {0}", r.arg) + detectNote(r)
         FtKind.DETECT_NONE -> t("Lulus, tetapi deteksi otomatis tidak mengenali arsip ini", "Passed, but automatic detection does not recognise this archive")
+        FtKind.REPACK_DIFF -> t("Lulus, tetapi kemas ulang dari hasil bongkar menghasilkan arsip yang berbeda byte-nya (isi file sama; mungkin wajar bila format menyimpan waktu atau acak)", "Passed, but packing the unpacked files again gives a different archive (same files; can be normal if the format stores a time or random data)")
+        FtKind.REPACK_CONTENT -> tt("Arsip hasil kemas ulang berisi data berbeda: ${r.arg}", "The archive packed again has different data: {0}", r.arg)
+        FtKind.HASH_MISMATCH -> tt("SHA-256 file tidak cocok dengan yang diharapkan: ${r.arg}", "File SHA-256 does not match the expected one: {0}", r.arg)
+        FtKind.SCRIPT_EMPTY -> t("Tidak ada teks yang ditemukan di skrip contoh (contoh mungkin tidak sesuai dengan format skrip)", "No text was found in the sample script (the sample may not match the script format)")
+        FtKind.SCRIPT_CHANGED -> t("Impor tanpa perubahan teks mengubah skrip", "Importing unchanged texts changed the script")
+        FtKind.SCRIPT_APPLY -> tt("Impor teks yang diubah tidak berhasil: ${r.arg}", "Importing changed texts did not work: {0}", r.arg)
         FtKind.NEEDS_GAME_FILES -> t("Dilewati: butuh file dari game asli (file indeks atau hasil bongkar arsip aslinya)", "Skipped: needs files from a real game (an index file or the unpacked original archive)")
     }
 

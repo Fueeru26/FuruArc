@@ -65,7 +65,7 @@ object AgeFormat : ArchiveFormat {
     }
 
     /** LZSS: 4 KiB window, start position 0xFEE, window filled with 0. Flag bit 1 = literal. */
-    private fun lzss(d: ByteArray, off: Int, n: Int): ByteArray {
+    internal fun lzss(d: ByteArray, off: Int, n: Int): ByteArray {
         val out = java.io.ByteArrayOutputStream(n * 4)
         val fr = ByteArray(0x1000)
         var fp = 0xFEE
@@ -154,7 +154,7 @@ object AgeFormat : ArchiveFormat {
     }
 
     /** LZSS stream made only of literals (flag byte 0xFF + 8 bytes): always valid, no match search needed. */
-    private fun lzssLiteral(d: ByteArray): ByteArray {
+    internal fun lzssLiteral(d: ByteArray): ByteArray {
         val out = java.io.ByteArrayOutputStream(d.size + d.size / 8 + 16)
         var i = 0
         while (i < d.size) {
