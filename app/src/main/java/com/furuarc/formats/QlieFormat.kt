@@ -18,6 +18,9 @@ object QlieFormat : ArchiveFormat {
     override val displayName = "PACK (QLIE)"
     override val extensions = listOf("pack")
 
+    /** Read-only: the Pack Archive menu is hidden for QLIE (see [pack]). */
+    override val canPack: Boolean get() = false
+
     private const val TRAILER = 0x1C
     private val PREFIX = "FilePackVer".toByteArray(Charsets.US_ASCII)
 

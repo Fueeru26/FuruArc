@@ -18,7 +18,7 @@ class Hashes(val crc32: String, val md5: String, val sha256: String)
 class DeepResult(val checked: Int, val failed: List<String>, val sumChecked: Int, val sumBad: List<String>, val bytes: Long)
 
 /**
- * Archive and Script Inspection: pure logic (no Android) so it can be tested. Bilingual text is chosen via [id]
+ * File Inspection (one archive or script): pure logic (no Android) so it can be tested. Bilingual text is chosen via [id]
  * (true = Indonesian).
  */
 object Inspector {

@@ -77,12 +77,13 @@ object FeatureCatalog {
         for (e in SpecialConv.ENGINES) {
             f("special:" + e.id, AppIcons.Gamepad, e.name + " · " + md.specialTitle, "$mdP › ${md.specialTitle}", e.exts.joinToString(" ") + " " + e.id + " convert konversi gambar image audio")
         }
-        f("filecheck", AppIcons.Archive, ck.menuTitle, tab, "pemeriksaan periksa check inspect arsip skrip file")
+        f("filecheck", AppIcons.Archive, ck.menuTitle, tab, "pemeriksa pemeriksaan periksa check inspect inspector arsip skrip file folder uji test")
         f("filecheck.file", AppIcons.Archive, ck.fileTitle, ckP, "periksa file archive arsip format deteksi detect inspect")
         f("filecheck.folder", AppIcons.Folder, ck.folderTitle, ckP, "periksa folder statistik stats")
         f("filecheck.compare", AppIcons.File, ck.compareTitle, ckP, "bandingkan compare diff")
-        f("filecheck.dup", AppIcons.ContentCopy, ft.dupTitle, ckP, "duplikat duplicate kembar hash")
         f("filecheck.hex", AppIcons.MenuBook, ft.hexTitle, ckP, "hex viewer penampil biner binary")
+        f("filecheck.formattest", AppIcons.Checklist, ck.ftTitle, ckP, "uji coba format test round trip kemas bongkar pack unpack self test diagnosa")
+        f("filecheck.dup", AppIcons.ContentCopy, ft.dupTitle, ckP, "duplikat duplicate kembar hash")
         f("filecheck.tr", AppIcons.Translate, ck.trScanTitle, ckP, "terjemahan scan translation pindai teks")
         f("filetools", AppIcons.Build, ft.menuTitle, tab, "alat file potong pisah gabung rename ganti nama")
         f("filetools.cut", AppIcons.File, ck.cutTitle, ftP, "potong cut trim file")
@@ -154,8 +155,9 @@ object FeatureCatalog {
         Screen.INSPECT -> "filecheck.file"
         Screen.INSPECT_FOLDER -> "filecheck.folder"
         Screen.INSPECT_COMPARE -> "filecheck.compare"
-        Screen.INSPECT_DUP -> "filecheck.dup"
         Screen.INSPECT_HEX -> "filecheck.hex"
+        Screen.INSPECT_FORMATTEST -> "filecheck.formattest"
+        Screen.INSPECT_DUP -> "filecheck.dup"
         Screen.INSPECT_TR -> "filecheck.tr"
         Screen.FILECUT -> "filetools.cut"
         Screen.FILESPLIT -> "filetools.split"

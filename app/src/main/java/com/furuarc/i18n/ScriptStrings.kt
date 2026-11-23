@@ -17,7 +17,7 @@ class ScriptStr(private val id: Boolean, private val lang: Lang = if (id) Lang.I
     val browseTitle get() = t("Isi Arsip", "Archive Contents")
     val browseHint get() = t("Ketuk nama file gambar atau teks untuk Pratinjau", "Tap an image or text file name to Preview")
     // ---- Archive and Script Check ----
-    val inspectTitle get() = t("Pemeriksaan Arsip dan Skrip", "Archive & Script Inspection")
+    val inspectTitle get() = t("Pemeriksaan File", "File Inspection")
     val inspectSub get() = t("Periksa arsip atau skrip: format, checksum, file rusak, enkripsi, dan kode yang salah", "Inspect an archive or script: format, checksum, corrupt files, encryption and wrong code")
     val inspectPicker get() = t("File Arsip / Skrip", "Archive / Script File")
     val inspectWorking get() = t("Memeriksa file…", "Inspecting file…")

@@ -223,7 +223,10 @@ object UnityFormat : ArchiveFormat {
         hd.write(unity.toByteArray(Charsets.UTF_8)); hd.write(0)
         hd.write("0.0.0".toByteArray(Charsets.US_ASCII)); hd.write(0)
         var hlen = hd.size() + 8 + 12
-        if (ver >= 7) hlen = (hlen + 15) / 16 * 16
+        // same rule as the reader (list): UnityFS 7+ and Unity 2019.4+ align the header to 16 bytes
+        val major = unity.substringBefore('.').toIntOrNull() ?: 0
+        val minor = unity.split('.').getOrNull(1)?.toIntOrNull() ?: 0
+        if (ver >= 7 || (major == 2019 && minor >= 4)) hlen = (hlen + 15) / 16 * 16
         val fileSize = hlen + infoBytes.size + total
         hBe32(fileSize ushr 32); hBe32(fileSize and 0xFFFFFFFFL)
         hBe32(infoBytes.size.toLong()); hBe32(infoBytes.size.toLong()); hBe32(0x40)

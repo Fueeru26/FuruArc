@@ -79,7 +79,7 @@ import com.furuarc.ui.theme.FuruArcTheme
 import com.furuarc.ui.theme.LocalPalette
 
 enum class Screen {
-    HOME, LIBRARY, SUPPORT, MORE, FILECHECK, INSPECT, INSPECT_FOLDER, INSPECT_COMPARE, INSPECT_DUP, INSPECT_HEX, INSPECT_TR, ABOUT, ABOUT_TROUBLE, ABOUT_HOW, ABOUT_QNA, ABOUT_SRC, ABOUT_DEV,
+    HOME, LIBRARY, SUPPORT, MORE, FILECHECK, INSPECT, INSPECT_FOLDER, INSPECT_COMPARE, INSPECT_DUP, INSPECT_HEX, INSPECT_FORMATTEST, INSPECT_TR, ABOUT, ABOUT_TROUBLE, ABOUT_HOW, ABOUT_QNA, ABOUT_SRC, ABOUT_DEV,
     VN_TOOLS, VN_ENGINES, AUTO_SCRIPTS, KEYFINDER, TEXTEDIT, TEXTEDIT_PLAIN, TEXTEDIT_STRUCT, TEXTEDIT_BULK, FILETOOLS, NAMEOPT, FILECUT, FILESPLIT, FILEJOIN, FILERENAME, MEDIA, MEDIA_AUDIO, MEDIA_IMAGE, MEDIA_VIDEO, MEDIA_MIXED, MEDIA_TEXT, MEDIA_SPECIAL, ENGINE, UNPACK, PACK, SELECT, BROWSE, SETTINGS,
     GAME, GAME_AUDIO, GAME_IMAGE, GAME_VIDEO, GAME_TEXT,
     MPLAYER, MPLAYER_IMAGE, MPLAYER_AUDIO, MPLAYER_VIDEO, MPLAYER_SETTINGS,
@@ -212,6 +212,7 @@ fun App(vm: MainViewModel) {
             Screen.FILECUT, Screen.FILESPLIT, Screen.FILEJOIN, Screen.FILERENAME -> screen = Screen.FILETOOLS
             Screen.INSPECT_COMPARE -> { CompareJobs.clear(); screen = Screen.FILECHECK }
             Screen.INSPECT_DUP, Screen.INSPECT_HEX -> screen = Screen.FILECHECK
+            Screen.INSPECT_FORMATTEST -> { FormatTestJobs.clear(); screen = Screen.FILECHECK }
             Screen.INSPECT_TR -> { TrScanJobs.clear(); screen = Screen.FILECHECK }
             Screen.SELECT -> screen = Screen.UNPACK
             Screen.UNPACK, Screen.PACK -> toEngineMenu()
@@ -276,6 +277,7 @@ fun App(vm: MainViewModel) {
             "filecheck.compare" -> screen = Screen.INSPECT_COMPARE
             "filecheck.dup" -> screen = Screen.INSPECT_DUP
             "filecheck.hex" -> screen = Screen.INSPECT_HEX
+            "filecheck.formattest" -> { FormatTestJobs.clear(); screen = Screen.INSPECT_FORMATTEST }
             "filecheck.tr" -> screen = Screen.INSPECT_TR
             "filetools" -> screen = Screen.FILETOOLS
             "filetools.cut" -> screen = Screen.FILECUT
@@ -582,6 +584,7 @@ fun App(vm: MainViewModel) {
                     onCompare = { screen = Screen.INSPECT_COMPARE },
                     onDup = { screen = Screen.INSPECT_DUP },
                     onHex = { screen = Screen.INSPECT_HEX },
+                    onFormatTest = { FormatTestJobs.clear(); screen = Screen.INSPECT_FORMATTEST },
                     onTr = { screen = Screen.INSPECT_TR },
                     onBack = { screen = Screen.SUPPORT },
                 )
@@ -611,6 +614,7 @@ fun App(vm: MainViewModel) {
                 Screen.INSPECT_COMPARE -> CompareScreen { CompareJobs.clear(); screen = Screen.FILECHECK }
                 Screen.INSPECT_DUP -> com.furuarc.ui.DupFinderScreen { screen = Screen.FILECHECK }
                 Screen.INSPECT_HEX -> com.furuarc.ui.HexViewerScreen { screen = Screen.FILECHECK }
+                Screen.INSPECT_FORMATTEST -> com.furuarc.ui.FormatTestScreen { FormatTestJobs.clear(); screen = Screen.FILECHECK }
                 Screen.INSPECT_TR -> TrScanScreen { TrScanJobs.clear(); screen = Screen.FILECHECK }
                 Screen.PACK -> PackScreen(vm, engineOrNull, onBack = toEngineMenu)
                 Screen.SETTINGS -> SettingsScreen(vm) { screen = Screen.MORE }

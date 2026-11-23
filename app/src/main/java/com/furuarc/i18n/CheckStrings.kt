@@ -1,16 +1,18 @@
 package com.furuarc.i18n
 
+import com.furuarc.core.FtKind
+import com.furuarc.core.FtResult
 import com.furuarc.settings.Lang
 
-/** Text for the File Check menu (four tools). Separated from [Str] because of the parameter limit. */
+/** Text for the File & Folder Inspector menu (seven tools). Separated from [Str] because of the parameter limit. */
 class CheckStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID else Lang.EN) {
     private fun t(a: String, b: String) = if (id) a else (Tr.get(lang, b) ?: b)
     private fun tt(a: String, b: String, vararg x: Any?) = if (id) a else Tr.trf(lang, b, *x)
 
     // menu
-    val menuTitle get() = t("Pemeriksaan File", "File Inspection")
+    val menuTitle get() = t("Pemeriksa File dan Folder", "File & Folder Inspector")
     val menuSub get() = t("Periksa, bandingkan, dan pindai arsip, skrip, folder, dan terjemahan", "Inspect, compare and scan archives, scripts, folders and translations")
-    val fileTitle get() = t("Pemeriksaan Arsip dan Skrip", "Archive & Script Inspection")
+    val fileTitle get() = t("Pemeriksaan File", "File Inspection")
     val fileSub get() = t("Format, checksum, file rusak, enkripsi, dan kode salah pada satu file", "Format, checksum, corrupt files, encryption and wrong code in one file")
     val folderTitle get() = t("Pemeriksaan Folder", "Folder Inspection")
     val folderSub get() = t("Periksa semua arsip dan skrip dalam satu folder sekaligus", "Inspect every archive and script in a folder at once")
@@ -18,6 +20,38 @@ class CheckStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID
     val compareSub get() = t("Bandingkan dua arsip, skrip, atau file terjemahan", "Compare two archives, scripts or translation files")
     val trScanTitle get() = t("Pemindaian Terjemahan", "Translation Scan")
     val trScanSub get() = t("Cek kode kontrol, baris panjang, entri kosong, dan terjemahan tidak konsisten", "Check control codes, long lines, empty entries and inconsistent translations")
+
+    // Format Test
+    val ftTitle get() = t("Uji Coba Format", "Format Test")
+    val ftSub get() = t("Kemas data contoh dengan tiap format, bongkar lagi, dan pastikan hasilnya sama", "Pack sample data with each format, unpack it again and confirm the result is identical")
+    val ftHint get() = t(
+        "Aplikasi membuat file contoh kecil di penyimpanan sementara, mengemasnya dengan setiap format yang bisa dikemas, membongkarnya lagi, lalu membandingkan nama dan isinya. File di perangkat tidak dibaca atau diubah.",
+        "The app creates small sample files in temporary storage, packs them with every format that can be packed, unpacks them again and compares names and contents. None of your files are read or changed.",
+    )
+    val ftNote get() = t(
+        "Uji coba ini hanya membuktikan bahwa hasil kemas aplikasi bisa dibongkar lagi oleh aplikasi yang sama. Game asli tetap bisa menolak arsip bila engine-nya butuh kunci atau tata letak khusus.",
+        "This test only proves that what the app packs, the app can unpack again. A real game may still reject an archive if its engine needs a key or a special layout.",
+    )
+    val ftStart get() = t("Mulai uji coba", "Start test")
+    val ftAgain get() = t("Ulangi uji coba", "Run again")
+    val ftStop get() = t("Hentikan", "Stop")
+    fun ftProgress(d: Int, n: Int, name: String) = tt("Menguji $d/$n: $name…", "Testing {0}/{1}: {2}…", d, n, name)
+    fun ftSummary(p: Int, w: Int, f: Int, s: Int) = tt("$p lulus · $w peringatan · $f gagal · $s dilewati", "{0} passed · {1} warnings · {2} failed · {3} skipped", p, w, f, s)
+    val ftAllPass get() = t("SEMUA LULUS", "ALL PASSED")
+    val ftStopped get() = t("Dihentikan sebelum selesai", "Stopped before finishing")
+    val ftReportTitle get() = t("Laporan Uji Coba Format", "Format Test Report")
+
+    /** One line that explains a result of the Format Test. */
+    fun ftDetail(r: FtResult): String = when (r.kind) {
+        FtKind.OK -> tt("${r.files} file · ${(r.bytes + 512) / 1024} KB · ${r.ms} ms", "{0} files · {1} KB · {2} ms", r.files, (r.bytes + 512) / 1024, r.ms)
+        FtKind.ERROR -> tt("Gagal: ${r.arg}", "Failed: {0}", Tr.msg(lang, r.arg))
+        FtKind.COUNT -> tt("Jumlah file berbeda: seharusnya ${r.n1}, hasil ${r.n2} (${r.arg})", "Different number of files: expected {0}, got {1} ({2})", r.n1, r.n2, r.arg)
+        FtKind.MISSING -> tt("File tidak kembali setelah dibongkar: ${r.arg}", "File did not come back after unpacking: {0}", r.arg)
+        FtKind.CONTENT -> tt("Isi file berbeda setelah dibongkar: ${r.arg}", "File content differs after unpacking: {0}", r.arg)
+        FtKind.DETECT_OTHER -> tt("Lulus, tetapi deteksi otomatis memilih ${r.arg}", "Passed, but automatic detection picks {0}", r.arg)
+        FtKind.DETECT_NONE -> t("Lulus, tetapi deteksi otomatis tidak mengenali arsip ini", "Passed, but automatic detection does not recognise this archive")
+        FtKind.NEEDS_GAME_FILES -> t("Dilewati: butuh file dari game asli (file indeks atau hasil bongkar arsip aslinya)", "Skipped: needs files from a real game (an index file or the unpacked original archive)")
+    }
 
     // status
     val verdictOk get() = t("SEHAT", "HEALTHY")

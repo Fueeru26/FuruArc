@@ -61,7 +61,7 @@ object ReportText {
 
     /** Report for one file (archive or script). */
     fun single(id: Boolean, rep: Report, hashes: Hashes?, deep: List<Finding>?): String {
-        val sb = header(if (id) "Laporan Pemeriksaan Arsip/Skrip" else "Archive/Script Inspection Report", id)
+        val sb = header(if (id) "Laporan Pemeriksaan File" else "File Inspection Report", id)
         val all = rep.findings + (deep ?: emptyList())
         sb.append(verdictLine(verdictOf(all), id)).append('\n')
         section(sb, if (id) "Informasi" else "Information")

@@ -116,10 +116,10 @@ fun Hint(text: String) {
     Text(text, color = p.muted, fontSize = 13.sp, lineHeight = 19.sp)
 }
 
-// ======================= File Check menu =======================
+// ======================= File & Folder Inspector menu =======================
 
 @Composable
-fun FileCheckMenuScreen(onFile: () -> Unit, onFolder: () -> Unit, onCompare: () -> Unit, onDup: () -> Unit, onHex: () -> Unit, onTr: () -> Unit, onBack: () -> Unit) {
+fun FileCheckMenuScreen(onFile: () -> Unit, onFolder: () -> Unit, onCompare: () -> Unit, onHex: () -> Unit, onFormatTest: () -> Unit, onDup: () -> Unit, onTr: () -> Unit, onBack: () -> Unit) {
     val c = checkStr(LocalLang.current)
     val ft = com.furuarc.i18n.fileToolsStr(LocalLang.current)
     MenuListScreen(
@@ -128,8 +128,9 @@ fun FileCheckMenuScreen(onFile: () -> Unit, onFolder: () -> Unit, onCompare: () 
             MenuSpec(AppIcons.Archive, c.fileTitle, c.fileSub, onFile),
             MenuSpec(AppIcons.Folder, c.folderTitle, c.folderSub, onFolder),
             MenuSpec(AppIcons.File, c.compareTitle, c.compareSub, onCompare),
-            MenuSpec(AppIcons.ContentCopy, ft.dupTitle, ft.dupSub, onDup),
             MenuSpec(AppIcons.MenuBook, ft.hexTitle, ft.hexSub, onHex),
+            MenuSpec(AppIcons.Checklist, c.ftTitle, c.ftSub, onFormatTest),
+            MenuSpec(AppIcons.ContentCopy, ft.dupTitle, ft.dupSub, onDup),
             MenuSpec(AppIcons.Translate, c.trScanTitle, c.trScanSub, onTr),
         ),
         onBack,

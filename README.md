@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="pictures/0_header.webp" alt="FuruArc" width="100%">
+  <img src="docs/pictures/0_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -8,6 +8,8 @@
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-1.6.10-7F52FF.svg">
   <img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-1.1.1-4285F4.svg">
   <a href="https://github.com/Fueeru26/FuruArc/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Fueeru26/FuruArc?include_prereleases"></a>
+  <a href="https://github.com/Fueeru26/FuruArc/actions/workflows/build.yml"><img alt="Build" src="https://github.com/Fueeru26/FuruArc/actions/workflows/build.yml/badge.svg"></a>
+  <a href="https://github.com/Fueeru26/FuruArc/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Fueeru26/FuruArc/total"></a>
 </p>
 
 # FuruArc
@@ -32,13 +34,15 @@ The app is written in Kotlin with Jetpack Compose. Every tool works through Andr
   - [Media Asset Converter](#media-asset-converter)
   - [Text Editors](#text-editors)
   - [Media Player](#media-player)
-  - [File Inspection](#file-inspection)
+  - [File & Folder Inspector](#file--folder-inspector)
   - [File Toolkit and File Name Optimizer](#file-toolkit-and-file-name-optimizer)
   - [Settings and updates](#settings-and-updates)
 - [Supported engines](#supported-engines)
+- [Known limitations](#known-limitations)
 - [Installation](#installation)
 - [Building from source](#building-from-source)
 - [Project structure](#project-structure)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 - [Credits](#credits)
@@ -47,19 +51,19 @@ The app is written in Kotlin with Jetpack Compose. Every tool works through Andr
 
 ### Home
 
-<p align="center"><img src="pictures/1_home.webp" alt="Home" width="100%"></p>
+<p align="center"><img src="docs/pictures/01_home.webp" alt="Home" width="100%"></p>
 
 The first tab is a launcher for everything in the app.
 
 - **Feature search**: type a feature name, an engine, or a file extension (for example `xp3`, `tlg`, `translate`) and open the result directly. The menu path is shown under each result, and a star adds it to Favorites.
 - **Search history** and **Recently used** chips.
-- **Quick actions**: up to 10 shortcuts you choose and reorder yourself (drag handle to reorder, ✕ to remove). The defaults are Unpack Archive, Translation Editor, Text Editor and Media Asset Converter.
+- **Quick actions**: up to 10 shortcuts you choose and reorder yourself (drag handle to reorder, ✕ to remove). The defaults are Unpack Archive, Translation Editor, Media Player and Media Asset Converter.
 - **Find features by file**: pick any file and FuruArc suggests the features that fit its extension. When you choose one, the file is loaded into that feature automatically, so you do not have to pick it again.
 - **Favorites** for the tools you use most.
 
 ### Game Assets (library)
 
-<p align="center"><img src="pictures/2_game_assets.webp" alt="Game Assets" width="100%"></p>
+<p align="center"><img src="docs/pictures/02_game_assets.webp" alt="Game Assets" width="100%"></p>
 
 Add your games as a library and browse what is inside them.
 
@@ -73,7 +77,7 @@ Add your games as a library and browse what is inside them.
 
 ### RPGM Tools
 
-<p align="center"><img src="pictures/3_rpgm_tools.webp" alt="RPGM Tools" width="100%"></p>
+<p align="center"><img src="docs/pictures/03_rpgm_tools.webp" alt="RPGM Tools" width="100%"></p>
 
 Decrypt assets, translate data, edit saves and manage plugins for RPG Maker.
 
@@ -91,7 +95,7 @@ Decrypt assets, translate data, edit saves and manage plugins for RPG Maker.
 
 ### VN Tools
 
-<p align="center"><img src="pictures/4_vn_tools.webp" alt="VN Tools" width="100%"></p>
+<p align="center"><img src="docs/pictures/04_vn_tools.webp" alt="VN Tools" width="100%"></p>
 
 Unpack, pack and translate visual novels across 24 engines (see [Supported engines](#supported-engines)).
 
@@ -109,7 +113,7 @@ Unpack, pack and translate visual novels across 24 engines (see [Supported engin
 
 ### Translation Editor
 
-<p align="center"><img src="pictures/5_translation_editor.webp" alt="Translation Editor" width="100%"></p>
+<p align="center"><img src="docs/pictures/05_translation_editor.webp" alt="Translation Editor" width="100%"></p>
 
 Translate exported game text with drafts, a glossary and online translation.
 
@@ -124,7 +128,7 @@ Translate exported game text with drafts, a glossary and online translation.
 
 ### Media Asset Converter
 
-<p align="center"><img src="pictures/6_media_asset_converter.webp" alt="Media Asset Converter" width="100%"></p>
+<p align="center"><img src="docs/pictures/06_media_asset_converter.webp" alt="Media Asset Converter" width="100%"></p>
 
 Convert and compress game audio, images and video, one file or a whole folder.
 
@@ -139,7 +143,7 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 ### Text Editors
 
-<p align="center"><img src="pictures/7_text_editor.webp" alt="Text Editor" width="100%"></p>
+<p align="center"><img src="docs/pictures/07_text_editor.webp" alt="Text Editor" width="100%"></p>
 
 - **Plain Text Editor**: `.txt`, `.ini`, `.ks`, `.rpy` and similar, with find and replace (regex), go to line, syntax highlighting, undo/redo, automatic encoding detection and auto-saved drafts.
 - **Structured Text**: JSON (tree and text views), CSV / TSV (cell table), INI / CFG, XML and Markdown (with preview).
@@ -147,7 +151,7 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 ### Media Player
 
-<p align="center"><img src="pictures/8_media_player.webp" alt="Media Player" width="100%"></p>
+<p align="center"><img src="docs/pictures/08_media_player.webp" alt="Media Player" width="100%"></p>
 
 Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
@@ -160,21 +164,22 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - Game Assets viewers have a Media Player icon to open an asset here.
 - **Open with...**: files from file managers or Share / Send to open in FuruArc (media in Media Player, known text/archive formats in the matching feature, unknown formats in File Inspection). Can be disabled in System settings.
 
-### File Inspection
+### File & Folder Inspector
 
-<p align="center"><img src="pictures/9_file_inspection.webp" alt="File Inspection" width="100%"></p>
+<p align="center"><img src="docs/pictures/09_file_inspection.webp" alt="File & Folder Inspector" width="100%"></p>
 
-- **Archive and Script Inspection**: format, checksum, corrupt files, encryption and wrong-code detection in one file.
+- **File Inspection**: format, checksum, corrupt files, encryption and wrong-code detection in one file.
 - **Folder Inspection**: inspect every archive and script in a folder at once.
 - **Compare Files**: compare two archives, scripts or translation files.
-- **Duplicate File Finder**: identical files in a folder and its sub-folders.
 - **Hex Viewer**: raw file content by offset, with text and byte search.
+- **Format Test**: packs generated sample files with every format that can be packed and unpacks them again on your device, then compares names and contents. Each format shows passed, warning, failed or skipped, and the result can be copied or exported as a report for bug reports.
+- **Duplicate File Finder**: identical files in a folder and its sub-folders.
 - **Translation Scan**: control codes, long lines, empty entries and inconsistent translations.
 - **Key Finder**: find the encryption key and the files that use it.
 
 ### File Toolkit and File Name Optimizer
 
-<p align="center"><img src="pictures/10_file_toolkit_and_file_name_optimizer.webp" alt="File Toolkit and File Name Optimizer" width="100%"></p>
+<p align="center"><img src="docs/pictures/10_file_toolkit_and_file_name_optimizer.webp" alt="File Toolkit and File Name Optimizer" width="100%"></p>
 
 - **File Cutter**: take the start, middle or end of a large file as a small file, for example to send a sample.
 - **File Splitter / Joiner**: split a large file into numbered parts (`.001`, `.002`, ...) and join them back.
@@ -203,9 +208,22 @@ Script text tools (export / import) are available for a subset of these engines;
 
 MV and MZ (per-file asset encryption), XP (`.rgssad`), VX (`.rgss2a`) and VX Ace (`.rgss3a`).
 
+For what each engine supports (archive, pack, script text), see [docs/ENGINES.md](docs/ENGINES.md).
+
+## Known limitations
+
+- Script text export / import is available for a subset of the engines, not for all of them.
+- Some formats are read-only: HexenHaus, and QLIE (plain entries only, no compressed or encrypted entries).
+- NScripter: compressed NSA archives (SPB, LZSS, NBZ) are not supported.
+- Shiina Rio: only WARC 1.1. Later versions use a per-title encryption scheme.
+- Unity: only the UnityFS container (LZMA / LZ4). Encrypted bundles and objects inside serialized files are not processed.
+- Tyrano Script: `app.asar` (Electron) and packages attached inside an `.exe` are not supported.
+- Ren'Py: screens are not decompiled from `.rpyc` yet and are written as comments.
+- Kirikiri: no per-game cipher, only an optional 1-byte XOR.
+
 ## Installation
 
-Download the latest APK from the [Releases](https://github.com/Fueeru26/FuruArc/releases) page and install it. Requires **Android 7.0 (API 24)** or newer.
+Download the latest APK from the [Releases](https://github.com/Fueeru26/FuruArc/releases) page and install it. Requires **Android 7.0 (API 24)** or newer. Every release lists the SHA-256 checksum of the APK (and attaches `SHA256SUMS.txt`) so you can verify the download.
 
 ## Building from source
 
@@ -252,19 +270,32 @@ FuruArc/
 │           │   └── ui/                   Compose screens, components and theme
 │           ├── net/sourceforge/lame/     java-lame (LGPL), MP3 encoder
 │           └── org/xiph/                 vorbis-java (BSD-style), OGG/Vorbis encoder
-├── languages/                            App text in 5 languages as JSON (Indonesian, English, Japanese, Chinese, Korean)
-├── pictures/                             README images
+├── docs/
+│   ├── languages/                        App text in 5 languages as JSON (Indonesian, English, Japanese, Chinese, Korean)
+│   ├── pictures/                         README images
+│   ├── ENGINES.md                        What each engine supports (also ENGINES_ID.md)
+│   ├── FAQ.md                            FAQ and troubleshooting (also FAQ_ID.md)
+│   └── PRIVACY.md                        What the app stores and when it uses the network (also PRIVACY_ID.md)
+├── .github/                              Issue and PR templates, workflows (build, release), Dependabot, funding
 ├── README_ID.md                          README in Indonesian
 ├── CHANGELOG.md                          Release notes
 ├── THIRD_PARTY_NOTICES.md
 ├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
 ├── SECURITY.md
 └── LICENSE
 ```
 
+## Documentation
+
+- [docs/ENGINES.md](docs/ENGINES.md): what FuruArc can do for each engine.
+- [docs/FAQ.md](docs/FAQ.md): common questions and troubleshooting.
+- [docs/PRIVACY.md](docs/PRIVACY.md): what is stored on your device and when the app connects to the internet.
+- [CHANGELOG.md](CHANGELOG.md): release notes.
+
 ## Contributing
 
-Bug reports, engine format notes and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first. For security issues see [SECURITY.md](SECURITY.md).
+Bug reports, engine format notes and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first and follow the [Code of Conduct](CODE_OF_CONDUCT.md). For security issues see [SECURITY.md](SECURITY.md).
 
 ## License
 

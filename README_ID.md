@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="pictures/0_header.webp" alt="FuruArc" width="100%">
+  <img src="docs/pictures/0_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -8,6 +8,8 @@
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-1.6.10-7F52FF.svg">
   <img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-1.1.1-4285F4.svg">
   <a href="https://github.com/Fueeru26/FuruArc/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Fueeru26/FuruArc?include_prereleases"></a>
+  <a href="https://github.com/Fueeru26/FuruArc/actions/workflows/build.yml"><img alt="Build" src="https://github.com/Fueeru26/FuruArc/actions/workflows/build.yml/badge.svg"></a>
+  <a href="https://github.com/Fueeru26/FuruArc/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Fueeru26/FuruArc/total"></a>
 </p>
 
 # FuruArc
@@ -24,10 +26,23 @@ Aplikasi ditulis dengan Kotlin dan Jetpack Compose. Semua alat bekerja lewat Sto
 ## Daftar isi
 
 - [Fitur](#fitur)
+  - [Beranda](#beranda)
+  - [Aset Game (pustaka)](#aset-game-pustaka)
+  - [Alat RPGM](#alat-rpgm)
+  - [Alat VN](#alat-vn)
+  - [Editor Terjemahan](#editor-terjemahan)
+  - [Konverter Aset Media](#konverter-aset-media)
+  - [Editor Teks](#editor-teks)
+  - [Media Player](#media-player)
+  - [Pemeriksa File dan Folder](#pemeriksa-file-dan-folder)
+  - [Perkakas File dan Pengoptimal Nama File](#perkakas-file-dan-pengoptimal-nama-file)
+  - [Pengaturan dan pembaruan](#pengaturan-dan-pembaruan)
 - [Engine yang didukung](#engine-yang-didukung)
+- [Keterbatasan yang diketahui](#keterbatasan-yang-diketahui)
 - [Instalasi](#instalasi)
 - [Build dari source](#build-dari-source)
 - [Struktur proyek](#struktur-proyek)
+- [Dokumentasi](#dokumentasi)
 - [Berkontribusi](#berkontribusi)
 - [Lisensi](#lisensi)
 - [Kredit](#kredit)
@@ -36,19 +51,19 @@ Aplikasi ditulis dengan Kotlin dan Jetpack Compose. Semua alat bekerja lewat Sto
 
 ### Beranda
 
-<p align="center"><img src="pictures/1_home.webp" alt="Beranda" width="100%"></p>
+<p align="center"><img src="docs/pictures/01_home.webp" alt="Beranda" width="100%"></p>
 
 Tab pertama adalah peluncur untuk semua fitur di aplikasi.
 
 - **Cari fitur**: ketik nama fitur, engine, atau ekstensi file (misalnya `xp3`, `tlg`, `translate`) lalu buka hasilnya langsung. Jalur menu tampil di bawah tiap hasil, dan bintang menambahkannya ke Favorit.
 - **Riwayat pencarian** dan chip **Terakhir dipakai**.
-- **Aksi cepat**: hingga 10 pintasan yang kamu pilih dan urutkan sendiri (gagang seret untuk mengurutkan, ✕ untuk menghapus). Bawaannya Bongkar Arsip, Editor Terjemahan, Editor File Teks dan Konverter Aset Media.
+- **Aksi cepat**: hingga 10 pintasan yang kamu pilih dan urutkan sendiri (gagang seret untuk mengurutkan, ✕ untuk menghapus). Bawaannya Bongkar Arsip, Editor Terjemahan, Media Player dan Konverter Aset Media.
 - **Cari fitur melalui file**: pilih file apa pun dan FuruArc menyarankan fitur yang cocok dengan ekstensinya. Saat kamu memilih salah satu, file langsung dimuat ke fitur tersebut, tanpa perlu memilih ulang.
 - **Favorit** untuk alat yang paling sering dipakai.
 
 ### Aset Game (pustaka)
 
-<p align="center"><img src="pictures/2_game_assets.webp" alt="Aset Game" width="100%"></p>
+<p align="center"><img src="docs/pictures/02_game_assets.webp" alt="Aset Game" width="100%"></p>
 
 Tambahkan game sebagai pustaka dan telusuri isinya.
 
@@ -62,7 +77,7 @@ Tambahkan game sebagai pustaka dan telusuri isinya.
 
 ### Alat RPGM
 
-<p align="center"><img src="pictures/3_rpgm_tools.webp" alt="Alat RPGM" width="100%"></p>
+<p align="center"><img src="docs/pictures/03_rpgm_tools.webp" alt="Alat RPGM" width="100%"></p>
 
 Dekripsi aset, terjemahkan data, edit save dan kelola plugin RPG Maker.
 
@@ -80,7 +95,7 @@ Dekripsi aset, terjemahkan data, edit save dan kelola plugin RPG Maker.
 
 ### Alat VN
 
-<p align="center"><img src="pictures/4_vn_tools.webp" alt="Alat VN" width="100%"></p>
+<p align="center"><img src="docs/pictures/04_vn_tools.webp" alt="Alat VN" width="100%"></p>
 
 Bongkar, kemas dan terjemahkan visual novel di 24 engine (lihat [Engine yang didukung](#engine-yang-didukung)).
 
@@ -98,7 +113,7 @@ Bongkar, kemas dan terjemahkan visual novel di 24 engine (lihat [Engine yang did
 
 ### Editor Terjemahan
 
-<p align="center"><img src="pictures/5_translation_editor.webp" alt="Editor Terjemahan" width="100%"></p>
+<p align="center"><img src="docs/pictures/05_translation_editor.webp" alt="Editor Terjemahan" width="100%"></p>
 
 Terjemahkan teks game hasil ekspor dengan draf, glosarium dan terjemahan online.
 
@@ -113,7 +128,7 @@ Terjemahkan teks game hasil ekspor dengan draf, glosarium dan terjemahan online.
 
 ### Konverter Aset Media
 
-<p align="center"><img src="pictures/6_media_asset_converter.webp" alt="Konverter Aset Media" width="100%"></p>
+<p align="center"><img src="docs/pictures/06_media_asset_converter.webp" alt="Konverter Aset Media" width="100%"></p>
 
 Konversi dan kompres audio, gambar dan video game, satu file atau satu folder penuh.
 
@@ -128,7 +143,7 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 ### Editor Teks
 
-<p align="center"><img src="pictures/7_text_editor.webp" alt="Editor Teks" width="100%"></p>
+<p align="center"><img src="docs/pictures/07_text_editor.webp" alt="Editor Teks" width="100%"></p>
 
 - **Editor File Teks Biasa**: `.txt`, `.ini`, `.ks`, `.rpy` dan sejenisnya, dengan cari dan ganti (regex), lompat ke baris, pewarnaan sintaks, urungkan/ulangi, deteksi encoding otomatis dan draf tersimpan otomatis.
 - **File Teks Berstruktur**: JSON (tampilan pohon dan teks), CSV / TSV (tabel sel), INI / CFG, XML dan Markdown (dengan pratinjau).
@@ -136,7 +151,7 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 ### Media Player
 
-<p align="center"><img src="pictures/8_media_player.webp" alt="Media Player" width="100%"></p>
+<p align="center"><img src="docs/pictures/08_media_player.webp" alt="Media Player" width="100%"></p>
 
 Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar Video.
 
@@ -149,21 +164,22 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - Penampil di Aset Game punya ikon Media Player untuk membuka aset di sini.
 - **Buka dengan...**: file dari aplikasi file manager atau Bagikan / Kirim ke bisa dibuka di FuruArc (media di Media Player, teks/arsip di fitur yang cocok, format tidak dikenal di Pemeriksaan File). Bisa dimatikan di Pengaturan Sistem.
 
-### Pemeriksaan File
+### Pemeriksa File dan Folder
 
-<p align="center"><img src="pictures/9_file_inspection.webp" alt="Pemeriksaan File" width="100%"></p>
+<p align="center"><img src="docs/pictures/09_file_inspection.webp" alt="Pemeriksa File dan Folder" width="100%"></p>
 
-- **Pemeriksaan Arsip dan Skrip**: format, checksum, file rusak, enkripsi dan deteksi kode salah dalam satu file.
+- **Pemeriksaan File**: format, checksum, file rusak, enkripsi dan deteksi kode salah dalam satu file.
 - **Pemeriksaan Folder**: periksa semua arsip dan skrip dalam satu folder sekaligus.
-- **Bandingkan File**: bandingkan dua arsip, skrip atau file terjemahan.
-- **Pencari File Duplikat**: file identik dalam folder dan subfoldernya.
+- **Bandingkan Pemeriksaan**: bandingkan dua arsip, skrip atau file terjemahan.
 - **Penampil Hex**: isi mentah file berdasarkan offset, dengan pencarian teks dan byte.
+- **Uji Coba Format**: mengemas file contoh buatan aplikasi dengan setiap format yang bisa dikemas lalu membongkarnya lagi di perangkatmu, kemudian membandingkan nama dan isinya. Tiap format tampil lulus, peringatan, gagal atau dilewati, dan hasilnya bisa disalin atau diekspor sebagai laporan untuk laporan bug.
+- **Pencari File Duplikat**: file identik dalam folder dan subfoldernya.
 - **Pemindaian Terjemahan**: kode kontrol, baris panjang, entri kosong dan terjemahan tidak konsisten.
 - **Pencari Kunci**: cari kunci enkripsi dan file yang memakainya.
 
 ### Perkakas File dan Pengoptimal Nama File
 
-<p align="center"><img src="pictures/10_file_toolkit_and_file_name_optimizer.webp" alt="Perkakas File dan Pengoptimal Nama File" width="100%"></p>
+<p align="center"><img src="docs/pictures/10_file_toolkit_and_file_name_optimizer.webp" alt="Perkakas File dan Pengoptimal Nama File" width="100%"></p>
 
 - **Pemotong File**: ambil bagian awal, tengah atau akhir file besar menjadi file kecil, misalnya untuk mengirim sampel.
 - **Pemisah / Penggabung File**: pecah file besar menjadi bagian bernomor (`.001`, `.002`, ...) dan gabungkan kembali.
@@ -192,9 +208,22 @@ Alat teks skrip (ekspor / impor) tersedia untuk sebagian engine di atas; daftar 
 
 MV dan MZ (enkripsi aset per file), XP (`.rgssad`), VX (`.rgss2a`) dan VX Ace (`.rgss3a`).
 
+Untuk kemampuan tiap engine (arsip, kemas, teks skrip), lihat [docs/ENGINES_ID.md](docs/ENGINES_ID.md).
+
+## Keterbatasan yang diketahui
+
+- Ekspor / impor teks skrip tersedia untuk sebagian engine, tidak untuk semuanya.
+- Beberapa format hanya bisa dibaca: HexenHaus, dan QLIE (hanya entri polos, tanpa entri terkompresi atau terenkripsi).
+- NScripter: arsip NSA terkompresi (SPB, LZSS, NBZ) belum didukung.
+- Shiina Rio: hanya WARC 1.1. Versi lebih baru memakai skema enkripsi per judul.
+- Unity: hanya kontainer UnityFS (LZMA / LZ4). Bundle terenkripsi dan objek di dalam file serialized tidak diproses.
+- Tyrano Script: `app.asar` (Electron) dan paket yang menempel di dalam `.exe` belum didukung.
+- Ren'Py: layar (screen) dari `.rpyc` belum didekompilasi dan ditulis sebagai komentar.
+- Kirikiri: belum ada cipher per game, hanya XOR 1 byte opsional.
+
 ## Instalasi
 
-Unduh APK terbaru dari halaman [Releases](https://github.com/Fueeru26/FuruArc/releases) lalu pasang. Membutuhkan **Android 7.0 (API 24)** atau lebih baru.
+Unduh APK terbaru dari halaman [Releases](https://github.com/Fueeru26/FuruArc/releases) lalu pasang. Membutuhkan **Android 7.0 (API 24)** atau lebih baru. Setiap rilis mencantumkan checksum SHA-256 dari APK (dan melampirkan `SHA256SUMS.txt`) agar kamu bisa memverifikasi unduhannya.
 
 ## Build dari source
 
@@ -241,19 +270,32 @@ FuruArc/
 │           │   └── ui/                   Layar Compose, komponen dan tema
 │           ├── net/sourceforge/lame/     java-lame (LGPL), encoder MP3
 │           └── org/xiph/                 vorbis-java (gaya BSD), encoder OGG/Vorbis
-├── languages/                            Teks aplikasi dalam 5 bahasa berformat JSON (Indonesia, Inggris, Jepang, Mandarin, Korea)
-├── pictures/                             Gambar README
+├── docs/
+│   ├── languages/                        Teks aplikasi dalam 5 bahasa berformat JSON (Indonesia, Inggris, Jepang, Mandarin, Korea)
+│   ├── pictures/                         Gambar README
+│   ├── ENGINES_ID.md                     Kemampuan tiap engine (juga ENGINES.md)
+│   ├── FAQ_ID.md                         FAQ dan pemecahan masalah (juga FAQ.md)
+│   └── PRIVACY_ID.md                     Yang disimpan aplikasi dan kapan memakai jaringan (juga PRIVACY.md)
+├── .github/                              Template issue dan PR, workflow (build, rilis), Dependabot, pendanaan
 ├── README_ID.md                          README bahasa Indonesia
 ├── CHANGELOG.md                          Catatan rilis (Inggris)
 ├── THIRD_PARTY_NOTICES.md
 ├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
 ├── SECURITY.md
 └── LICENSE
 ```
 
+## Dokumentasi
+
+- [docs/ENGINES_ID.md](docs/ENGINES_ID.md): kemampuan FuruArc untuk tiap engine.
+- [docs/FAQ_ID.md](docs/FAQ_ID.md): pertanyaan umum dan pemecahan masalah.
+- [docs/PRIVACY_ID.md](docs/PRIVACY_ID.md): yang disimpan di perangkatmu dan kapan aplikasi terhubung ke internet.
+- [CHANGELOG.md](CHANGELOG.md): catatan rilis (Inggris).
+
 ## Berkontribusi
 
-Laporan bug, catatan format engine dan pull request sangat diterima. Baca [CONTRIBUTING.md](CONTRIBUTING.md) terlebih dahulu. Untuk masalah keamanan lihat [SECURITY.md](SECURITY.md).
+Laporan bug, catatan format engine dan pull request sangat diterima. Baca [CONTRIBUTING.md](CONTRIBUTING.md) terlebih dahulu dan patuhi [Kode Etik](CODE_OF_CONDUCT.md). Untuk masalah keamanan lihat [SECURITY.md](SECURITY.md).
 
 ## Lisensi
 

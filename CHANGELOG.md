@@ -2,6 +2,19 @@
 
 All notable changes to FuruArc are listed here.
 
+## 1.05
+
+### Added
+- **Format Test** (Indonesian: Uji Coba Format) in the File & Folder Inspector: packs generated sample files with every format that can be packed, unpacks them again on the device and compares names and contents. Each result is passed, warning (the round trip works but automatic detection picks another format), failed (with the reason) or skipped (formats that need files from a real game: AGE and Siglus PCK). Filter All / ! / ✕ / ✓, and a report (copy or .txt) that includes the app version, Android version and device. Texts in Indonesian, English, Japanese, Chinese and Korean; the Guide and the feature search know the new tool.
+
+### Changed
+- The **File Inspection** menu is now **File & Folder Inspector** (Indonesian: Pemeriksa File dan Folder). Its single-file tool, formerly "Archive and Script Inspection", is now **File Inspection** (Pemeriksaan File). The tools are listed in this order: File Inspection, Folder Inspection, Compare Files, Hex Viewer, Format Test, Duplicate File Finder, Translation Scan.
+- Guide, hints and report titles use the new names.
+
+### Fixed
+- QLIE: the Pack Archive menu is no longer offered for QLIE. Packing QLIE is not supported, so the option used to open and then fail with "Pack QLIE belum didukung". QLIE archives can still be listed and unpacked (plain entries only).
+- Unity: packing UnityFS version 6 with a Unity version of 2019.4 or newer (the default) wrote a header that was not aligned to 16 bytes, so the bundle could not be read back. Packing now uses the same alignment rule as reading. Found by the new Format Test.
+
 ## 1.04
 
 ### Added
