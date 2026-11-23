@@ -9,7 +9,7 @@ jobs:
   debug-apk:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # AGP 4.2.2 needs JDK 11. The runner image already ships the Android SDK, so no separate SDK setup action is used
       # (the current sdkmanager needs JDK 17 and would fail under JDK 11).
