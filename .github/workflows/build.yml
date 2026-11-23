@@ -13,7 +13,7 @@ jobs:
 
       # AGP 4.2.2 needs JDK 11. The runner image already ships the Android SDK, so no separate SDK setup action is used
       # (the current sdkmanager needs JDK 17 and would fail under JDK 11).
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 11
