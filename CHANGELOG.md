@@ -5,21 +5,21 @@ All notable changes to FuruArc are listed here.
 ## 1.05
 
 ### Added
-- **Format Test** In the File & Folder Inspector: packs generated sample files with every format that can be packed, unpacks them again on the device and compares names and contents. Each result is passed, warning (the round trip works but automatic detection picks another format), failed (with the reason) or skipped (formats that need files from a real game: AGE and Siglus PCK). Filter All / ! / ✕ / ✓, and a report (copy or .txt) that includes the app version, Android version and device. Texts in Indonesian, English, Japanese, Chinese and Korean; the Guide and the feature search know the new tool.
-  - Edge samples for every format: an empty file, a file of exactly 1 MiB, Japanese and spaced names, subfolders and 300 files. A problem found with them is a warning, because it can be a known limit of the format.
-  - The unpacked files are packed again and the new archive is checked (contents and, as a warning, byte equality).
-  - Automatic detection lists every format that accepts the archive.
-  - **Real archives**: small archives from real games placed in `assets/formattest` with a `.golden` manifest are unpacked and the SHA-256 of each file is compared, which proves that a format matches the game and not only itself.
-  - Codec tests (LZMA, LZ4, LZSS) against reference data, and script text export/import tests (the script must not change when the texts are unchanged).
-  - The test also runs on the JVM in GitHub Actions (`testDebugUnitTest`), so a broken format is found before a release.
+- **Format Test** in the File & Folder Inspector, now tested with a real archive of yours:
+  - Choose an Engine (Format) in the dropdown (VN engines first, then RPGM XP, VX and VX Ace; formats that cannot be packed yet are not listed) and upload an archive. The file must be exactly the chosen format, otherwise a red error is shown (the format is chosen instead of detected, because detection does not work for some formats).
+  - Once the file matches, two collapsible sections appear, with the settings of that format: **Unpack Archive** (including the maximum size of the extracted file, in KB or MB) and **Pack Archive**.
+  - The test extracts one random file (not larger than the limit), packs it into a new archive, unpacks that new archive and compares it with your original archive: file content by SHA-256, header, format detection (and every other format that accepts it) and size. A format that needs at least two files (Circus DAT) uses two.
+  - There is no output folder. The result is recorded under "Format test results" and can be copied or exported to .txt.
+  - Automatic tests in GitHub Actions (`testDebugUnitTest`) pack generated samples with every format (including edge samples), and check the LZMA, LZ4 and LZSS codecs and script text export/import, so a broken format is found before a release.
 
 ### Changed
 - The **File Inspection** menu is now **File & Folder Inspector**. Its single-file tool, formerly "Archive and Script Inspection", is now **File Inspection** (Pemeriksaan File). The tools are listed in this order: File Inspection, Folder Inspection, Compare Files, Hex Viewer, Format Test, Duplicate File Finder, Translation Scan.
 - Guide, hints and report titles use the new names.
 
 ### Fixed
+- Shiina Rio (WARC): the file list of an archive with a single file could be read with the wrong index decoding, giving garbled file names. Both decodings are now checked against the position of the index. Found by the Format Test.
 - QLIE: the Pack Archive menu is no longer offered for QLIE. Packing QLIE is not supported, so the option used to open and then fail with "Pack QLIE belum didukung". QLIE archives can still be listed and unpacked (plain entries only).
-- Unity: packing UnityFS version 6 with a Unity version of 2019.4 or newer (the default) wrote a header that was not aligned to 16 bytes, so the bundle could not be read back. Packing now uses the same alignment rule as reading. Found by the new Format Test.
+- Unity: packing UnityFS version 6 with a Unity version of 2019.4 or newer (the default) wrote a header that was not aligned to 16 bytes, so the bundle could not be read back. Packing now uses the same alignment rule as reading. Found by the Format Test.
 
 ## 1.04
 

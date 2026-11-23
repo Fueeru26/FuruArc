@@ -49,12 +49,13 @@ fun LazyListScope.optionItems(
     values: Map<String, String>,
     lang: Lang,
     enabled: Boolean,
+    keyPrefix: String = "opt_",
     onChange: (String, String) -> Unit,
 ) {
     for (sp in specs) {
         val cond = sp.showIf
         if (cond != null && (values[cond.first] ?: specs.firstOrNull { it.key == cond.first }?.default) != cond.second) continue
-        item(key = "opt_" + sp.key) {
+        item(key = keyPrefix + sp.key) {
             OptionRow(sp, values[sp.key] ?: sp.default, lang, enabled) { v -> onChange(sp.key, v) }
         }
     }

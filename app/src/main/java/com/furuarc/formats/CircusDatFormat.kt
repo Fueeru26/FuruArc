@@ -88,6 +88,8 @@ object CircusDatFormat : ArchiveFormat {
         IoUtil.copyRange(src, entry.offset, entry.size, out)
     }
 
+    override val minPackFiles get() = 2
+
     override fun pack(inputs: List<PackInput>, target: File, opts: Options, progress: Progress) {
         val n = inputs.size
         if (n < 2) throw IOException("DAT Circus membutuhkan minimal 2 file")

@@ -172,7 +172,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - **Pemeriksaan Folder**: periksa semua arsip dan skrip dalam satu folder sekaligus.
 - **Bandingkan Pemeriksaan**: bandingkan dua arsip, skrip atau file terjemahan.
 - **Penampil Hex**: isi mentah file berdasarkan offset, dengan pencarian teks dan byte.
-- **Uji Coba Format**: mengemas file contoh buatan aplikasi dengan setiap format yang bisa dikemas lalu membongkarnya lagi di perangkatmu, kemudian membandingkan nama dan isinya. Tiap format tampil lulus, peringatan, gagal atau dilewati, dan hasilnya bisa disalin atau diekspor sebagai laporan untuk laporan bug. Ia juga mencoba contoh tepi (file kosong, tepat 1 MiB, nama Jepang, subfolder, 300 file), mengemas ulang hasil bongkar, menguji codec LZMA/LZ4/LZSS serta ekspor/impor teks skrip, dan memeriksa arsip asli kecil di `app/src/main/assets/formattest` lewat SHA-256. Tes yang sama berjalan di GitHub Actions.
+- **Uji Coba Format**: pilih engine (format) lalu unggah arsip aslinya. Aplikasi mengekstrak 1 file acak (batas ukuran bisa kamu atur dalam KB atau MB), mengemasnya menjadi arsip baru, membongkarnya lagi, dan membandingkannya dengan arsip aslimu (isi lewat SHA-256, header, deteksi, ukuran). Tidak ada folder output; hasilnya tampil sebagai daftar dan bisa disalin atau diekspor. Engine yang belum bisa dikemas tidak ditampilkan. Pemeriksaan format dengan contoh buatan yang sama juga berjalan di GitHub Actions.
 - **Pencari File Duplikat**: file identik dalam folder dan subfoldernya.
 - **Pemindaian Terjemahan**: kode kontrol, baris panjang, entri kosong dan terjemahan tidak konsisten.
 - **Pencari Kunci**: cari kunci enkripsi dan file yang memakainya.

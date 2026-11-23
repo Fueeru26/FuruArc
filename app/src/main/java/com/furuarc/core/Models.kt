@@ -98,6 +98,9 @@ interface ArchiveFormat {
     /** false = format is read-only (the Pack Archive menu is hidden). */
     val canPack: Boolean get() = true
 
+    /** Smallest number of files the format can pack (Format Test packs this many files when it is more than one). */
+    val minPackFiles: Int get() = 1
+
     /** true = format without magic bytes that is only used when its engine is chosen (never by automatic detection). */
     val explicitOnly: Boolean get() = false
 

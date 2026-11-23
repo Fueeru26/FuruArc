@@ -1,9 +1,11 @@
 package com.furuarc.ui
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,40 +13,80 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.furuarc.Engine
 import com.furuarc.FormatTestJobs
+import com.furuarc.core.Choice
+import com.furuarc.core.FormatRegistry
 import com.furuarc.core.FtLevel
-import com.furuarc.core.FtResult
+import com.furuarc.core.OptKind
+import com.furuarc.core.OptionSpec
+import com.furuarc.core.RtLine
 import com.furuarc.i18n.checkStr
 import com.furuarc.ui.theme.LocalLang
 import com.furuarc.ui.theme.LocalPalette
+import com.furuarc.ui.theme.LocalStr
 
 private val FT_GREEN = Color(0xFF81C784)
 private val FT_AMBER = Color(0xFFFFB74D)
 private val FT_RED = Color(0xFFE57373)
 
+/** Engines that can pack: VN engines first (A-Z), then RPG Maker XP / VX / VX Ace (their archives). */
+private val FT_ENGINES: List<VnEngine> by lazy {
+    VN_ENGINES.filter { FormatRegistry.byId(it.formatId).canPack }.sortedBy { it.name.lowercase() } +
+        RPGM_ENGINES.filter { it.rpgm && !it.crypt }
+}
+
 /**
- * Format Test: packs sample files with every packable format, unpacks them again and compares the result.
- * Runs on this device, so a failure points at the format or at the device (storage, encoding), not at a game file.
+ * Format Test with a real archive: choose the engine (format), upload an archive of that format, and the app extracts one
+ * random file, packs it again and compares the new archive with the original. Nothing is written to a folder.
  */
 @Composable
 fun FormatTestScreen(onBack: () -> Unit) {
     val p = LocalPalette.current
     val c = checkStr(LocalLang.current)
+    val s = LocalStr.current
+    val lang = LocalLang.current
     val st by FormatTestJobs.state.collectAsState()
-    var filter by remember { mutableStateOf(0) }
 
-    val pass = st.results.count { it.level == FtLevel.PASS }
-    val warn = st.results.count { it.level == FtLevel.WARN }
-    val fail = st.results.count { it.level == FtLevel.FAIL }
-    val skip = st.results.count { it.level == FtLevel.SKIP }
-    val shown = remember(st.results, filter) {
-        when (filter) {
-            1 -> st.results.filter { it.level == FtLevel.WARN }
-            2 -> st.results.filter { it.level == FtLevel.FAIL }
-            3 -> st.results.filter { it.level == FtLevel.PASS }
-            else -> st.results
-        }
+    var engineId by remember { mutableStateOf("") }
+    var uri by remember { mutableStateOf<Uri?>(null) }
+    var fileName by remember { mutableStateOf<String?>(null) }
+    val eng = FT_ENGINES.firstOrNull { it.id == engineId }
+    val fmt = eng?.let { FormatRegistry.byId(it.formatId) }
+    val uspecs = remember(eng?.id) { fmt?.unpackOptions ?: emptyList() }
+    val pspecs = remember(eng?.id) { fmt?.packOptions ?: emptyList() }
+    val uVals = remember(eng?.id) { mutableStateMapOf<String, String>().apply { uspecs.forEach { put(it.key, it.default) } } }
+    val pVals = remember(eng?.id) { mutableStateMapOf<String, String>().apply { pspecs.forEach { put(it.key, it.default) } } }
+    var keyText by remember(eng?.id) { mutableStateOf("") }
+    var maxText by remember { mutableStateOf("5") }
+    var unit by remember { mutableStateOf(1) } // 0 = KB, 1 = MB
+    var openUnpack by remember { mutableStateOf(false) }
+    var openPack by remember { mutableStateOf(false) }
+
+    val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { u ->
+        if (u != null) { uri = u; fileName = Engine.displayName(u) }
     }
+    val engineSpec = remember(lang) {
+        OptionSpec(
+            key = "engine", kind = OptKind.CHOICE, en = c.ftEngine, id = c.ftEngine,
+            choices = listOf(Choice("", c.ftEnginePick, c.ftEnginePick)) +
+                FT_ENGINES.map { e -> Choice(e.id, "${e.name} (.${e.ext})", "${e.name} (.${e.ext})") },
+            default = "",
+        )
+    }
+
+    // check the file against the chosen format (also when an unpack option such as the encoding changes)
+    val uExtra = uVals.toMap()
+    LaunchedEffect(uri, eng?.id, uExtra) {
+        val u = uri
+        val e = eng
+        if (u != null && e != null) FormatTestJobs.check(u, fileName ?: "archive", e.formatId, uExtra) else FormatTestJobs.resetCheck()
+    }
+
+    val maxBytes = (maxText.toLongOrNull() ?: 0L) * (if (unit == 1) 1024L * 1024L else 1024L)
+    val ok = eng != null && uri != null && !st.check.busy && !st.check.bad && st.check.entries > 0
+    val fail = st.lines.any { it.level == FtLevel.FAIL }
+    val warn = st.lines.any { it.level == FtLevel.WARN }
 
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(c.ftTitle, onBack)
@@ -54,26 +96,77 @@ fun FormatTestScreen(onBack: () -> Unit) {
             contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ScreenGap),
         ) {
-            if (st.results.isEmpty() && !st.running) item { Hint(c.ftHint) }
-            item {
-                if (st.running) SecondaryButton(c.ftStop) { FormatTestJobs.stopRun() }
-                else PrimaryButton(if (st.results.isEmpty()) c.ftStart else c.ftAgain, true) { filter = 0; FormatTestJobs.start() }
+            item { Hint(c.ftHint) }
+            optionItems(listOf(engineSpec), mapOf("engine" to engineId), lang, !st.running, "ft_engine_") { _, v ->
+                engineId = v
             }
-            if (st.running) {
+            item {
+                PickerCard(
+                    icon = AppIcons.File,
+                    label = c.ftFile,
+                    value = fileName,
+                    trailingIcon = AppIcons.Folder,
+                    onClick = { if (!st.running) pick.launch(arrayOf("*/*")) },
+                )
+            }
+            if (eng != null && uri != null) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        LinearProgressIndicator(if (st.total > 0) st.done.toFloat() / st.total else 0f, Modifier.fillMaxWidth(), color = p.accent)
-                        Text(c.ftProgress(st.done, st.total, st.label), color = p.muted, fontSize = 13.sp)
+                    when {
+                        st.check.busy -> Hint(c.ftChecking)
+                        st.check.bad -> Text(s.wrongFile(st.check.foundName, eng.name), color = FT_RED, fontSize = 13.sp, lineHeight = 18.sp)
+                        else -> Text(c.ftMatch(st.check.entries), color = FT_GREEN, fontSize = 13.sp, lineHeight = 18.sp)
                     }
                 }
             }
-            st.error?.let { e -> item { ErrorCard(e) } }
-            if (st.results.isNotEmpty()) {
-                if (!st.running) {
-                    item { FtBanner(pass, warn, fail, skip, st.stopped) }
+
+            if (ok) {
+                item { FtSectionHeader(c.ftUnpackSection, openUnpack) { openUnpack = !openUnpack } }
+                if (openUnpack) {
+                    optionItems(uspecs, uVals, lang, !st.running, "ft_u_") { k, v -> uVals[k] = v }
+                    if (fmt?.id == "xp3") item {
+                        AppTextField(
+                            value = keyText,
+                            onValueChange = { keyText = it.filter { ch -> ch.isDigit() }.take(3) },
+                            label = s.xorKeyAutoLabel,
+                            number = true,
+                        )
+                    }
+                    item {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(Modifier.weight(1f)) {
+                                AppTextField(
+                                    value = maxText,
+                                    onValueChange = { maxText = it.filter { ch -> ch.isDigit() }.take(7) },
+                                    label = c.ftMaxSize,
+                                    number = true,
+                                )
+                            }
+                            Box(Modifier.width(128.dp)) { SegmentedChips(listOf("KB", "MB"), unit) { unit = it } }
+                        }
+                    }
                 }
-                item { SegmentedChips(listOf(c.filterAll, c.filterWarn, c.filterBad, c.filterOk), filter) { filter = it } }
-                items(shown) { r -> FtRow(r) }
+                item { FtSectionHeader(c.ftPackSection, openPack) { openPack = !openPack } }
+                if (openPack) {
+                    if (pspecs.isEmpty()) item { Hint(c.ftNoPackOptions) }
+                    else optionItems(pspecs, pVals, lang, !st.running, "ft_p_") { k, v -> pVals[k] = v }
+                }
+                item {
+                    if (st.running) SecondaryButton(c.ftStop) { FormatTestJobs.stopRun() }
+                    else PrimaryButton(if (st.lines.isEmpty()) c.ftStart else c.ftAgain, maxBytes > 0) {
+                        FormatTestJobs.start(
+                            uri!!, fileName ?: "archive", eng!!.formatId, uExtra, keyText.toIntOrNull()?.takeIf { it in 0..255 },
+                            pVals.toMap(), maxBytes,
+                        )
+                    }
+                }
+                if (maxBytes <= 0) item { Text(c.ftMaxSizeBad, color = FT_RED, fontSize = 13.sp) }
+            }
+
+            st.error?.let { e -> item { ErrorCard(e) } }
+            if (st.lines.isNotEmpty()) {
+                item { SectionLabel(c.ftResults) }
+                if (!st.running) item { FtBanner(fail, warn, st.stopped) }
+                items(st.lines.size) { i -> FtRow(st.lines[i]) }
                 if (!st.running) {
                     item { Hint(c.ftNote) }
                     item { ExportBar("uji_coba_format") { FormatTestJobs.reportText() } }
@@ -83,20 +176,31 @@ fun FormatTestScreen(onBack: () -> Unit) {
     }
 }
 
+/** Open/closed header (same look as the sections of the Media Converter). */
 @Composable
-private fun FtBanner(pass: Int, warn: Int, fail: Int, skip: Int, stopped: Boolean) {
+private fun FtSectionHeader(title: String, open: Boolean, onToggle: () -> Unit) {
+    val p = LocalPalette.current
+    AppCard(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().clickable { onToggle() }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 21.sp, modifier = Modifier.weight(1f))
+            Text(if (open) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
+        }
+    }
+}
+
+@Composable
+private fun FtBanner(fail: Boolean, warn: Boolean, stopped: Boolean) {
     val p = LocalPalette.current
     val c = checkStr(LocalLang.current)
-    val level = if (fail > 0) 3 else if (warn > 0) 2 else 1
+    val level = if (fail) 3 else if (warn) 2 else 1
     val color = when (level) { 3 -> FT_RED; 2 -> FT_AMBER; else -> FT_GREEN }
     val mark = when (level) { 3 -> "✕"; 2 -> "!"; else -> "✓" }
-    val title = when (level) { 3 -> c.verdictBad; 2 -> c.verdictWarn; else -> c.ftAllPass }
+    val title = when (level) { 3 -> c.verdictBad; 2 -> c.verdictWarn; else -> c.ftPassed }
     AppCard(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(mark, color = color, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(40.dp))
             Column {
                 Text(title, color = color, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text(c.ftSummary(pass, warn, fail, skip), color = p.muted, fontSize = 13.sp)
                 if (stopped) Text(c.ftStopped, color = p.muted, fontSize = 13.sp)
             }
         }
@@ -104,18 +208,15 @@ private fun FtBanner(pass: Int, warn: Int, fail: Int, skip: Int, stopped: Boolea
 }
 
 @Composable
-private fun FtRow(r: FtResult) {
+private fun FtRow(l: RtLine) {
     val p = LocalPalette.current
     val c = checkStr(LocalLang.current)
-    val color = when (r.level) { FtLevel.PASS -> FT_GREEN; FtLevel.WARN -> FT_AMBER; FtLevel.FAIL -> FT_RED; FtLevel.SKIP -> p.muted }
-    val mark = when (r.level) { FtLevel.PASS -> "✓"; FtLevel.WARN -> "!"; FtLevel.FAIL -> "✕"; FtLevel.SKIP -> "–" }
+    val color = when (l.level) { FtLevel.PASS -> FT_GREEN; FtLevel.WARN -> FT_AMBER; FtLevel.FAIL -> FT_RED; FtLevel.SKIP -> p.muted }
+    val mark = when (l.level) { FtLevel.PASS -> "✓"; FtLevel.WARN -> "!"; FtLevel.FAIL -> "✕"; FtLevel.SKIP -> "–" }
     AppCard(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
             Text(mark, color = color, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.width(24.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(if (r.variant.isEmpty()) r.engine else r.engine + " · " + r.variant, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                Text(c.ftDetail(r), color = if (r.level == FtLevel.PASS || r.level == FtLevel.SKIP) p.muted else color, fontSize = 13.sp, lineHeight = 18.sp)
-            }
+            Text(c.rtDetail(l), color = if (l.level == FtLevel.PASS) p.text else color, fontSize = 13.sp, lineHeight = 18.sp)
         }
     }
 }

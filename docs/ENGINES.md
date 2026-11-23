@@ -40,7 +40,7 @@ Legend: ✔ supported, – not supported.
 Notes:
 
 - Archives without magic bytes (Circus, FVP, WillPlus, Silky, NScripter and others) are recognised by their structure. If detection fails, pick the engine yourself in the Engine List.
-- **Format Test** (File & Folder Inspector) packs sample files with every packable format on your device and unpacks them again, which shows quickly whether a format works on your phone. It also checks edge samples, repacking, codecs, script text and small real archives (`assets/formattest`).
+- **Format Test** (File & Folder Inspector) takes one random file from a real archive you upload, packs it again and compares the new archive with your original, which shows whether packing works for that format on your phone.
 - The **Key Finder** looks for encryption keys in a game folder and lists the files that use them.
 - File names inside archives can be read as Auto, Shift-JIS, UTF-8, GBK, Big5 or EUC-KR (**File Name Encoding**).
 - Games often store images, audio and scripts in engine-specific formats. The Game Assets viewers and the **Special Asset Converter** handle many of them (for example `.crx`, `.pgd`, `.tlg`, `.g00`, OVK, NWA, MIO).

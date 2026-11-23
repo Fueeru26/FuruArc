@@ -52,7 +52,7 @@ The Translation Editor has a **control code check** that warns when codes differ
 Use **Test connection** in the translation window. Lingva and Bilibili are free and need no key; other providers need your own API key with a working quota. Public Lingva servers are sometimes down, so try another one.
 
 **How can I check that packing and unpacking work on my device?**
-Open **Format Test** in the File & Folder Inspector and tap Start test. It packs generated sample files with every format that can be packed, unpacks them again and compares the result. It does not touch your own files.
+Open **Format Test** in the File & Folder Inspector, choose the engine, upload an archive of that engine and tap Start test. It extracts one random file, packs it again and compares the new archive with your original. Your own file is only read, never changed, and no output folder is used.
 
 ## Running and updating
 

@@ -52,7 +52,7 @@ Editor Terjemahan punya **cek kode kontrol** yang memperingatkan bila kode berbe
 Pakai **Uji koneksi** di jendela terjemahan. Lingva dan Bilibili gratis dan tanpa kunci; penyedia lain butuh API key milikmu dengan kuota yang aktif. Server Lingva publik kadang mati, coba server lain.
 
 **Bagaimana cara memastikan kemas dan bongkar berfungsi di perangkat saya?**
-Buka **Uji Coba Format** di Pemeriksa File dan Folder lalu tekan Mulai uji coba. Aplikasi mengemas file contoh buatannya dengan setiap format yang bisa dikemas, membongkarnya lagi, lalu membandingkan hasilnya. File milikmu tidak disentuh.
+Buka **Uji Coba Format** di Pemeriksa File dan Folder, pilih engine, unggah arsip dari engine itu lalu tekan Mulai uji coba. Aplikasi mengekstrak 1 file acak, mengemasnya lagi, lalu membandingkan arsip baru dengan arsip aslimu. File milikmu hanya dibaca, tidak diubah, dan tidak ada folder output.
 
 ## Menjalankan dan memperbarui
 

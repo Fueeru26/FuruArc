@@ -69,13 +69,17 @@ object ShiinaRioFormat : ArchiveFormat {
         if (n > 0x50000 * 4L) throw IOException("Indeks WARC terlalu besar")
         val raw = src.readFully(indexOff, n.toInt())
         val cs = IoUtil.cs(opts)
-        // the index words are XOR-ed with the index offset; try plain first, then XOR-ed
-        parse(raw, len, cs)?.let { return it }
+        // the index words may be XOR-ed with the index offset: read both ways. The file data lies before the index, so a
+        // candidate is only valid when every entry ends before the index; when both are valid the one whose data starts
+        // nearer to the header wins (a wrong XOR gives huge offsets).
+        val plain = parse(raw, indexOff, cs)
         val x = raw.copyOf()
         val bb = ByteBuffer.wrap(x).order(ByteOrder.LITTLE_ENDIAN)
         var i = 0
         while (i + 4 <= x.size) { bb.putInt(i, bb.getInt(i) xor indexOff.toInt()); i += 4 }
-        return parse(x, len, cs) ?: throw IOException("Indeks WARC tidak terbaca (mungkin skema enkripsi lain)")
+        val xored = parse(x, indexOff, cs)
+        if (plain != null && xored != null) return if (xored.minOf { it.offset } < plain.minOf { it.offset }) xored else plain
+        return plain ?: xored ?: throw IOException("Indeks WARC tidak terbaca (mungkin skema enkripsi lain)")
     }
 
     override fun extract(src: RandomSource, entry: Entry, out: OutputStream, opts: Options) {

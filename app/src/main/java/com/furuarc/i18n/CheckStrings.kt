@@ -1,6 +1,9 @@
 package com.furuarc.i18n
 
 import com.furuarc.core.FtKind
+import com.furuarc.core.FtLevel
+import com.furuarc.core.RtKind
+import com.furuarc.core.RtLine
 import com.furuarc.core.FtResult
 import com.furuarc.settings.Lang
 
@@ -23,14 +26,17 @@ class CheckStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID
 
     // Format Test
     val ftTitle get() = t("Uji Coba Format", "Format Test")
-    val ftSub get() = t("Kemas data contoh dengan tiap format, bongkar lagi, dan pastikan hasilnya sama", "Pack sample data with each format, unpack it again and confirm the result is identical")
+    val ftSub get() = t(
+        "Uji format dengan arsip asli: ambil 1 file acak, kemas ulang, lalu bandingkan",
+        "Test a format with a real archive: take one random file, pack it again and compare",
+    )
     val ftHint get() = t(
-        "Aplikasi membuat file contoh kecil di penyimpanan sementara, mengemasnya dengan setiap format yang bisa dikemas (juga contoh tepi: file kosong, nama Jepang, subfolder, 300 file), membongkar, mengemas ulang, dan membandingkan. Ia juga menguji arsip asli kecil bila ada, codec kompresi, dan ekspor/impor teks skrip. File di perangkat tidak dibaca atau diubah.",
-        "The app creates small sample files in temporary storage, packs them with every format that can be packed (also edge samples: empty file, Japanese names, subfolders, 300 files), unpacks, packs again and compares. It also tests small real archives when present, the compression codecs and script text export/import. None of your files are read or changed.",
+        "Pilih engine (format), lalu unggah arsip asli dari engine itu. Aplikasi mengekstrak 1 file acak dari arsip, mengemasnya kembali menjadi arsip baru, membongkar arsip baru itu, dan membandingkannya dengan arsip aslimu. Tidak ada folder output; hasilnya tercatat di bawah.",
+        "Choose an engine (format), then upload a real archive of that engine. The app extracts one random file from the archive, packs it into a new archive, unpacks that new archive and compares it with your original. There is no output folder; the result is recorded below.",
     )
     val ftNote get() = t(
-        "Uji coba ini hanya membuktikan bahwa hasil kemas aplikasi bisa dibongkar lagi oleh aplikasi yang sama. Game asli tetap bisa menolak arsip bila engine-nya butuh kunci atau tata letak khusus.",
-        "This test only proves that what the app packs, the app can unpack again. A real game may still reject an archive if its engine needs a key or a special layout.",
+        "Arsip hasil kemas hanya berisi file yang diuji, jadi ukurannya berbeda dari arsip asli. Uji coba ini membuktikan bahwa kemas dan bongkar bekerja untuk format ini; game asli tetap bisa menolak arsip bila engine-nya butuh kunci atau tata letak khusus.",
+        "The new archive holds only the tested file, so its size differs from the original. The test shows that packing and unpacking work for this format; a real game may still reject an archive if its engine needs a key or a special layout.",
     )
     val ftStart get() = t("Mulai uji coba", "Start test")
     val ftAgain get() = t("Ulangi uji coba", "Run again")
@@ -40,6 +46,47 @@ class CheckStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID
     val ftAllPass get() = t("SEMUA LULUS", "ALL PASSED")
     val ftStopped get() = t("Dihentikan sebelum selesai", "Stopped before finishing")
     val ftReportTitle get() = t("Laporan Uji Coba Format", "Format Test Report")
+
+    // Format Test with a real archive
+    val ftPassed get() = t("LULUS", "PASSED")
+    val ftEngine get() = t("Engine (Format)", "Engine (Format)")
+    val ftEnginePick get() = t("Pilih engine (format)", "Choose an engine (format)")
+    val ftFile get() = t("Arsip untuk diuji", "Archive to test")
+    val ftChecking get() = t("Memeriksa arsip…", "Checking the archive…")
+    fun ftMatch(n: Int) = tt("✓ Format cocok · $n file di arsip", "✓ Format matches · {0} files in the archive", n)
+    val ftUnpackSection get() = t("Bongkar Arsip", "Unpack Archive")
+    val ftPackSection get() = t("Kemas Arsip", "Pack Archive")
+    val ftMaxSize get() = t("Ukuran maksimal file yang diekstrak", "Maximum size of the extracted file")
+    val ftMaxSizeBad get() = t("Isi ukuran maksimal dengan angka lebih dari 0.", "Enter a maximum size greater than 0.")
+    val ftNoPackOptions get() = t("Format ini tidak punya pengaturan kemas.", "This format has no pack settings.")
+    val ftResults get() = t("Hasil uji coba format", "Format test results")
+
+    private fun sz(n: Long): String = when {
+        n < 1024 -> "$n B"
+        n < 1024L * 1024 -> String.format(java.util.Locale.ROOT, "%.1f KB", n / 1024.0)
+        else -> String.format(java.util.Locale.ROOT, "%.1f MB", n / 1048576.0)
+    }
+
+    /** One line of the real-archive Format Test. */
+    fun rtDetail(l: RtLine): String = when (l.kind) {
+        RtKind.PICKED -> tt("File acak yang diuji: ${l.arg} (${sz(l.n1)})", "Random file tested: {0} ({1})", l.arg, sz(l.n1))
+        RtKind.NO_FILE_FITS -> tt("Tidak ada file ≤ ${sz(l.n1)} di arsip (${l.n2} file). Naikkan ukuran maksimal.", "No file ≤ {0} in the archive ({1} files). Raise the maximum size.", sz(l.n1), l.n2)
+        RtKind.UNPACKED -> tt("Diekstrak dari arsip asli: ${sz(l.n1)} · ${l.n2} ms", "Extracted from the original archive: {0} · {1} ms", sz(l.n1), l.n2)
+        RtKind.PACKED -> tt("Dikemas menjadi arsip baru: ${sz(l.n1)} · ${l.n2} ms", "Packed into a new archive: {0} · {1} ms", sz(l.n1), l.n2)
+        RtKind.CONTENT_OK -> tt("Arsip baru dibongkar lagi dan isi file sama persis (SHA-256 ${l.arg}…)", "The new archive was unpacked again and the file is identical (SHA-256 {0}…)", l.arg)
+        RtKind.CONTENT_BAD -> tt("Isi file berbeda setelah dibongkar dari arsip baru: ${l.arg}", "File content differs after unpacking the new archive: {0}", l.arg)
+        RtKind.COUNT -> tt("Arsip baru berisi ${l.n1} file, seharusnya ${l.n2}", "The new archive holds {0} files, expected {1}", l.n1, l.n2)
+        RtKind.NAME -> tt("Nama file di arsip baru berbeda: ${l.arg}", "The file name in the new archive differs: {0}", l.arg)
+        RtKind.HEADER -> tt("Header dibanding arsip asli: ${l.n1} dari ${l.n2} byte pertama sama", "Header compared with the original: first {0} of {1} bytes are equal", l.n1, l.n2) +
+            (if (l.level == FtLevel.WARN) t(" (tanda pengenal format hilang)", " (format signature lost)") else "")
+        RtKind.NOT_DETECTED -> t("Arsip baru tidak dikenali sebagai format ini oleh deteksi otomatis", "The new archive is not recognised as this format by automatic detection")
+        RtKind.DETECTED_BY -> tt("Arsip baru juga cocok dengan: ${l.arg}", "The new archive also matches: {0}", l.arg)
+        RtKind.SIZES -> tt("Ukuran: arsip asli ${sz(l.n1)}, arsip baru ${sz(l.n2)}", "Sizes: original archive {0}, new archive {1}", sz(l.n1), sz(l.n2))
+        RtKind.ERROR_UNPACK -> tt("Gagal mengekstrak dari arsip asli: ${l.arg}", "Could not extract from the original archive: {0}", Tr.msg(lang, l.arg))
+        RtKind.ERROR_PACK -> tt("Gagal mengemas: ${l.arg}", "Could not pack: {0}", Tr.msg(lang, l.arg))
+        RtKind.ERROR_READ -> tt("Gagal membaca arsip baru: ${l.arg}", "Could not read the new archive: {0}", Tr.msg(lang, l.arg))
+        RtKind.CANCELLED -> t("Dihentikan sebelum selesai", "Stopped before finishing")
+    }
 
     /** Lists every format that accepts the archive when more than one does. */
     private fun detectNote(r: FtResult): String =
