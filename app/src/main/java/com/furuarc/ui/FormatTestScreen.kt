@@ -4,7 +4,9 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +23,7 @@ import com.furuarc.core.FtLevel
 import com.furuarc.core.OptKind
 import com.furuarc.core.OptionSpec
 import com.furuarc.core.RtLine
+import com.furuarc.core.RtPlan
 import com.furuarc.i18n.checkStr
 import com.furuarc.ui.theme.LocalLang
 import com.furuarc.ui.theme.LocalPalette
@@ -34,6 +37,14 @@ private val FT_RED = Color(0xFFE57373)
 private val FT_ENGINES: List<VnEngine> by lazy {
     VN_ENGINES.filter { FormatRegistry.byId(it.formatId).canPack }.sortedBy { it.name.lowercase() } +
         RPGM_ENGINES.filter { it.rpgm && !it.crypt }
+}
+
+/** The Format Test engine for an archive format found by File Inspection (several engines can share a format: the extension decides). */
+fun ftEngineFor(formatId: String, fileName: String): VnEngine? {
+    val l = FT_ENGINES.filter { it.formatId == formatId }
+    if (l.isEmpty()) return null
+    val ext = fileName.substringAfterLast('.', "").lowercase()
+    return l.firstOrNull { it.ext.lowercase() == ext } ?: l.first()
 }
 
 /**
@@ -60,11 +71,39 @@ fun FormatTestScreen(onBack: () -> Unit) {
     var keyText by remember(eng?.id) { mutableStateOf("") }
     var maxText by remember { mutableStateOf("5") }
     var unit by remember { mutableStateOf(1) } // 0 = KB, 1 = MB
+    val ftVals = remember { mutableStateMapOf("mode" to "one", "count" to "3", "pick" to "", "seed" to "") }
+    val ctx = LocalContext.current
     var openUnpack by remember { mutableStateOf(false) }
     var openPack by remember { mutableStateOf(false) }
+    // a file that cannot be read yet: open the unpack settings (index file, archive name ...)
+    LaunchedEffect(st.check.bad, eng?.id) { if (st.check.bad && uspecs.isNotEmpty()) openUnpack = true }
 
     val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { u ->
         if (u != null) { uri = u; fileName = Engine.displayName(u) }
+    }
+    val saveTree = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { t ->
+        if (t != null) FormatTestJobs.saveSample(t) { ok -> Toast.makeText(ctx, if (ok) c.ftSampleSaved else c.ftSampleFail, Toast.LENGTH_SHORT).show() }
+    }
+    // opened from File Inspection: the archive and its engine are already chosen
+    LaunchedEffect(Unit) {
+        FormatTestJobs.takePrefill()?.let { pf ->
+            ftEngineFor(pf.formatId, pf.name)?.let { e -> engineId = e.id; uri = pf.uri; fileName = pf.name }
+        }
+    }
+    val modeSpecs = remember(lang) {
+        listOf(
+            OptionSpec(
+                key = "mode", kind = OptKind.CHOICE, en = c.ftModeLabel, id = c.ftModeLabel,
+                choices = listOf(
+                    Choice("one", c.ftModeOne, c.ftModeOne), Choice("n", c.ftModeN, c.ftModeN),
+                    Choice("all", c.ftModeAll, c.ftModeAll), Choice("full", c.ftModeFull, c.ftModeFull),
+                ),
+                default = "one",
+            ),
+            OptionSpec(key = "count", kind = OptKind.NUMBER, en = c.ftCount, id = c.ftCount, default = "3", showIf = Pair("mode", "n")),
+            OptionSpec(key = "pick", kind = OptKind.TEXT, en = c.ftPick, id = c.ftPick, default = "", showIf = Pair("mode", "one")),
+            OptionSpec(key = "seed", kind = OptKind.TEXT, en = c.ftSeed, id = c.ftSeed, default = ""),
+        )
     }
     val engineSpec = remember(lang) {
         OptionSpec(
@@ -80,10 +119,20 @@ fun FormatTestScreen(onBack: () -> Unit) {
     LaunchedEffect(uri, eng?.id, uExtra) {
         val u = uri
         val e = eng
-        if (u != null && e != null) FormatTestJobs.check(u, fileName ?: "archive", e.formatId, uExtra) else FormatTestJobs.resetCheck()
+        if (u != null && e != null) {
+            kotlinx.coroutines.delay(400) // while a setting is typed, wait for a pause before checking again
+            FormatTestJobs.check(u, fileName ?: "archive", e.formatId, uExtra)
+        } else FormatTestJobs.resetCheck()
     }
 
     val maxBytes = (maxText.toLongOrNull() ?: 0L) * (if (unit == 1) 1024L * 1024L else 1024L)
+    val full = ftVals["mode"] == "full"
+    fun plan(): RtPlan {
+        val mode = when (ftVals["mode"]) { "n" -> RtPlan.N; "all" -> RtPlan.ALL; "full" -> RtPlan.FULL; else -> RtPlan.ONE }
+        val seedText = (ftVals["seed"] ?: "").trim()
+        val seed = if (seedText.isEmpty()) System.nanoTime() else (seedText.toLongOrNull() ?: seedText.hashCode().toLong())
+        return RtPlan(mode, (ftVals["count"]?.toIntOrNull() ?: 3).coerceIn(1, 500), ftVals["pick"] ?: "", seed, maxBytes)
+    }
     val ok = eng != null && uri != null && !st.check.busy && !st.check.bad && st.check.entries > 0
     val fail = st.lines.any { it.level == FtLevel.FAIL }
     val warn = st.lines.any { it.level == FtLevel.WARN }
@@ -113,13 +162,21 @@ fun FormatTestScreen(onBack: () -> Unit) {
                 item {
                     when {
                         st.check.busy -> Hint(c.ftChecking)
-                        st.check.bad -> Text(s.wrongFile(st.check.foundName, eng.name), color = FT_RED, fontSize = 13.sp, lineHeight = 18.sp)
+                        st.check.bad -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(s.wrongFile(st.check.foundName, eng.name), color = FT_RED, fontSize = 13.sp, lineHeight = 18.sp)
+                            // some formats can only be read with settings (an index file, an archive name): explain where to set them
+                            val needs = uspecs.any { it.kind == OptKind.FILE || it.kind == OptKind.TEXT }
+                            val d = st.check.detail
+                            if (needs && d != null) Text(com.furuarc.i18n.Tr.msg(lang, d), color = p.muted, fontSize = 12.sp, lineHeight = 17.sp)
+                            if (needs) Hint(c.ftNeedOptions)
+                        }
                         else -> Text(c.ftMatch(st.check.entries), color = FT_GREEN, fontSize = 13.sp, lineHeight = 18.sp)
                     }
                 }
             }
 
-            if (ok) {
+            // the unpack settings are shown as soon as a file is chosen: some formats cannot be read without them
+            if (eng != null && uri != null) {
                 item { FtSectionHeader(c.ftUnpackSection, openUnpack) { openUnpack = !openUnpack } }
                 if (openUnpack) {
                     optionItems(uspecs, uVals, lang, !st.running, "ft_u_") { k, v -> uVals[k] = v }
@@ -131,7 +188,8 @@ fun FormatTestScreen(onBack: () -> Unit) {
                             number = true,
                         )
                     }
-                    item {
+                    optionItems(modeSpecs, ftVals, lang, !st.running, "ft_m_") { k, v -> ftVals[k] = v }
+                    if (!full) item {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Box(Modifier.weight(1f)) {
                                 AppTextField(
@@ -145,6 +203,8 @@ fun FormatTestScreen(onBack: () -> Unit) {
                         }
                     }
                 }
+            }
+            if (ok) {
                 item { FtSectionHeader(c.ftPackSection, openPack) { openPack = !openPack } }
                 if (openPack) {
                     if (pspecs.isEmpty()) item { Hint(c.ftNoPackOptions) }
@@ -152,14 +212,14 @@ fun FormatTestScreen(onBack: () -> Unit) {
                 }
                 item {
                     if (st.running) SecondaryButton(c.ftStop) { FormatTestJobs.stopRun() }
-                    else PrimaryButton(if (st.lines.isEmpty()) c.ftStart else c.ftAgain, maxBytes > 0) {
+                    else PrimaryButton(if (st.lines.isEmpty()) c.ftStart else c.ftAgain, maxBytes > 0 || full) {
                         FormatTestJobs.start(
                             uri!!, fileName ?: "archive", eng!!.formatId, uExtra, keyText.toIntOrNull()?.takeIf { it in 0..255 },
-                            pVals.toMap(), maxBytes,
+                            pVals.toMap(), plan(),
                         )
                     }
                 }
-                if (maxBytes <= 0) item { Text(c.ftMaxSizeBad, color = FT_RED, fontSize = 13.sp) }
+                if (maxBytes <= 0 && !full) item { Text(c.ftMaxSizeBad, color = FT_RED, fontSize = 13.sp) }
             }
 
             st.error?.let { e -> item { ErrorCard(e) } }
@@ -169,6 +229,7 @@ fun FormatTestScreen(onBack: () -> Unit) {
                 items(st.lines.size) { i -> FtRow(st.lines[i]) }
                 if (!st.running) {
                     item { Hint(c.ftNote) }
+                    if (st.hasSample) item { SecondaryButton(c.ftSaveSample) { saveTree.launch(null) } }
                     item { ExportBar("uji_coba_format") { FormatTestJobs.reportText() } }
                 }
             }

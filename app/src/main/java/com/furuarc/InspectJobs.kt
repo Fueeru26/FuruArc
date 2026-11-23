@@ -19,6 +19,7 @@ data class InspectState(
     val name: String? = null,
     val busy: Boolean = false,
     val isArchive: Boolean = false,
+    val formatId: String? = null, // the detected archive format (for "Test this format")
     val report: Report? = null,
     val hashes: Hashes? = null,
     val hashing: Boolean = false,
@@ -108,7 +109,7 @@ object InspectJobs {
                             Engine.reset()
                             Engine.setArchive(u, null)
                         }
-                        _state.update { it.copy(busy = false, isArchive = entries.isNotEmpty(), report = rep) }
+                        _state.update { it.copy(busy = false, isArchive = entries.isNotEmpty(), formatId = f.id, report = rep) }
                     } else {
                         val n = minOf(src.length, HEAD_MAX.toLong()).toInt()
                         val head = if (n > 0) src.readFully(0, n) else ByteArray(0)

@@ -172,7 +172,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - **Folder Inspection**: inspect every archive and script in a folder at once.
 - **Compare Files**: compare two archives, scripts or translation files.
 - **Hex Viewer**: raw file content by offset, with text and byte search.
-- **Format Test**: choose an engine (format) and upload a real archive of it. The app extracts one random file (up to a size limit you set in KB or MB), packs it into a new archive, unpacks that and compares it with your original (content by SHA-256, header, detection, size). No output folder; the result is listed and can be copied or exported. Engines that cannot be packed yet are not listed. The same format checks with generated samples also run in GitHub Actions.
+- **Format Test**: choose an engine (format) and upload a real archive of it. The app extracts one random file (up to a size limit you set in KB or MB), packs it into a new archive, unpacks that and compares it with your original (content by SHA-256, header, detection, size). You can test one random file (or a file you name), several, all, or all with a byte-for-byte comparison against the original; the seed repeats a test. No output folder; the result is listed, can be copied or exported, and the samples can be saved. File Inspection has a Test this format button. Engines that cannot be packed yet are not listed. The same format checks with generated samples also run in GitHub Actions.
 - **Duplicate File Finder**: identical files in a folder and its sub-folders.
 - **Translation Scan**: control codes, long lines, empty entries and inconsistent translations.
 - **Key Finder**: find the encryption key and the files that use it.

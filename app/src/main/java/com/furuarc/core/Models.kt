@@ -98,6 +98,12 @@ interface ArchiveFormat {
     /** false = format is read-only (the Pack Archive menu is hidden). */
     val canPack: Boolean get() = true
 
+    /** true = the format can only be packed with every file of the archive (an index decides the content, e.g. AGE). */
+    open val packNeedsAllFiles: Boolean get() = false
+
+    /** Extra options needed to read the packed archive back (e.g. the new index file that [pack] wrote next to it). */
+    open fun readBackExtra(target: File, extra: Map<String, String>): Map<String, String> = emptyMap()
+
     /** Smallest number of files the format can pack (Format Test packs this many files when it is more than one). */
     val minPackFiles: Int get() = 1
 

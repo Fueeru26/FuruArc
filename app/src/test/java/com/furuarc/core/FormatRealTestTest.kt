@@ -5,7 +5,6 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.file.Files
-import kotlin.random.Random
 
 /**
  * The real-archive Format Test on archives that the app packs itself: for every format that can be packed, the file must be
@@ -28,8 +27,11 @@ class FormatRealTestTest {
                 FileSource(arc).use { s ->
                     val ck = FormatRealTest.check(s, arc.name, fmt, c.unpackExtra)
                     if (ck.entries <= 0) { bad.add("${c.formatId}: not accepted (${ck.error})"); return@use }
-                    val lines = FormatRealTest.run(s, arc.name, fmt, c.unpackExtra, c.unpackKey, c.extra, 1_000_000, work, Random(1))
-                    lines.filter { it.level == FtLevel.FAIL }.forEach { bad.add("${c.formatId}: ${it.kind} ${it.arg}") }
+                    // every mode: one random file, several, all, and all with the byte-for-byte comparison
+                    for (mode in listOf(RtPlan.ONE, RtPlan.N, RtPlan.ALL, RtPlan.FULL)) {
+                        val lines = FormatRealTest.run(s, arc.name, fmt, c.unpackExtra, c.unpackKey, c.extra, RtPlan(mode, 3, "", 1L, 1_000_000), work)
+                        lines.filter { it.level == FtLevel.FAIL }.forEach { bad.add("${c.formatId} mode $mode: ${it.kind} ${it.arg}") }
+                    }
                 }
             }
             // a file of another format must be refused

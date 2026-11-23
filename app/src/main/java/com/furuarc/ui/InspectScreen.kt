@@ -26,7 +26,7 @@ import com.furuarc.ui.theme.LocalLang
 import com.furuarc.ui.theme.LocalPalette
 
 @Composable
-fun InspectScreen(vm: MainViewModel, onBrowse: () -> Unit, onUnpack: () -> Unit, onBack: () -> Unit) {
+fun InspectScreen(vm: MainViewModel, onBrowse: () -> Unit, onUnpack: () -> Unit, onFormatTest: () -> Unit, onBack: () -> Unit) {
     val p = LocalPalette.current
     val lang = LocalLang.current
     val ts = ScriptStrings.of(lang)
@@ -74,6 +74,11 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                         Box(Modifier.weight(1f)) { PrimaryButton(ts.browseTitle, !working, onBrowse) }
                         Box(Modifier.weight(1f)) { SecondaryButton(c.unpackThis, !working, onUnpack) }
                     }
+                }
+                // the Format Test only offers formats that can be packed
+                val fid = st.formatId
+                if (fid != null && st.name != null && ftEngineFor(fid, st.name!!) != null) {
+                    item { SecondaryButton(c.ftTestThis, !working, onFormatTest) }
                 }
             }
             if (rep.findings.any { it.tag == Finding.TAG_TEXT }) {

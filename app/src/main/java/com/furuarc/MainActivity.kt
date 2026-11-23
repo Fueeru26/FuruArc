@@ -601,6 +601,18 @@ fun App(vm: MainViewModel) {
                             vm.setArchive(u, null)
                         }
                     },
+                    onFormatTest = {
+                        val u = InspectJobs.currentUri
+                        val fid = InspectJobs.state.value.formatId
+                        val nm = InspectJobs.state.value.name
+                        if (u != null && fid != null && nm != null) {
+                            InspectJobs.clear(); vm.reset()
+                            inspectFromFolder = false
+                            FormatTestJobs.clear()
+                            FormatTestJobs.setPrefill(FtPrefill(u, nm, fid))
+                            screen = Screen.INSPECT_FORMATTEST
+                        }
+                    },
                     onBack = {
                         InspectJobs.clear(); vm.reset()
                         screen = if (inspectFromFolder) Screen.INSPECT_FOLDER else Screen.FILECHECK

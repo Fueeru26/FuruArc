@@ -166,6 +166,14 @@ object AgeFormat : ArchiveFormat {
         return out.toByteArray()
     }
 
+    // the ALF is packed with all the files that the index lists for it; the new index is written next to it
+    override val packNeedsAllFiles get() = true
+
+    override fun readBackExtra(target: File, extra: Map<String, String>): Map<String, String> {
+        val idx = File(target.path + ".x").listFiles()?.firstOrNull { it.isFile } ?: return emptyMap()
+        return mapOf("ageidx" to idx.path)
+    }
+
     override fun pack(inputs: List<PackInput>, target: File, opts: Options, progress: Progress) {
         val idxPath = opts.extra["ageidx"].orEmpty().trim()
         if (idxPath.isEmpty()) throw IOException("Pilih File indeks asli di opsi")
