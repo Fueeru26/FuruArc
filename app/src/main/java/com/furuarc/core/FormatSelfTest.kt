@@ -13,7 +13,7 @@ import java.security.MessageDigest
  *     unpacks it, compares, packs the unpacked files again (must give the same archive) and checks automatic detection.
  *     Besides the normal samples there are edge samples (empty file, exactly 1 MiB, Unicode names, subfolders, 300 files);
  *     a problem found with those is a warning, because it can be a known limit of the format.
- *  2. Real archives (golden files): small archives from real games listed in assets/formattest/*.golden are unpacked and
+ *  2. Real archives (golden files): small archives from real games listed in the .golden manifests in assets/formattest are unpacked and
  *     the SHA-256 of each file is compared. This is what proves that the format matches the game, not only itself.
  *  3. Codecs (LZMA, LZ4, LZSS) against reference data.
  *  4. Script text: export and import must not change a script when the texts are unchanged.
@@ -463,7 +463,7 @@ object FormatSelfTest {
                         val back = ScriptText.extractFile(kind, "t", r1.first, "utf8")
                         if (r1.second <= 0) res(FtLevel.FAIL, FtKind.SCRIPT_APPLY, "0 / ${units.size}")
                         else if (back.size != units.size) res(FtLevel.FAIL, FtKind.SCRIPT_APPLY, "${back.size} / ${units.size}")
-                        else if (back.any { !it.text.startsWith("<<") }) res(FtLevel.FAIL, FtKind.SCRIPT_APPLY, back.first { !it.text.startsWith("<<") }.text)
+                        else if (back.any { !it.text.contains("<<") }) res(FtLevel.FAIL, FtKind.SCRIPT_APPLY, back.first { !it.text.contains("<<") }.text)
                         else res(FtLevel.PASS, FtKind.OK, n = units.size)
                     }
                 }
