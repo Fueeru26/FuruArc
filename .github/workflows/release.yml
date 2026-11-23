@@ -43,7 +43,7 @@ jobs:
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 
       # AGP 4.2.2 needs JDK 11. The runner image already ships the Android SDK (see build.yml).
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 11
