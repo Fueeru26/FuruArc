@@ -55,6 +55,11 @@ android {
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.1.1" }
+    lintOptions {
+        // assembleRelease runs a lint check ("lintVitalRelease") before packaging, which is slow on a phone.
+        // Run `./gradlew lint` when you want the lint report.
+        isCheckReleaseBuilds = false
+    }
 }
 
 dependencies {

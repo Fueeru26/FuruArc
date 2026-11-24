@@ -8,6 +8,7 @@ on:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
@@ -20,6 +21,18 @@ jobs:
           mkdir -p "$ANDROID_HOME/licenses"
           echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
           echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+      # gradle.properties keeps the small phone settings for AndroidIDE (-Xmx2048m, C1 JIT only). The Kotlin compiler runs
+      # inside the Gradle daemon, and the app has grown past that heap ("OutOfMemoryError: Java heap space", then a build that
+      # crawls for an hour). The runner has 16 GB, so give the daemon more here; GRADLE_USER_HOME overrides the project file.
+      - name: Give the Gradle daemon more memory
+        run: |
+          mkdir -p ~/.gradle
+          cat >> ~/.gradle/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8
+          # a stalled download fails after a minute and the retry loop below tries again
+          systemProp.org.gradle.internal.http.connectionTimeout=60000
+          systemProp.org.gradle.internal.http.socketTimeout=60000
+          EOF
       # Format Test (round trips, real archives, codecs, script text) on the JVM; see app/src/test
       - name: Run Format Test
         run: |
@@ -35,6 +48,7 @@ jobs:
 
   debug-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
 
@@ -51,6 +65,19 @@ jobs:
           mkdir -p "$ANDROID_HOME/licenses"
           echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
           echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+
+      # (same as in unit-tests) gradle.properties keeps the small phone settings for AndroidIDE (-Xmx2048m, C1 JIT only). The Kotlin compiler runs
+      # inside the Gradle daemon, and the app has grown past that heap ("OutOfMemoryError: Java heap space", then a build that
+      # crawls for an hour). The runner has 16 GB, so give the daemon more here; GRADLE_USER_HOME overrides the project file.
+      - name: Give the Gradle daemon more memory
+        run: |
+          mkdir -p ~/.gradle
+          cat >> ~/.gradle/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8
+          # a stalled download fails after a minute and the retry loop below tries again
+          systemProp.org.gradle.internal.http.connectionTimeout=60000
+          systemProp.org.gradle.internal.http.socketTimeout=60000
+          EOF
 
       - name: Build debug APK
         run: |
