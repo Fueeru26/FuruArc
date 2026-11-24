@@ -1121,11 +1121,16 @@ internal fun rememberRwFilePicker(onPicked: (Uri) -> Unit): () -> Unit {
     return { launcher.launch(arrayOf("*/*")) }
 }
 
-/** State of the panel at the top of the File Text Editor screen: Create File / Upload File choice and its inputs. */
+/**
+ * State of the panel at the top of the File Text Editor screen: Create / Edit / View choice and its inputs.
+ * [handoffKind] = which file waiting in [TextViewHandoff] ("Open with") belongs to this screen.
+ */
 @Stable
-internal class TePanel(val exts: List<String>) {
-    /** 0 = Buat File, 1 = Unggah File */
+internal class TePanel(val exts: List<String>, val handoffKind: String = "plain") {
+    /** 0 = Buat, 1 = Edit (upload a file to edit), 2 = Lihat (read-only) */
     var mode by mutableStateOf(0)
+    /** The file shown in the Lihat mode. */
+    var viewItem by mutableStateOf<MediaItem?>(null)
     var ext by mutableStateOf(exts.first())
     var base by mutableStateOf("text_file")
     var picked by mutableStateOf<MediaItem?>(null)
@@ -1170,7 +1175,7 @@ internal fun EditorOutBlock(
     }
 }
 
-/** Top panel: Create File / Upload File toggle, format dropdown, file name, Output & Results, buttons, and the "Lihat detail (?)" note. */
+/** Top panel: Create / Edit / View toggle, format dropdown, file name, Output & Results, buttons, and the "Lihat detail (?)" note. */
 @Composable
 internal fun TePanelUi(
     panel: TePanel,
@@ -1189,6 +1194,18 @@ internal fun TePanelUi(
         val ns = queryNameSize(ctx, u)
         panel.picked = MediaItem(u, ns.first, "", ns.second)
     }
+    val pickView = rememberRwFilePicker { u ->
+        val ns = queryNameSize(ctx, u)
+        panel.viewItem = MediaItem(u, ns.first, "", ns.second)
+    }
+    // a file handed over by "Open with" / "Find features by file" opens straight in the Lihat mode
+    LaunchedEffect(panel, TextViewHandoff.token) {
+        TextViewHandoff.take(panel.handoffKind)?.let { u ->
+            val ns = queryNameSize(ctx, u)
+            panel.viewItem = MediaItem(u, ns.first, "", ns.second)
+            panel.mode = 2
+        }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
         SegmentedChips(te.panelModes, panel.mode, 14.sp) { if (!busy) panel.mode = it }
         if (panel.mode == 0) {
@@ -1201,7 +1218,7 @@ internal fun TePanelUi(
                 onCreate(panel.base.trim().ifEmpty { "text_file" } + "." + panel.ext)
             }
             DetailHint(te.createHow(createNote))
-        } else {
+        } else if (panel.mode == 1) {
             PickerCard(AppIcons.File, te.uploadLabel, panel.picked?.name, AppIcons.FolderPlus) { if (!busy) pickFile() }
             if (panel.picked != null && !panel.pickedOk()) {
                 Text(te.unsupportedFormat, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
@@ -1209,6 +1226,12 @@ internal fun TePanelUi(
             FoldSection(fold, "out", m.secOut) { EditorOutBlock(ep, te, pickOut, true) }
             PrimaryButton(te.editBtn, !busy && panel.pickedOk()) { panel.picked?.let { onEdit(it) } }
             DetailHint(te.editHow)
+        } else {
+            // Lihat: only the upload field; the content appears below it, read-only, with Edit | Copy under it
+            PickerCard(AppIcons.File, te.uploadLabel, panel.viewItem?.name, AppIcons.FolderPlus) { if (!busy) pickView() }
+            val vi = panel.viewItem
+            if (vi != null) TeViewPane(vi, te, ep) { panel.picked = vi; panel.mode = 1 }
+            DetailHint(te.viewHow)
         }
     }
 }

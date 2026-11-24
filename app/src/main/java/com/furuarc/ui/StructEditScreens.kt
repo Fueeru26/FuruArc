@@ -60,7 +60,14 @@ import kotlinx.coroutines.withContext
 @Composable
 fun StructuredHubScreen(onBack: () -> Unit) {
     val te = textEditStr(LocalLang.current)
-    var sel by remember { mutableStateOf(0) }
+    // a file handed over by "Open with" opens straight in the editor of its format
+    var sel by remember { mutableStateOf(TextViewHandoff.structIndex()) }
+    // a file handed over while this hub is already open: go to the editor of its format
+    val handoffToken = TextViewHandoff.token
+    LaunchedEffect(handoffToken) {
+        val i = TextViewHandoff.structIndex()
+        if (i != 0 && i != sel) sel = i
+    }
     when (sel) {
         1 -> JsonEditScreen { sel = 0 }
         2 -> CsvEditScreen { sel = 0 }
@@ -207,7 +214,7 @@ fun CsvEditScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val ep = rememberEditorPrefs()
     val fold = remember { FoldState() }
-    val panel = remember { TePanel(listOf("csv", "tsv", "txt")) }
+    val panel = remember { TePanel(listOf("csv", "tsv", "txt"), "csv") }
     val pageScroll = rememberScrollState()
     val areaH = editorAreaHeight(0.75f)
     var doc by remember { mutableStateOf<CsvDoc?>(null) }
@@ -372,11 +379,11 @@ fun CsvEditScreen(onBack: () -> Unit) {
                 onCreate = { name -> guarded { createItem(name) } },
                 onEdit = { item -> guarded { openItem(item) } },
             )
-            if (busy) Hint(te.opening)
+            if (busy && panel.mode != 2) Hint(te.opening)
             val e = err
-            if (e != null) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
+            if (e != null && panel.mode != 2) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
             val d = doc
-            if (d != null) {
+            if (d != null && panel.mode != 2) {
                 AreaTitle(te.editorArea)
                 AreaFileName(d.item.name, dirty)
                 CsvTableView(
@@ -706,7 +713,7 @@ fun IniEditScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val ep = rememberEditorPrefs()
     val fold = remember { FoldState() }
-    val panel = remember { TePanel(extList("ini, cfg, conf, properties, desktop, txt")) }
+    val panel = remember { TePanel(extList("ini, cfg, conf, properties, desktop, txt"), "ini") }
     val pageScroll = rememberScrollState()
     val areaH = editorAreaHeight(0.75f)
     var doc by remember { mutableStateOf<IniDoc?>(null) }
@@ -845,11 +852,11 @@ fun IniEditScreen(onBack: () -> Unit) {
                 onCreate = { name -> guarded { createItem(name) } },
                 onEdit = { item -> guarded { openItem(item) } },
             )
-            if (busy) Hint(te.opening)
+            if (busy && panel.mode != 2) Hint(te.opening)
             val e = err
-            if (e != null) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
+            if (e != null && panel.mode != 2) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
             val d = doc
-            if (d != null) {
+            if (d != null && panel.mode != 2) {
                 AreaTitle(te.editorArea)
                 AreaFileName(d.item.name, dirty)
                 Column(Modifier.height(areaH).fillMaxWidth()) {

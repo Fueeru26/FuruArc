@@ -125,7 +125,7 @@ fun JsonEditScreen(onBack: () -> Unit) {
     val ctl = remember { EditorCtl() }
     val hist = remember { TextHistory() }
     val find = remember(te) { FindState(te, ctl) }
-    val panel = remember { TePanel(listOf("json")) }
+    val panel = remember { TePanel(listOf("json"), "json") }
     val pageScroll = rememberScrollState()
     val areaH = editorAreaHeight(0.75f)
     var pendingStart by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -350,11 +350,11 @@ fun JsonEditScreen(onBack: () -> Unit) {
                 onCreate = { name -> guarded { createItem(name) } },
                 onEdit = { item -> guarded { openItem(item) } },
             )
-            if (busy) Hint(te.opening)
+            if (busy && panel.mode != 2) Hint(te.opening)
             val e = err
-            if (e != null) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
+            if (e != null && panel.mode != 2) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
             val d = doc
-            if (d != null) {
+            if (d != null && panel.mode != 2) {
                 AreaTitle(te.editorArea)
                 AreaFileName(d.item.name, dirty)
                 Column(Modifier.height(areaH).fillMaxWidth()) {

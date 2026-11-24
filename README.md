@@ -145,6 +145,7 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 <p align="center"><img src="docs/pictures/07_text_editor.webp" alt="Text Editor" width="100%"></p>
 
+- **Create / Edit / View**: every text editor has these three modes. View opens a file read-only (page by page when it is big) with an **Encoding** choice and a **Find** button above it (match case or regex, the match is highlighted) and **Edit** and **Copy** buttons under it; Edit moves the file to the Edit mode.
 - **Plain Text Editor**: `.txt`, `.ini`, `.ks`, `.rpy` and similar, with find and replace (regex), go to line, syntax highlighting, undo/redo, automatic encoding detection and auto-saved drafts.
 - **Structured Text**: JSON (tree and text views), CSV / TSV (cell table), INI / CFG, XML and Markdown (with preview).
 - **Bulk Replace**: find and replace text across many files in one folder, with a match counter before anything is changed.
@@ -162,7 +163,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - Apply to Queue / Gallery: Folders, Favorites, Collections and Playlists load directly into an empty list, otherwise choose Load (with a warning) or Add. Video Player subtitles (SRT, VTT, ASS/SSA). Media-style notification with seek bar. "Open with..." media is temporary and never overwrites your lists.
 - Search in Queue and Gallery, View content / Empty for lists, lyrics (.lrc), subtitle timing and auto-load, bookmarks, picture-in-picture, drag or arrow ordering, and restoring the last played audio / video.
 - Game Assets viewers have a Media Player icon to open an asset here.
-- **Open with...**: files from file managers or Share / Send to open in FuruArc (media in Media Player, known text/archive formats in the matching feature, unknown formats in File Inspection). Can be disabled in System settings.
+- **Open with...**: files from file managers or Share / Send to open in FuruArc (media in Media Player; `.txt` and registered structured formats in View mode of the Text Editor; other known archive formats in the matching feature; unknown formats that are text in View mode of Plain Text; other unknown formats in File Inspection). Can be disabled in System settings.
 
 ### File & Folder Inspector
 

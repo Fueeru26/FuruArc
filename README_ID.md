@@ -145,6 +145,7 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 <p align="center"><img src="docs/pictures/07_text_editor.webp" alt="Editor Teks" width="100%"></p>
 
+- **Buat / Edit / Lihat**: setiap editor teks punya tiga mode ini. Lihat membuka file hanya untuk dibaca (per halaman bila besar) dengan pilihan **Encoding** dan tombol **Cari** di atasnya (peka huruf besar/kecil atau regex, kecocokan disorot) serta tombol **Edit** dan **Salin** di bawahnya; Edit memindahkan file itu ke mode Edit.
 - **Editor File Teks Biasa**: `.txt`, `.ini`, `.ks`, `.rpy` dan sejenisnya, dengan cari dan ganti (regex), lompat ke baris, pewarnaan sintaks, urungkan/ulangi, deteksi encoding otomatis dan draf tersimpan otomatis.
 - **File Teks Berstruktur**: JSON (tampilan pohon dan teks), CSV / TSV (tabel sel), INI / CFG, XML dan Markdown (dengan pratinjau).
 - **Ganti Massal**: cari dan ganti teks di banyak file dalam satu folder, dengan penghitung kecocokan sebelum apa pun diubah.
@@ -162,7 +163,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - Terapkan ke Antrian / Galeri: Folder, Favorit, Koleksi, dan Daftar Putar langsung dimuat ke daftar yang kosong, jika tidak pilih Muat (dengan peringatan) atau Tambahkan. Subtitle Pemutar Video (SRT, VTT, ASS/SSA). Notifikasi bergaya media dengan bilah geser. Media dari "Buka dengan..." bersifat sementara dan tidak menimpa daftar Anda.
 - Pencarian di Antrian dan Galeri, Lihat isi / Kosongkan untuk daftar, lirik (.lrc), pengaturan waktu dan muat otomatis subtitle, bookmark, jendela mini (PiP), pengurutan drag atau panah, serta pemulihan audio / video terakhir.
 - Penampil di Aset Game punya ikon Media Player untuk membuka aset di sini.
-- **Buka dengan...**: file dari aplikasi file manager atau Bagikan / Kirim ke bisa dibuka di FuruArc (media di Media Player, teks/arsip di fitur yang cocok, format tidak dikenal di Pemeriksaan File). Bisa dimatikan di Pengaturan Sistem.
+- **Buka dengan...**: file dari aplikasi file manager atau Bagikan / Kirim ke bisa dibuka di FuruArc (media di Media Player; `.txt` dan format berstruktur yang terdaftar di mode Lihat pada Editor File Teks; format arsip lain di fitur yang cocok; format tidak dikenal yang berupa teks di mode Lihat pada File Teks Biasa; format tidak dikenal lainnya di Pemeriksaan File). Bisa dimatikan di Pengaturan Sistem.
 
 ### Pemeriksa File dan Folder
 

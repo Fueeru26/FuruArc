@@ -14,6 +14,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+          cache: gradle
       - name: Accept Android SDK licenses
         run: |
           mkdir -p "$ANDROID_HOME/licenses"
@@ -23,7 +24,9 @@ jobs:
       - name: Run Format Test
         run: |
           chmod +x ./gradlew
-          ./gradlew testDebugUnitTest --stacktrace
+          # Maven Central sometimes answers "429 Too Many Requests" to the shared runners: try again a few times
+          for i in 1 2 3; do ./gradlew testDebugUnitTest --stacktrace && exit 0; echo "Attempt $i failed"; sleep 45; done
+          exit 1
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
@@ -41,6 +44,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+          cache: gradle
 
       - name: Accept Android SDK licenses
         run: |
@@ -51,7 +55,8 @@ jobs:
       - name: Build debug APK
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug --stacktrace
+          for i in 1 2 3; do ./gradlew assembleDebug --stacktrace && exit 0; echo "Attempt $i failed"; sleep 45; done
+          exit 1
 
       - uses: actions/upload-artifact@v7
         with:

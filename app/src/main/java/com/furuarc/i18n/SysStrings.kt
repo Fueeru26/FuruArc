@@ -35,7 +35,7 @@ class SysStr(private val lang: Lang) {
     val hapticLabel get() = p("Getaran halus", "Haptic feedback", "触覚フィードバック", "触感反馈", "햅틱 피드백")
     val hapticDesc get() = p("Getar tipis saat menekan tab dan tombol", "A light vibration when tapping tabs and buttons", "タブやボタンをタップすると軽く振動", "点按标签和按钮时轻微震动", "탭과 버튼을 누를 때 가볍게 진동")
     val openWithLabel get() = p("Muncul di \"Buka dengan\" untuk semua file", "Show in \"Open with\" for all files", "すべてのファイルの「アプリで開く」に表示", "在所有文件的“打开方式”中显示", "모든 파일의 '연결 프로그램'에 표시")
-    val openWithDesc get() = p("Format yang tidak dikenal dibuka di Pemeriksaan File", "Unknown formats open in File Inspection", "未対応の形式はファイルチェックで開く", "未知格式将在文件检查中打开", "알 수 없는 형식은 파일 검사에서 열림")
+    val openWithDesc get() = p("Format yang tidak dikenal dibuka di Lihat pada File Teks Biasa bila berupa teks, atau di Pemeriksaan File", "Unknown formats open in View of Plain Text if they are text, otherwise in File Inspection", "未対応の形式は、テキストならプレーンテキストの「表示」で、それ以外はファイル検査で開く", "未知格式若是文本,则在纯文本的“查看”中打开,否则在文件检查中打开", "알 수 없는 형식은 텍스트이면 일반 텍스트의 보기에서, 아니면 파일 검사에서 열림")
     val themeLabel get() = p("Tema", "Theme", "テーマ", "主题", "테마")
     val themeSystem get() = p("Ikuti sistem", "Follow system", "システムに従う", "跟随系统", "시스템 설정 따름")
     val themeLight get() = p("Terang", "Light", "ライト", "浅色", "라이트")

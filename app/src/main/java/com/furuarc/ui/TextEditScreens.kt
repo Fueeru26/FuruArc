@@ -170,7 +170,7 @@ fun PlainTextScreen(onBack: () -> Unit, title: String? = null, exts: String? = n
     val ctl = remember { EditorCtl() }
     val hist = remember { TextHistory() }
     val find = remember(te) { FindState(te, ctl) }
-    val panel = remember { TePanel(extList(exts ?: PLAIN_EXTS)) }
+    val panel = remember { TePanel(extList(exts ?: PLAIN_EXTS), forcedKind ?: "plain") }
     val pageScroll = rememberScrollState()
     val areaH = editorAreaHeight()
     var doc by remember { mutableStateOf<PlainDoc?>(null) }
@@ -373,11 +373,11 @@ fun PlainTextScreen(onBack: () -> Unit, title: String? = null, exts: String? = n
                 onCreate = { name -> guarded { createItem(name) } },
                 onEdit = { item -> guarded { openItem(item) } },
             )
-            if (busy) Hint(te.opening)
+            if (busy && panel.mode != 2) Hint(te.opening)
             val e = err
-            if (e != null) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
+            if (e != null && panel.mode != 2) Text(e, color = ErrColor, fontSize = 13.sp, lineHeight = 18.sp)
             val d = doc
-            if (d != null) {
+            if (d != null && panel.mode != 2) {
                 AreaTitle(te.editorArea)
                 AreaFileName(d.item.name, dirty)
                 val kind = forcedKind ?: Highlight.kindFor(d.item.name)

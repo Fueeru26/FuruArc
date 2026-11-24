@@ -341,6 +341,10 @@ fun App(vm: MainViewModel) {
                 "player.image", "player.audio", "player.video" ->
                     com.furuarc.ui.PlayerHub.openSingle(when (id) { "player.image" -> 1; "player.audio" -> 2; else -> 3 }, com.furuarc.ui.itemOfUri(Engine.app, uri), "")
                 "filecheck.file" -> InspectJobs.inspect(uri)
+                // Text Editor: the file opens read-only in "Lihat" (Structured Text picks the editor of its format)
+                "textedit.plain" -> com.furuarc.ui.TextViewHandoff.set(uri, "plain")
+                "textedit.struct" -> com.furuarc.ui.TextViewHandoff.kindFor(com.furuarc.core.MediaScan.ext(com.furuarc.ui.itemOfUri(Engine.app, uri).name))
+                    ?.takeIf { it != "plain" }?.let { com.furuarc.ui.TextViewHandoff.set(uri, it) }
                 "filecheck.tr" -> TrScanJobs.open(uri)
                 "rpgm.plugins.scan" -> PluginScanJobs.pickPluginsJs(uri)
                 "rpgm.plugins.edit" -> PluginListJobs.openPluginsJs(uri)
@@ -376,9 +380,21 @@ fun App(vm: MainViewModel) {
             screen = when (kind) { 1 -> Screen.MPLAYER_IMAGE; 2 -> Screen.MPLAYER_AUDIO; else -> Screen.MPLAYER_VIDEO }
         } else {
             val ext = com.furuarc.core.MediaScan.ext(first.name)
-            val hit = com.furuarc.ui.FeatureCatalog.forExtension(allFeatures, ext)
-                .firstOrNull { !it.id.startsWith("media.") && com.furuarc.ui.FeatureCatalog.canPreload(it.id) }
-            openFeatureWithFile(hit?.id ?: "filecheck.file", uris[0])
+            val textKind = com.furuarc.ui.TextViewHandoff.kindFor(ext)
+            if (textKind != null) {
+                // .txt -> View of Plain Text; a registered structured format -> View of its Structured Text editor
+                openFeatureWithFile(if (textKind == "plain") "textedit.plain" else "textedit.struct", uris[0])
+            } else {
+                val hit = com.furuarc.ui.FeatureCatalog.forExtension(allFeatures, ext)
+                    .firstOrNull { !it.id.startsWith("media.") && com.furuarc.ui.FeatureCatalog.canPreload(it.id) }
+                if (hit != null) {
+                    openFeatureWithFile(hit.id, uris[0])
+                } else {
+                    // unknown format: a text file opens in View of Plain Text, anything else (binary) in File Inspection
+                    val isText = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.furuarc.ui.looksLikeText(inCtx, uris[0]) }
+                    openFeatureWithFile(if (isText) "textedit.plain" else "filecheck.file", uris[0])
+                }
+            }
         }
     }
     // Home tab: fill "Recently used" when a screen that is a feature on its own is opened
