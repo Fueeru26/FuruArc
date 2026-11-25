@@ -144,25 +144,11 @@ fun BlossomTitle(title: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Gradient line under a tab title; it fades out to the right. */
-@Composable
-fun BlossomUnderline(modifier: Modifier = Modifier) {
-    val p = LocalPalette.current
-    val c0 = if (p.dark) Color.White else p.accent
-    val c1 = if (p.dark) Color(0xFF5D78BD) else p.accent.copy(alpha = 0.55f)
-    // raised by 8dp so the line never touches the card below the header
-    Box(
-        modifier.padding(bottom = 8.dp).fillMaxWidth(0.68f).height(3.dp).clip(CircleShape)
-            .background(Brush.horizontalGradient(listOf(c0, c1, Color.Transparent))),
-    )
-}
-
-/** Tab title bar of the Blossom style: 64dp tall like the Classic one, with the gradient line at its bottom edge. */
+/** Tab title bar of the Blossom style: 64dp tall like the Classic one. */
 @Composable
 fun BlossomHeader(title: String) {
     Box(Modifier.fillMaxWidth().height(64.dp)) {
         BlossomTitle(title, Modifier.align(Alignment.CenterStart))
-        BlossomUnderline(Modifier.align(Alignment.BottomStart))
     }
 }
 
@@ -187,4 +173,13 @@ fun RowPanel(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
         else -> Brush.linearGradient(listOf(p.cardBorder, p.cardBorder))
     }
     Box(modifier.clip(shape).background(fill).border(BorderStroke(1.dp, rim), shape)) { content() }
+}
+
+/** Border of a card, the same as the menu cards: the light rim of Blue Blossom (1.5dp) or the card border of the other styles (1dp). */
+@Composable
+fun cardRim(): Pair<Brush, Dp> {
+    val p = LocalPalette.current
+    return if (com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM) {
+        Pair(if (p.dark) Brush.linearGradient(listOf(Color(0xFF5B72B0), Color(0xFF2C3A6A))) else Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF))), 1.5.dp)
+    } else Pair(Brush.linearGradient(listOf(p.cardBorder, p.cardBorder)), 1.dp)
 }

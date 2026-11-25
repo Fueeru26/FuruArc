@@ -79,12 +79,7 @@ private val LANGS = listOf(
 )
 
 @Composable
-private fun SectionTitle(text: String, first: Boolean = false) {
-    val p = LocalPalette.current
-    // never offset upward: the header is fixed, so a negative offset would clip the text under it
-    Text(text, color = p.accent, fontWeight = FontWeight.SemiBold, fontSize = 17.sp,
-        modifier = if (first) Modifier else Modifier.padding(top = 8.dp))
-}
+private fun SectionTitle(text: String, first: Boolean = false) = GroupTitle(text)
 
 /**
  * Full page for Online Translation (not a dialog). The bottom bar (progress/estimate/buttons) stays fixed, the content scrolls.

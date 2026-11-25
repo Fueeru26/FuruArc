@@ -10,6 +10,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -176,7 +178,6 @@ fun LibraryScreen(onOpen: (GameEntry) -> Unit) {
             IconButton(onClick = { panel = !panel }, modifier = Modifier.size(38.dp)) { Icon(AppIcons.Tune, g.settingsBtn, tint = if (panel) p.accent else p.text) }
             IconButton(onClick = { GameLibrary.refresh() }, enabled = !busy, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.Refresh, g.refresh, tint = if (busy) p.muted else p.text) }
         }
-        if (blossom) BlossomUnderline(Modifier.align(Alignment.BottomStart))
         }
         if (searching) {
             AppTextField(query, { query = it }, g.searchHint)
@@ -509,11 +510,13 @@ private fun GameCard(e: GameEntry, modifier: Modifier, onOpen: () -> Unit, onRen
     val g = gameStr(LocalLang.current)
     val shape = RoundedCornerShape(CardRadius)
     var menu by remember { mutableStateOf(false) }
+    val rim = cardRim()
     // the entrance, jelly and press animations sit on the outermost node, so the cover, its shadow and the name move together
     Column(modifier.staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = onOpen), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             Modifier.fillMaxWidth().aspectRatio(0.75f).cardShadow(CardRadius).clip(shape)
-                .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.22f), lerp(p.card, p.accent, 0.05f)))),
+                .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.22f), lerp(p.card, p.accent, 0.05f))))
+                .border(BorderStroke(rim.second, rim.first), shape),
             contentAlignment = Alignment.Center,
         ) {
             val f = GameLibrary.displayCover(e)

@@ -298,14 +298,16 @@ private fun TopLineBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> U
 fun BigToolCard(icon: ImageVector, title: String, subtitle: String = "", modifier: Modifier = Modifier, imageName: String = "", onClick: () -> Unit) {
     val p = LocalPalette.current
     val shape = RoundedCornerShape(CardRadius)
+    val rim = cardRim()
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
+                .cardShadow(CardRadius)
                 .clip(shape)
                 .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.26f), lerp(p.card, p.accent, 0.06f))))
-                .border(BorderStroke(1.5.dp, p.accent.copy(alpha = 0.75f)), shape)
+                .border(BorderStroke(rim.second, rim.first), shape)
                 .clickableScale(pressed = 0.95f, onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {

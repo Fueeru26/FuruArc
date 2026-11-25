@@ -56,14 +56,7 @@ private fun PluginPager(page: Int, pages: Int, label: String, onPage: (Int) -> U
 
 /** Section title: accent text in the center with a line on the left and right (like Translation Area). */
 @Composable
-private fun PluginSectionTitle(text: String) {
-    val p = LocalPalette.current
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
-        Text(text, color = p.accent, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 14.dp))
-        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
-    }
-}
+private fun PluginSectionTitle(text: String) = GroupTitle(text)
 
 /** Page of all plugin information from the scan: search + 50 per page. */
 @Composable

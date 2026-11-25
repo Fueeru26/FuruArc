@@ -115,7 +115,8 @@ fun Modifier.darkGlow(radius: androidx.compose.ui.unit.Dp, reach: androidx.compo
 @Composable
 fun Modifier.cardShadow(radius: androidx.compose.ui.unit.Dp): Modifier {
     val e = cardElevation()
-    return if (e.value <= 0f) this
+    return if (com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM) this.glassShadow(radius, LocalPalette.current.dark)
+    else if (e.value <= 0f) this
     else if (LocalPalette.current.dark) this.darkGlow(radius)
     else this.shadow(e, RoundedCornerShape(radius), clip = false)
 }
@@ -247,7 +248,8 @@ fun SectionCard(label: String, content: @Composable () -> Unit) {
     val p = LocalPalette.current
     AppCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(label, fontSize = 12.sp, color = p.muted)
+            // same look as the title of a menu card
+            SectionLabel(label)
             content()
         }
     }
@@ -681,6 +683,23 @@ fun ConfirmDialog(
 fun CancelDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val s = LocalStr.current
     ConfirmDialog(s.cancelTitle, s.cancelMessage, s.cancelYes, s.cancelNo, onConfirm, onDismiss)
+}
+
+/**
+ * Group title for a page with several parts: accent text in the middle with a line on the left and right (the "Translation Area" label).
+ * Used above each group of cards or settings.
+ */
+@Composable
+fun GroupTitle(text: String) {
+    val p = LocalPalette.current
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
+        Text(
+            text, color = p.accent, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 14.dp),
+        )
+        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
+    }
 }
 
 /** Section title (above a toggle/choice), equivalent to the Quality/Volume label style. */

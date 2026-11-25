@@ -14,6 +14,8 @@ class NavStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID e
     val tabTools get() = t("Alat Game", "Game Tools")
     val tabSettings get() = t("Pengaturan", "Settings")
     val tabHome get() = t("Beranda", "Home")
+    val grpToolSettings get() = p("Pengaturan Alat", "Tool Settings", "ツール設定", "工具设置", "도구 설정")
+    val grpApp get() = p("Aplikasi", "App", "アプリ", "应用", "앱")
 
     // Home tab
     val searchHint get() = t("Cari fitur, engine, atau ekstensi…", "Search features, engines, or extensions…")

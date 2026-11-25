@@ -105,6 +105,7 @@ fun VnEngineListScreen(onEngine: (VnEngine) -> Unit, onBack: () -> Unit) {
 private fun EngineCard(t: EngineTile) {
     val p = LocalPalette.current
     val shape = RoundedCornerShape(CardRadius)
+    val rim = cardRim()
     // animations on the outermost node: the cover image, its border, its shadow and the name move together
     Column(
         Modifier.fillMaxWidth().staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = t.onClick),
@@ -119,7 +120,7 @@ private fun EngineCard(t: EngineTile) {
                 .cardShadow(CardRadius)
                 .clip(shape)
                 .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.22f), lerp(p.card, p.accent, 0.05f))))
-                .border(BorderStroke(1.dp, p.accent.copy(alpha = 0.45f)), shape),
+                .border(BorderStroke(rim.second, rim.first), shape),
             contentAlignment = Alignment.Center,
         ) {
             if (res != 0) androidx.compose.foundation.Image(
@@ -183,7 +184,7 @@ fun EngineScreen(
                 }
             }
             else -> {
-                Text(ts.archiveHeader, color = p.accent, fontWeight = FontWeight.SemiBold)
+                GroupTitle(ts.archiveHeader)
                 MenuCard(AppIcons.Unarchive, s.menuUnpackTitle + " (" + engine.ext.uppercase() + ")", s.engineUnpackSub(engine.ext), onUnpack)
                 if (FormatRegistry.byId(engine.formatId).canPack) {
                     MenuCard(AppIcons.Archive, s.menuPackTitle + " (" + engine.ext.uppercase() + ")", s.enginePackSub(engine.ext), onPack)
@@ -202,7 +203,7 @@ fun EngineScreen(
             MenuCard(AppIcons.LockOpen, ck.kfTitle, ck.kfSub) { onKeyFinder(kfModule) }
         }
         if (tools.isNotEmpty()) {
-            Text(ts.toolsHeader, color = p.accent, fontWeight = FontWeight.SemiBold)
+            GroupTitle(ts.toolsHeader)
             tools.forEach { tool -> MenuCard(toolIcon(tool), ts.title(tool), ts.sub(tool, kind)) { onTool(tool) } }
         }
     }

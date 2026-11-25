@@ -60,8 +60,10 @@ fun MoreScreen(vm: com.furuarc.MainViewModel, onSettings: () -> Unit, onGuide: (
         Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp + LocalBarInset.current),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) {
+        GroupTitle(nav.grpToolSettings)
         ToolSettingsBlock(vm)
         GameCacheCard()
+        GroupTitle(nav.grpApp)
         MenuCard(AppIcons.Gear, s.menuSettingsTitle, s.menuSettingsSub, onSettings)
         MenuCard(AppIcons.MenuBook, ab.title, ab.sub, onGuide)
         MenuCard(AppIcons.Folder, ab.srcTitle, ab.srcSub, onSource)
@@ -73,11 +75,4 @@ fun MoreScreen(vm: com.furuarc.MainViewModel, onSettings: () -> Unit, onGuide: (
 
 /** "Supporting Tools" title: theme text in the middle with lines on the left and right (Translation Area style), same size as the RPGM/VN Tools card titles. */
 @Composable
-private fun SupportTitle(text: String) {
-    val p = LocalPalette.current
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
-        Text(text, color = p.accent, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 14.dp))
-        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
-    }
-}
+private fun SupportTitle(text: String) = GroupTitle(text)

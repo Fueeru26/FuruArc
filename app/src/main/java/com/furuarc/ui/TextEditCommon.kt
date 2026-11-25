@@ -1057,17 +1057,7 @@ internal object Drafts {
 
 /** Area title: accent text in the center with a line on the left and right ("Translation Area" style). */
 @Composable
-internal fun AreaTitle(text: String) {
-    val p = LocalPalette.current
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
-        Text(
-            text, color = p.accent, fontSize = 18.sp, fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 14.dp),
-        )
-        Box(Modifier.weight(1f).height(2.dp).background(p.accent))
-    }
-}
+internal fun AreaTitle(text: String) = GroupTitle(text)
 
 /** Fixed height of the Text Editor Area (the editor lives inside a scrollable page, not a new page). */
 @Composable

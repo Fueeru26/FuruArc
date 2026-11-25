@@ -47,10 +47,7 @@ import com.furuarc.ui.theme.LocalStr
 import com.furuarc.ui.theme.accentColor
 
 @Composable
-private fun SectionTitle(text: String) {
-    val p = LocalPalette.current
-    Text(text, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = p.accent, modifier = Modifier.padding(top = 8.dp, start = 4.dp))
-}
+private fun SectionTitle(text: String) = GroupTitle(text)
 
 @Composable
 private fun SwitchRow(label: String, desc: String, checked: Boolean, onChange: (Boolean) -> Unit) {
@@ -103,7 +100,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
         AppCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(sys0.uiStyleLabel, fontSize = 12.sp, color = p.muted)
+            SectionLabel(sys0.uiStyleLabel)
             AppDropdown(
                 sys0.uiStyleLabel, draft.uiStyle.toString(),
                 listOf("12" to sys0.uiBlossom, "0" to sys0.uiClassic, "1" to sys0.uiMinimal, "2" to sys0.uiSoft),
@@ -111,7 +108,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             ) { v -> commit(draft.copy(uiStyle = v.toInt())) }
         }
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(sys0.navStyleLabel, fontSize = 12.sp, color = p.muted)
+            SectionLabel(sys0.navStyleLabel)
             AppDropdown(
                 sys0.navStyleLabel, draft.navStyle.toString(),
                 listOf("7" to sys0.navGlass, "0" to sys0.navClassic, "1" to sys0.navFloating, "5" to sys0.navFloatIcons, "6" to sys0.navFab),
@@ -120,7 +117,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
         }
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             val sys = SysStr.of(LocalLang.current)
-            Text(s.themeMode, fontSize = 12.sp, color = p.muted)
+            SectionLabel(s.themeMode)
             AppDropdown(
                 sys.themeLabel, draft.themeMode.toString(),
                 listOf("0" to sys.themeSystem, "1" to sys.themeLight, "2" to sys.themeDark, "3" to sys.themeSchedule),
@@ -129,7 +126,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
         }
         // Blue Blossom has its own colours (like "Schedule (automatic)" hides the hour pickers, the colour picker only shows for the other styles)
         if (draft.uiStyle != 12) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(s.themeColor, fontSize = 12.sp, color = p.muted)
+            SectionLabel(s.themeColor)
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),

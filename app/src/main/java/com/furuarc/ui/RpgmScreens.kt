@@ -216,7 +216,7 @@ LazyColumn(
         contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) { 
-        if (subtitle != null) item { Text(subtitle, color = p.accent, fontWeight = FontWeight.SemiBold) }
+        if (subtitle != null) item { SectionLabel(subtitle) }
         this.body(st) { confirm = 1 }
         processItems(
             st,
@@ -967,11 +967,11 @@ private fun EditorSettingsPage(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         // first letter
-        Text(s.r.setFirstLetter, color = p.accent, fontWeight = FontWeight.SemiBold)
+        GroupTitle(s.r.setFirstLetter)
         SegmentedChips(listOf(s.r.setUpper, s.r.setLower), letter) { i -> letter = i }
         PrimaryButton(s.btnApply, true) { onFirst(letter == 0) }
         // auto wrap
-        Text(s.r.setWrap, color = p.accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        GroupTitle(s.r.setWrap)
         AppTextField(
             value = wrapText, onValueChange = { v -> wrapText = v.filter { c -> c.isDigit() }.take(4) },
             label = s.r.setWrapMax, number = true,
@@ -979,7 +979,7 @@ private fun EditorSettingsPage(
         CheckLine(s.r.setKeepWords, keep) { v -> keep = v }
         PrimaryButton(s.btnApply, wrapN > 0) { onWrap(wrapN, keep) }
         // replace
-        Text(s.r.setReplace, color = p.accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        GroupTitle(s.r.setReplace)
         AppTextField(value = find, onValueChange = { v -> find = v }, label = s.r.setFind)
         AppTextField(value = rep, onValueChange = { v -> rep = v }, label = s.r.setReplaceWith)
         CheckLine(s.r.setIgnoreCase, ignoreCase) { v -> ignoreCase = v }
@@ -987,16 +987,16 @@ private fun EditorSettingsPage(
         if (find.isNotEmpty()) Text(s.r.edMatches(matches.first, matches.second), color = p.muted, fontSize = 13.sp)
         PrimaryButton(s.btnApply, find.isNotEmpty()) { onReplace(find, rep, ignoreCase, whole) }
         // auto-fill identical entries
-        Text(s.r.fillTitle, color = p.accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        GroupTitle(s.r.fillTitle)
         Text(s.r.fillHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
         PrimaryButton(s.btnApply, true) { onFill() }
         // auto-fill control codes
-        Text(s.r.codesTitle, color = p.accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        GroupTitle(s.r.codesTitle)
         Text(s.r.codesHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
         CheckLine(s.r.codesEmpty, codesEmpty) { v -> codesEmpty = v }
         PrimaryButton(s.btnApply, true) { onCodes(codesEmpty) }
         // import / export glossary (CSV)
-        Text(s.r.gcsvTitle, color = p.accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        GroupTitle(s.r.gcsvTitle)
         Text(s.r.gcsvHint, color = p.muted, fontSize = 13.sp)
         SegmentedChips(listOf(s.r.gcsvMerge, s.r.gcsvReplace), csvMode) { i -> csvMode = i }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1004,7 +1004,7 @@ private fun EditorSettingsPage(
             Box(Modifier.weight(1f)) { SecondaryButton(s.r.gcsvExport, true) { onGlossExport() } }
         }
         // draft autosave (takes effect immediately, no Apply button)
-        Text(s.r.autoTitle, color = p.accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        GroupTitle(s.r.autoTitle)
         Text(s.r.autoHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
         SegmentedChips(listOf(s.r.autoOff, s.r.autoOn), if (autoOn) 1 else 0) { i -> onAutoOn(i == 1) }
         if (autoOn) {
@@ -1137,7 +1137,7 @@ private fun TrRow(orig: String, text: String, glossary: List<Pair<String, String
     val codeWarn = text.isNotBlank() && origCodes != RpgmText.controlCodes(text)
     // every translation row (Original Text + translation field) sits on its own label background
     RowPanel(Modifier.fillMaxWidth()) {
-    Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(s.r.edOriginal, color = p.muted, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             IconButton(onClick = { onText(orig) }) {
