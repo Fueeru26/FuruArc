@@ -106,10 +106,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             Text(sys0.uiStyleLabel, fontSize = 12.sp, color = p.muted)
             AppDropdown(
                 sys0.uiStyleLabel, draft.uiStyle.toString(),
-                listOf(
-                    "12" to sys0.uiBlossom, "0" to sys0.uiClassic, "1" to sys0.uiMinimal, "2" to sys0.uiSoft, "3" to sys0.uiGradient, "4" to sys0.uiAmoled,
-                    "5" to sys0.uiSakura, "6" to sys0.uiOcean, "7" to sys0.uiForest, "8" to sys0.uiSunset, "9" to sys0.uiNeon, "10" to sys0.uiPaper, "11" to sys0.uiAuto,
-                ),
+                listOf("12" to sys0.uiBlossom, "0" to sys0.uiClassic, "1" to sys0.uiMinimal, "2" to sys0.uiSoft),
                 showLabel = false,
             ) { v -> commit(draft.copy(uiStyle = v.toInt())) }
         }
@@ -117,10 +114,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             Text(sys0.navStyleLabel, fontSize = 12.sp, color = p.muted)
             AppDropdown(
                 sys0.navStyleLabel, draft.navStyle.toString(),
-                listOf(
-                    "7" to sys0.navGlass, "0" to sys0.navClassic, "1" to sys0.navFloating, "5" to sys0.navFloatIcons, "2" to sys0.navIcons,
-                    "3" to sys0.navPill, "4" to sys0.navTopLine, "6" to sys0.navFab,
-                ),
+                listOf("7" to sys0.navGlass, "0" to sys0.navClassic, "1" to sys0.navFloating, "5" to sys0.navFloatIcons, "6" to sys0.navFab),
                 showLabel = false,
             ) { v -> commit(draft.copy(navStyle = v.toInt())) }
         }
@@ -133,7 +127,8 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
                 showLabel = false,
             ) { v -> commit(draft.copy(themeMode = v.toInt())) }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // Blue Blossom has its own colours (like "Schedule (automatic)" hides the hour pickers, the colour picker only shows for the other styles)
+        if (draft.uiStyle != 12) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(s.themeColor, fontSize = 12.sp, color = p.muted)
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),

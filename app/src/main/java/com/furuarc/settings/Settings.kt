@@ -21,15 +21,21 @@ fun resolveLang(pref: String): Lang {
     }
 }
 
+/** Display Styles offered in Settings: Blue Blossom (12, default), Classic (0), Minimal (1), Soft (2). */
+val SHOWN_UI_STYLES = setOf(12, 0, 1, 2)
+
+/** Navigation Bar Styles offered in Settings: Classic Floating (7, default), Classic (0), Floating (1), Floating Icons (5), Floating Button (6). */
+val SHOWN_NAV_STYLES = setOf(7, 0, 1, 5, 6)
+
 const val DEFAULT_IGNORE = "Thumbs.db, .DS_Store, desktop.ini"
 
 data class AppSettings(
     /** 0 = follow system, 1 = light, 2 = dark, 3 = schedule. */
     val themeMode: Int = 0,
     val accent: AccentColor = AccentColor.BLUE,
-    /** Display style (0 = Classic, 1 = Minimal, 2 = Soft, 3 = Gradient, 4 = Solid, 5..10 = Sakura, Ocean, Forest, Sunset, Neon, Paper, 11 = Seasonal). */
+    /** Display style offered in Settings: 12 = Blue Blossom (default), 0 = Classic, 1 = Minimal, 2 = Soft (other ids are no longer selectable and are replaced by 12 on load). */
     val uiStyle: Int = 12,
-    /** Navigation bar style (0 = Classic, 1 = Floating, 2 = Icons Only, 3 = Sliding Pill, 4 = Top Line, 5 = Floating Icons, 6 = Floating Button). */
+    /** Navigation bar style offered in Settings: 7 = Classic Floating (default), 0 = Classic, 1 = Floating, 5 = Floating Icons, 6 = Floating Button (other ids are replaced by 7 on load). */
     val navStyle: Int = 7,
     /** Press animations and screen transitions. */
     val animations: Boolean = true,
@@ -69,12 +75,14 @@ class SettingsStore(ctx: Context) {
             themeMode = if (sp.contains("themeMode")) sp.getInt("themeMode", 0).coerceIn(0, 3)
             else if (sp.contains("dark")) (if (sp.getBoolean("dark", true)) 2 else 1) else 0,
             accent = AccentColor.values().firstOrNull { it.id == accentId } ?: AccentColor.BLUE,
-            uiStyle = sp.getInt("uiStyle", 12).coerceIn(0, 12),
+            // styles removed from Settings (Gradient, Solid, themed ones, Seasonal) fall back to Blue Blossom
+            uiStyle = sp.getInt("uiStyle", 12).let { if (it in SHOWN_UI_STYLES) it else 12 },
             animations = sp.getBoolean("animations", true),
             haptics = sp.getBoolean("haptics", false),
             darkFrom = sp.getInt("darkFrom", 18).coerceIn(0, 23),
             darkTo = sp.getInt("darkTo", 6).coerceIn(0, 23),
-            navStyle = sp.getInt("navStyle", 7).coerceIn(0, 7),
+            // bars removed from Settings (Icons Only, Sliding Pill, Top Line) fall back to Classic Floating
+            navStyle = sp.getInt("navStyle", 7).let { if (it in SHOWN_NAV_STYLES) it else 7 },
             langPref = sp.getString("langPref", null) ?: (langCode?.takeIf { c -> Lang.values().any { it.code == c } } ?: "system"),
             conflict = sp.getInt("conflict", 0).coerceIn(0, 2),
             ignore = sp.getString("ignore", DEFAULT_IGNORE) ?: DEFAULT_IGNORE,

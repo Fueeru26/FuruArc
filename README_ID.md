@@ -118,7 +118,7 @@ Bongkar, kemas dan terjemahkan visual novel di 24 engine (lihat [Engine yang did
 Terjemahkan teks game hasil ekspor dengan draf, glosarium dan terjemahan online.
 
 - **File draf**: buka ekspor `.txt`, `.csv` atau `.json`, atau draf tersimpan, dan simpan progres kapan saja.
-- **Area terjemahan**: teks asli di atas tiap kolom, dengan progres, pencarian dan filter Semua / Terisi / Kosong / Online.
+- **Area terjemahan**: teks asli di atas tiap kolom, setiap baris di atas latar label tersendiri, dengan progres, pencarian dan filter Semua / Terisi / Kosong / Online.
 - **Perbarui Terjemahan**: tulis file jadi yang siap diimpor kembali ke game.
 - **Terjemahan online**: Lingva dan Bilibili gratis, atau pakai API key sendiri dengan Google, DeepL, Gemini, OpenAI, DeepSeek, Claude, Groq, OpenRouter atau endpoint khusus. Permintaan paralel, uji koneksi dan perkiraan jumlah permintaan sebelum mulai.
 - **Glosarium**: istilah tetap dengan saran di bawah tiap kolom; impor dan ekspor CSV.
@@ -192,7 +192,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - Tema (terang / gelap), bahasa, warna aksen. Tombol dan ikon memakai gradasi dari warna aksen. Di mode terang latar diberi warna sesuai tema dan kartu tetap putih keabuan dengan bayangan lembut; di mode gelap kartu lebih terang dari latar.
 - Animasi layar: geser samping antar tab, halaman naik dari bawah saat dibuka dan turun saat ditutup (bisa dimatikan di pengaturan Tampilan).
 - **Jadwal Tema**, gaya **Musiman** otomatis, serta saklar animasi dan getaran haptik.
-- **Gaya Tampilan** (Klasik, Minimalis, Lembut, Gradien, Warna Pekat, dan bertema Sakura, Samudra, Hutan, Senja, Neon, Kertas) dan **Gaya Navigasi Bar** (Klasik, Melayang, Ikon Layang, Hanya Ikon, Pil Bergeser, Garis Atas, Tombol Mengambang), keduanya di bagian atas Pengaturan Tampilan.
+- **Gaya Tampilan** (Sakura Biru (default), Klasik, Minimalis, Lembut) dan **Gaya Navigasi Bar** (Klasik Melayang (default), Klasik, Melayang, Ikon Layang, Tombol Mengambang), keduanya di bagian atas Pengaturan Tampilan. Pilihan Warna Tema disembunyikan saat Sakura Biru dipilih karena gaya itu punya warna sendiri (seperti pilihan jam yang hanya muncul pada Jadwal Tema).
 - Animasi tekan, transisi layar yang halus, header yang menyusut saat di-scroll, dan ilustrasi untuk daftar kosong.
 - **Proses latar belakang**: tugas panjang tetap berjalan saat aplikasi ditutup, dengan notifikasi saat selesai (Android 13+ meminta izin notifikasi saat kamu mengaktifkannya).
 - **Periksa pembaruan**: mengecek rilis GitHub terbaru (termasuk pre-release). Titik merah menandai Pengaturan bila ada versi baru, pop-up muncul sekali per versi dan, bila notifikasi latar belakang aktif, notifikasi sistem ditampilkan. Tombol "Download versi terbaru" mengunduh APK di dalam aplikasi, dengan jendela progres dan notifikasi, lalu "Install aplikasi" membuka pemasang sistem. Tidak ada yang diunduh sebelum kamu menekan tombolnya, dan pemasangan selalu butuh konfirmasimu.

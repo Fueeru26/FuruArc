@@ -118,7 +118,7 @@ Unpack, pack and translate visual novels across 24 engines (see [Supported engin
 Translate exported game text with drafts, a glossary and online translation.
 
 - **Draft files**: open a `.txt`, `.csv` or `.json` export, or a saved draft, and save your progress at any time.
-- **Translation area**: the original text above each field, with progress, search and All / Filled / Empty / Online filters.
+- **Translation area**: the original text above each field, every row on its own label background, with progress, search and All / Filled / Empty / Online filters.
 - **Update Translation**: write the finished file, ready to import back into the game.
 - **Online translation**: free Lingva and Bilibili, or use your own API key with Google, DeepL, Gemini, OpenAI, DeepSeek, Claude, Groq, OpenRouter or a custom endpoint. Parallel requests, connection test and an estimate of requests before you start.
 - **Glossary**: fixed terms with suggestions under each field; import and export as CSV.
@@ -192,7 +192,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - Theme (light / dark), language, accent color. Buttons and icon badges use a gradient derived from the accent color. In light mode the background is tinted by the theme color and cards stay near-white with a soft shadow; in dark mode cards are lighter than the background.
 - Screen animations: sideways slide between tabs, pages rise from the bottom when opened and sink when closed (switch off in Display settings).
 - **Theme Schedule**, a **Seasonal** automatic style, and switches for animations and haptic feedback.
-- **Display Style** (Classic, Minimal, Soft, Gradient, Solid, and the themed Sakura, Ocean, Forest, Sunset, Neon, Paper) and **Navigation Bar Style** (Classic, Floating, Floating Icons, Icons Only, Sliding Pill, Top Line, Floating Button), both at the top of Display settings.
+- **Display Style** (Blue Blossom (default), Classic, Minimal, Soft) and **Navigation Bar Style** (Classic Floating (default), Classic, Floating, Floating Icons, Floating Button), both at the top of Display settings. The Theme Color picker is hidden while Blue Blossom is selected, because that style has its own colours (like the hour pickers that only show for Theme Schedule).
 - Press animations, soft screen transitions, shrinking headers and illustrated empty states.
 - **Run in background**: long jobs keep running when the app is closed, with a notification when they finish (Android 13+ asks for the notification permission when you enable it).
 - **Check for updates**: looks up the latest GitHub release (pre-releases included). A red dot marks Settings when a new version exists, a pop-up appears once per version and, if background notifications are enabled, a system notification is posted. "Download latest version" downloads the APK inside the app, with a progress window and notification, then "Install app" opens the system installer. Nothing is downloaded until you tap the button, and installing always needs your confirmation.

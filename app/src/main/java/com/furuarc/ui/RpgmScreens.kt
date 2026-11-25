@@ -1135,7 +1135,9 @@ private fun TrRow(orig: String, text: String, glossary: List<Pair<String, String
     val origCodes = remember(orig) { RpgmText.controlCodes(orig) }
     val sugAll = remember(orig, glossary) { if (glossary.isEmpty()) emptyList() else TrTools.suggestions(orig, glossary) }
     val codeWarn = text.isNotBlank() && origCodes != RpgmText.controlCodes(text)
-    Column(Modifier.fillMaxWidth().padding(bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    // every translation row (Original Text + translation field) sits on its own label background
+    RowPanel(Modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(s.r.edOriginal, color = p.muted, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             IconButton(onClick = { onText(orig) }) {
@@ -1177,6 +1179,7 @@ private fun TrRow(orig: String, text: String, glossary: List<Pair<String, String
                 }
             }
         }
+    }
     }
 }
 

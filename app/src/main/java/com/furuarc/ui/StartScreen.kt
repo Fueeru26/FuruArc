@@ -163,7 +163,8 @@ private fun Chip(text: String, f: Feature?, onClick: () -> Unit) {
 @Composable
 private fun QuickTile(f: Feature, modifier: Modifier, onClick: () -> Unit) {
     val p = LocalPalette.current
-    AppCard(modifier) {
+    // Blue Blossom style: the same blossom corner as the menu cards, a bit smaller to fit the half-width tile
+    AppCard(modifier, deco = true, decoScale = 0.7f) {
         Column(Modifier.cardClickable(onClick).padding(16.dp).fillMaxWidth()) {
             Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush), contentAlignment = Alignment.Center) {
                 Icon(f.icon, null, tint = p.onGrad, modifier = Modifier.size(24.dp))

@@ -60,12 +60,12 @@ val ScreenPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
 
 /** Base card: theme-colored background, large corners, thin border. */
 @Composable
-fun AppCard(modifier: Modifier = Modifier, deco: Boolean = false, content: @Composable () -> Unit) {
+fun AppCard(modifier: Modifier = Modifier, deco: Boolean = false, decoScale: Float = 1f, content: @Composable () -> Unit) {
     val p = LocalPalette.current
     val src = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val st = com.furuarc.ui.theme.AppStyle.ui
     if (st == com.furuarc.ui.theme.UiStyle.BLOSSOM) {
-        BlossomCard(modifier.staggeredEntrance().scrollJelly().pressScale(src, 0.92f), src, deco, content)
+        BlossomCard(modifier.staggeredEntrance().scrollJelly().pressScale(src, 0.92f), src, deco, decoScale, content)
         return
     }
     val soft = st == com.furuarc.ui.theme.UiStyle.SOFT

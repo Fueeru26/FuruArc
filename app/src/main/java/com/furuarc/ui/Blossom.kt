@@ -80,9 +80,9 @@ fun Modifier.glassShadow(radius: Dp, dark: Boolean, reach: Dp = 4.dp): Modifier 
     }
 }
 
-/** Glass card of the Blossom style: translucent gradient fill, light rim, blue glow; [deco] adds the small flowers in the bottom-right corner. */
+/** Glass card of the Blossom style: translucent gradient fill, light rim, blue glow; [deco] adds the small flowers in the bottom-right corner ([decoScale] shrinks them for small cards). */
 @Composable
-fun BlossomCard(modifier: Modifier, src: MutableInteractionSource, deco: Boolean, content: @Composable () -> Unit) {
+fun BlossomCard(modifier: Modifier, src: MutableInteractionSource, deco: Boolean, decoScale: Float = 1f, content: @Composable () -> Unit) {
     val p = LocalPalette.current
     val shape = RoundedCornerShape(CardRadius)
     // opaque (nothing shines through); blue glow shadow, 4dp thick
@@ -99,7 +99,7 @@ fun BlossomCard(modifier: Modifier, src: MutableInteractionSource, deco: Boolean
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     alpha = if (p.dark) 0.85f else 0.95f,
-                    modifier = Modifier.align(Alignment.BottomEnd).requiredSize(width = 190.dp, height = 110.dp),
+                    modifier = Modifier.align(Alignment.BottomEnd).requiredSize(width = 190.dp * decoScale, height = 110.dp * decoScale),
                 )
             }
         }
@@ -150,8 +150,9 @@ fun BlossomUnderline(modifier: Modifier = Modifier) {
     val p = LocalPalette.current
     val c0 = if (p.dark) Color.White else p.accent
     val c1 = if (p.dark) Color(0xFF5D78BD) else p.accent.copy(alpha = 0.55f)
+    // raised by 8dp so the line never touches the card below the header
     Box(
-        modifier.fillMaxWidth(0.68f).height(3.dp).clip(CircleShape)
+        modifier.padding(bottom = 8.dp).fillMaxWidth(0.68f).height(3.dp).clip(CircleShape)
             .background(Brush.horizontalGradient(listOf(c0, c1, Color.Transparent))),
     )
 }
@@ -163,4 +164,27 @@ fun BlossomHeader(title: String) {
         BlossomTitle(title, Modifier.align(Alignment.CenterStart))
         BlossomUnderline(Modifier.align(Alignment.BottomStart))
     }
+}
+
+/**
+ * Label background of one row in a list (a translation row of the Translation Editor): rounded panel with a thin rim.
+ * Blue Blossom uses the same fill and rim as its cards (without glow and flowers); the other styles use the card colour.
+ * It does not animate or react to touch, so typing inside it is never disturbed.
+ */
+@Composable
+fun RowPanel(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val p = LocalPalette.current
+    val shape = RoundedCornerShape(CardRadius)
+    val blossom = com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM
+    val fill = when {
+        blossom && p.dark -> Brush.linearGradient(listOf(Color(0xFF1F2B4F), Color(0xFF151F40)))
+        blossom -> Brush.linearGradient(listOf(Color.White, Color(0xFFE9EEFF)))
+        else -> Brush.linearGradient(listOf(p.card, p.card))
+    }
+    val rim = when {
+        blossom && p.dark -> Brush.linearGradient(listOf(Color(0xFF5B72B0), Color(0xFF2C3A6A)))
+        blossom -> Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF)))
+        else -> Brush.linearGradient(listOf(p.cardBorder, p.cardBorder))
+    }
+    Box(modifier.clip(shape).background(fill).border(BorderStroke(1.dp, rim), shape)) { content() }
 }
