@@ -165,13 +165,18 @@ fun LibraryScreen(onOpen: (GameEntry) -> Unit) {
     }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
+        val blossom = com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM
+        Box(Modifier.fillMaxWidth().height(64.dp)) {
+        Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             val dark = p.background.luminance() < 0.5f
-            Text(g.title, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (dark) Color.White else p.accent, modifier = Modifier.weight(1f))
+            if (blossom) BlossomTitle(g.title, Modifier.weight(1f))
+            else Text(g.title, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (dark) Color.White else p.accent, modifier = Modifier.weight(1f))
             IconButton(onClick = { resetAdd(); step = 1 }, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.Add, g.add, tint = p.text) }
             IconButton(onClick = { searching = !searching; if (!searching) query = "" }, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.Search, g.search, tint = if (searching) p.accent else p.text) }
             IconButton(onClick = { panel = !panel }, modifier = Modifier.size(38.dp)) { Icon(AppIcons.Tune, g.settingsBtn, tint = if (panel) p.accent else p.text) }
             IconButton(onClick = { GameLibrary.refresh() }, enabled = !busy, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.Refresh, g.refresh, tint = if (busy) p.muted else p.text) }
+        }
+        if (blossom) BlossomUnderline(Modifier.align(Alignment.BottomStart))
         }
         if (searching) {
             AppTextField(query, { query = it }, g.searchHint)

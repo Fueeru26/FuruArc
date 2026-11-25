@@ -55,20 +55,20 @@ private fun drawableId(name: String): Int {
 }
 
 /**
- * Soft blue glow below and around a glass surface. The surface itself is cut out of the glow (ClipOp.Difference), so nothing
- * shines through the translucent fill.
+ * Soft blue glow below and around a surface, [reach] thick (4dp). The surface itself is cut out of the glow (ClipOp.Difference),
+ * so nothing shines through its edges.
  */
-fun Modifier.glassShadow(radius: Dp, dark: Boolean): Modifier = this.drawBehind {
+fun Modifier.glassShadow(radius: Dp, dark: Boolean, reach: Dp = 4.dp): Modifier = this.drawBehind {
     val r = radius.toPx()
     val outline = Path().apply { addRoundRect(RoundRect(0f, 0f, size.width, size.height, r, r)) }
     clipPath(outline, ClipOp.Difference) {
-        val steps = 12
-        val reach = 16.dp.toPx()
-        val dy = 6.dp.toPx()
+        val steps = 8
+        val reachPx = reach.toPx()
+        val dy = reachPx * 0.4f
         val base = if (dark) Color(0xFF3A5BC8) else Color(0xFF3C5BDB)
-        val peak = if (dark) 0.03f else 0.04f
+        val peak = if (dark) 0.05f else 0.06f
         for (i in steps downTo 1) {
-            val grow = reach * i / steps
+            val grow = reachPx * i / steps
             val f = 1f - (i - 1) / steps.toFloat()
             drawRoundRect(
                 color = base.copy(alpha = peak * f),
@@ -85,9 +85,10 @@ fun Modifier.glassShadow(radius: Dp, dark: Boolean): Modifier = this.drawBehind 
 fun BlossomCard(modifier: Modifier, src: MutableInteractionSource, deco: Boolean, content: @Composable () -> Unit) {
     val p = LocalPalette.current
     val shape = RoundedCornerShape(CardRadius)
-    val fill = if (p.dark) Brush.linearGradient(listOf(Color(0xFF3A4F94).copy(alpha = 0.30f), Color(0xFF16204A).copy(alpha = 0.42f)))
-    else Brush.linearGradient(listOf(Color.White.copy(alpha = 0.80f), Color(0xFFE4EBFF).copy(alpha = 0.58f)))
-    val rim = if (p.dark) Brush.linearGradient(listOf(Color(0xFF5B72B0).copy(alpha = 0.90f), Color(0xFF2C3A6A).copy(alpha = 0.70f)))
+    // opaque (nothing shines through); blue glow shadow, 4dp thick
+    val fill = if (p.dark) Brush.linearGradient(listOf(Color(0xFF1F2B4F), Color(0xFF151F40)))
+    else Brush.linearGradient(listOf(Color.White, Color(0xFFE9EEFF)))
+    val rim = if (p.dark) Brush.linearGradient(listOf(Color(0xFF5B72B0), Color(0xFF2C3A6A)))
     else Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF)))
     val decoRes = drawableId(if (p.dark) "blossom_deco_dark" else "blossom_deco_light")
     Box(modifier.glassShadow(CardRadius, p.dark).clip(shape).background(fill).border(BorderStroke(1.5.dp, rim), shape)) {
@@ -106,67 +107,60 @@ fun BlossomCard(modifier: Modifier, src: MutableInteractionSource, deco: Boolean
     }
 }
 
-/** Thin ">" arrow at the right edge of menu cards. */
-@Composable
-fun BlossomChevron(color: Color) {
-    Canvas(Modifier.size(width = 14.dp, height = 24.dp)) {
-        val w = size.width
-        val h = size.height
-        val path = Path().apply {
-            moveTo(w * 0.18f, h * 0.12f)
-            lineTo(w * 0.82f, h * 0.5f)
-            lineTo(w * 0.18f, h * 0.88f)
-        }
-        drawPath(path, color, style = Stroke(width = 2.6.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-    }
-}
-
-/** Menu row of the Blossom style: gradient icon badge, thin divider, title + subtitle, arrow. */
+/** Menu row of the Blossom style: same sizes and positions as the Classic menu card, with a thin divider after the icon badge. */
 @Composable
 fun BlossomMenuRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, badge: Boolean, onClick: () -> Unit) {
     val p = LocalPalette.current
-    val badgeShape = RoundedCornerShape(IconRadius)
     AppCard(Modifier.fillMaxWidth(), deco = true) {
         Row(
-            Modifier.cardClickable(onClick).padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 16.dp),
+            Modifier.cardClickable(onClick).padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(62.dp).clip(badgeShape).background(p.brush)
-                    .then(if (p.dark) Modifier.border(1.dp, Color.White.copy(alpha = 0.18f), badgeShape) else Modifier),
+                Modifier.size(48.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush),
                 contentAlignment = Alignment.Center,
             ) {
-                androidx.compose.material.Icon(imageVector = icon, contentDescription = null, tint = p.onGrad, modifier = Modifier.size(32.dp))
-                if (badge) Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(10.dp).clip(CircleShape).background(BadgeRed))
+                androidx.compose.material.Icon(imageVector = icon, contentDescription = null, tint = p.onGrad, modifier = Modifier.size(24.dp))
+                if (badge) Box(Modifier.align(Alignment.TopEnd).padding(top = 4.dp, end = 4.dp).size(10.dp).clip(CircleShape).background(BadgeRed))
             }
-            Box(Modifier.padding(horizontal = 13.dp).width(1.dp).height(58.dp).background(if (p.dark) Color(0xFF5F77B8).copy(alpha = 0.55f) else p.muted.copy(alpha = 0.30f)))
+            Box(Modifier.padding(horizontal = 10.dp).width(1.dp).height(44.dp).background(if (p.dark) Color(0xFF5F77B8).copy(alpha = 0.55f) else p.muted.copy(alpha = 0.30f)))
             Column(Modifier.weight(1f)) {
-                Text(title, fontSize = 19.5.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold, color = p.text)
-                Text(subtitle, fontSize = 14.5.sp, lineHeight = 18.5.sp, color = p.muted)
+                Text(title, fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, color = p.text)
+                Text(subtitle, fontSize = 14.sp, lineHeight = 20.sp, color = p.muted)
             }
-            Spacer(Modifier.width(8.dp))
-            BlossomChevron(if (p.dark) Color(0xFFD8E6FF) else p.accent)
         }
     }
 }
 
-/** Tab title of the Blossom style: blue blossom icon, bold title and a gradient line that fades out to the right. */
+/** Title with the blue blossom icon; same text size and colour as the Classic tab title. */
 @Composable
-fun BlossomHeader(title: String) {
+fun BlossomTitle(title: String, modifier: Modifier = Modifier) {
     val p = LocalPalette.current
     val iconRes = drawableId(if (p.dark) "blossom_icon_dark" else "blossom_icon")
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        if (iconRes != 0) Image(painter = painterResource(iconRes), contentDescription = null, modifier = Modifier.size(28.dp))
+        Spacer(Modifier.width(10.dp))
+        Text(title, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (p.dark) Color.White else p.accent, maxLines = 1)
+    }
+}
+
+/** Gradient line under a tab title; it fades out to the right. */
+@Composable
+fun BlossomUnderline(modifier: Modifier = Modifier) {
+    val p = LocalPalette.current
     val c0 = if (p.dark) Color.White else p.accent
     val c1 = if (p.dark) Color(0xFF5D78BD) else p.accent.copy(alpha = 0.55f)
-    Column(Modifier.fillMaxWidth().padding(top = 26.dp, bottom = 26.dp)) {
-        Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (iconRes != 0) Image(painter = painterResource(iconRes), contentDescription = null, modifier = Modifier.size(36.dp))
-            Spacer(Modifier.width(14.dp))
-            Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = p.text, maxLines = 1)
-        }
-        Spacer(Modifier.height(2.dp))
-        Box(
-            Modifier.fillMaxWidth(0.68f).height(3.dp).clip(CircleShape)
-                .background(Brush.horizontalGradient(listOf(c0, c1, Color.Transparent))),
-        )
+    Box(
+        modifier.fillMaxWidth(0.68f).height(3.dp).clip(CircleShape)
+            .background(Brush.horizontalGradient(listOf(c0, c1, Color.Transparent))),
+    )
+}
+
+/** Tab title bar of the Blossom style: 64dp tall like the Classic one, with the gradient line at its bottom edge. */
+@Composable
+fun BlossomHeader(title: String) {
+    Box(Modifier.fillMaxWidth().height(64.dp)) {
+        BlossomTitle(title, Modifier.align(Alignment.CenterStart))
+        BlossomUnderline(Modifier.align(Alignment.BottomStart))
     }
 }

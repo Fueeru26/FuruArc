@@ -339,35 +339,35 @@ fun BigToolCard(icon: ImageVector, title: String, subtitle: String = "", modifie
     }
 }
 
-/** Glass: wide rounded glass bar hovering above the bottom edge; every tab shows icon + label, the active one sits in a soft blue pill. */
+/** Glass: opaque bar hovering above the bottom edge, laid out like the Classic bar (icon pill + label under it), corners like Classic. */
 @Composable
 private fun GlassBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) {
     val p = LocalPalette.current
-    val shape = RoundedCornerShape(30.dp)
-    val fill = if (p.dark) Brush.verticalGradient(listOf(Color(0xFF161D3A).copy(alpha = 0.95f), Color(0xFF0F152D).copy(alpha = 0.96f)))
-    else Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.92f), Color(0xFFEAF0FF).copy(alpha = 0.90f)))
-    val rim = if (p.dark) Brush.linearGradient(listOf(Color(0xFF4A5C94).copy(alpha = 0.95f), Color(0xFF2E3C6C).copy(alpha = 0.80f)))
+    val shape = RoundedCornerShape(CardRadius)
+    val fill = if (p.dark) Brush.verticalGradient(listOf(Color(0xFF161D3A), Color(0xFF0F152D)))
+    else Brush.verticalGradient(listOf(Color.White, Color(0xFFEAF0FF)))
+    val rim = if (p.dark) Brush.linearGradient(listOf(Color(0xFF4A5C94), Color(0xFF2E3C6C)))
     else Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF)))
     val selTint = if (p.dark) Color(0xFF4AB0FF) else p.accent
     val unselTint = if (p.dark) Color(0xFFA9BEF5) else p.muted
-    Box(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 8.dp)) {
+    Box(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 10.dp)) {
         Row(
-            Modifier.fillMaxWidth().height(70.dp).glassShadow(30.dp, p.dark).clip(shape).background(fill)
-                .border(BorderStroke(1.5.dp, rim), shape).padding(horizontal = 6.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            Modifier.fillMaxWidth().height(76.dp).glassShadow(CardRadius, p.dark).clip(shape).background(fill)
+                .border(BorderStroke(1.dp, rim), shape).padding(horizontal = 8.dp),
         ) {
             items.forEachIndexed { i, item ->
                 val sel = i == selected
                 val pill by animateColorAsState(if (sel) (if (p.dark) Color(0xFF27407B) else Color(0xFFD5DFFF)) else Color.Transparent)
-                val sc by animateFloatAsState(if (sel) 1.08f else 1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
                 Column(
-                    Modifier.weight(1f).fillMaxHeight().padding(horizontal = 4.dp).clip(RoundedCornerShape(24.dp)).background(pill)
-                        .clickableScale(pressed = 0.92f, ripple = false) { onSelect(i) },
+                    Modifier.weight(1f).fillMaxHeight().clickableScale(pressed = 0.9f, ripple = false) { onSelect(i) },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Box(Modifier.scale(sc)) { NavIcon(item, if (sel) selTint else unselTint, 28.dp) }
-                    Spacer(Modifier.height(2.dp))
+                    Box(
+                        Modifier.size(width = 64.dp, height = 34.dp).clip(RoundedCornerShape(CardRadius)).background(pill),
+                        contentAlignment = Alignment.Center,
+                    ) { NavIcon(item, if (sel) selTint else unselTint) }
+                    Spacer(Modifier.height(3.dp))
                     NavLabel(item.label, sel, if (sel) selTint else unselTint)
                 }
             }

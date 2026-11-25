@@ -55,7 +55,7 @@ object AppStyle {
         UiStyle.SUNSET -> 18.dp
         UiStyle.NEON -> 8.dp
         UiStyle.PAPER -> 6.dp
-        UiStyle.BLOSSOM -> 26.dp
+        UiStyle.BLOSSOM -> 10.dp
     }
     val controlRadius: Dp get() = when (ui) {
         UiStyle.CLASSIC -> 10.dp
@@ -69,7 +69,7 @@ object AppStyle {
         UiStyle.SUNSET -> 16.dp
         UiStyle.NEON -> 8.dp
         UiStyle.PAPER -> 6.dp
-        UiStyle.BLOSSOM -> 20.dp
+        UiStyle.BLOSSOM -> 10.dp
     }
     val iconRadius: Dp get() = when (ui) {
         UiStyle.CLASSIC -> 8.dp
@@ -83,7 +83,7 @@ object AppStyle {
         UiStyle.SUNSET -> 14.dp
         UiStyle.NEON -> 6.dp
         UiStyle.PAPER -> 4.dp
-        UiStyle.BLOSSOM -> 18.dp
+        UiStyle.BLOSSOM -> 8.dp
     }
 
     fun apply(uiId: Int, navId: Int, anim: Boolean = true, haptic: Boolean = false) {
