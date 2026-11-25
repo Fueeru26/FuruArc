@@ -155,6 +155,20 @@ fun BlossomHeader(title: String) {
 }
 
 /**
+ * Border of a card or label panel: (brush, width). Blue Blossom uses its light/dark rim at 1.5dp,
+ * the other styles use the plain card border at 1dp.
+ */
+@Composable
+fun cardRim(): Pair<Brush, androidx.compose.ui.unit.Dp> {
+    val p = LocalPalette.current
+    return if (com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM) {
+        val b = if (p.dark) Brush.linearGradient(listOf(Color(0xFF5B72B0), Color(0xFF2C3A6A)))
+        else Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF)))
+        Pair(b, 1.5.dp)
+    } else Pair(androidx.compose.ui.graphics.SolidColor(p.cardBorder), 1.dp)
+}
+
+/**
  * Label background: the panel behind one part of a page (a row of the Translation Editor, a group of settings, an options section).
  * It looks like a card (Blue Blossom fill, light rim and glow; the card colours, border and shadow of the other styles) but does not
  * animate or react to touch, so typing inside it is never disturbed. Every label background in the app uses this one.
