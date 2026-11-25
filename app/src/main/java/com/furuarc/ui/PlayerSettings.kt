@@ -46,13 +46,7 @@ private fun PDrop(label: String, value: Int, options: List<Pair<Int, String>>, o
 
 @Composable
 private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
-    val p = LocalPalette.current
-    AppCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(title, color = p.accent, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            content()
-        }
-    }
+    LabelSection(title) { content() }
 }
 
 @Composable

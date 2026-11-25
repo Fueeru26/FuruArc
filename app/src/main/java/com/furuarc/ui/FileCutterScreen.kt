@@ -167,12 +167,12 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bo
         item {
             PickerCard(AppIcons.File, c.cutPicker, srcName?.let { c.cutInfo(it, fmtSize(srcSize)) }, AppIcons.File) { if (!busy) pickSrc.launch(arrayOf("*/*")) }
         }
-        item { SectionLabel(c.cutPart) }
-        item { SegmentedChips(listOf(c.cutHead, ft.cutMid, c.cutTail), part) { part = it; autoName() } }
-        if (part == 1) item {
+        panel(c.cutPart) {
+        run { SegmentedChips(listOf(c.cutHead, ft.cutMid, c.cutTail), part) { part = it; autoName() } }
+        if (part == 1) run {
             AppTextField(value = offsetTxt, onValueChange = { v -> offsetTxt = v.filter { ch -> ch.isDigit() }.take(12); autoName() }, label = ft.cutOffset, number = true)
         }
-        item {
+        run {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) {
                     AppTextField(value = amount, onValueChange = { v -> amount = v.filter { ch -> ch.isDigit() }.take(6); autoName() }, label = c.cutAmount, number = true)
@@ -180,9 +180,10 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bo
                 Box(Modifier.weight(1f)) { SegmentedChips(unitName, unit) { unit = it; autoName() } }
             }
         }
-        item { DetailHint(c.cutHint) }
-        item { AppTextField(value = fileName, onValueChange = { fileName = it; nameEdited = true }, label = c.cutOutName) }
-        item { PickerCard(AppIcons.Folder, c.cutOutFolder, outName, AppIcons.Folder) { if (!busy) pickOut.launch(null) } }
+        run { DetailHint(c.cutHint) }
+        run { AppTextField(value = fileName, onValueChange = { fileName = it; nameEdited = true }, label = c.cutOutName) }
+        run { PickerCard(AppIcons.Folder, c.cutOutFolder, outName, AppIcons.Folder) { if (!busy) pickOut.launch(null) } }
+        }
         item { PrimaryButton(c.cutRun, src != null && !busy && bytes() > 0) { run() } }
         if (busy) item {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

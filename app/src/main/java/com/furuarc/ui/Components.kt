@@ -111,6 +111,13 @@ fun Modifier.darkGlow(radius: androidx.compose.ui.unit.Dp, reach: androidx.compo
         }
     }
 
+/** Thin shadow of a button: a light grey-black shadow in light mode, a thin white glow in dark mode (like the card shadow, only smaller). */
+@Composable
+fun Modifier.buttonShadow(radius: androidx.compose.ui.unit.Dp, enabled: Boolean = true): Modifier =
+    if (!enabled) this
+    else if (LocalPalette.current.dark) this.darkGlow(radius, reach = 5.dp, strength = 0.12f)
+    else this.shadow(2.dp, RoundedCornerShape(radius), clip = false)
+
 /** Shadow for cards that are drawn by hand (cover cards): grey-black in light mode, a light glow in dark mode. Put it before the clip. */
 @Composable
 fun Modifier.cardShadow(radius: androidx.compose.ui.unit.Dp): Modifier {
@@ -268,6 +275,7 @@ fun SegmentedChips(items: List<String>, selected: Int, fontSize: androidx.compos
                 Modifier
                     .weight(1f)
                     .height(44.dp)
+                    .buttonShadow(ControlRadius - 4.dp)
                     .clip(RoundedCornerShape(ControlRadius - 4.dp))
                     .background(if (sel) p.brush else p.softBrush)
                     .clickableScale(pressed = 0.94f) { onSelect(i) },
@@ -429,6 +437,7 @@ fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
         ),
         elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
         modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.95f)
+            .buttonShadow(ControlRadius, enabled)
             .clip(RoundedCornerShape(ControlRadius)).background(if (enabled) p.brush else androidx.compose.ui.graphics.SolidColor(p.disabledBg)),
     ) {
         OneLineText(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
@@ -455,6 +464,7 @@ fun SecondaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
         ),
         elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
         modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.95f)
+            .buttonShadow(ControlRadius, enabled)
             .clip(RoundedCornerShape(ControlRadius)).background(if (enabled) p.softBrush else androidx.compose.ui.graphics.SolidColor(p.disabledBg)),
     ) {
         OneLineText(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
@@ -690,9 +700,9 @@ fun CancelDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
  * Used above each group of cards or settings.
  */
 @Composable
-fun GroupTitle(text: String) {
+fun GroupTitle(text: String, top: androidx.compose.ui.unit.Dp = 8.dp) {
     val p = LocalPalette.current
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(top = top), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.weight(1f).height(2.dp).background(p.accent))
         Text(
             text, color = p.accent, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold,
@@ -700,6 +710,11 @@ fun GroupTitle(text: String) {
         )
         Box(Modifier.weight(1f).height(2.dp).background(p.accent))
     }
+}
+
+/** A part of a lazy page on its own label background (one item); [title] = centered title with lines. */
+fun androidx.compose.foundation.lazy.LazyListScope.panel(title: String?, content: @Composable ColumnScope.() -> Unit) {
+    item { LabelSection(title, content = content) }
 }
 
 /** Section title (above a toggle/choice), equivalent to the Quality/Volume label style. */

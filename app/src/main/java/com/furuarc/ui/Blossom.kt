@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -153,9 +155,9 @@ fun BlossomHeader(title: String) {
 }
 
 /**
- * Label background of one row in a list (a translation row of the Translation Editor): rounded panel with a thin rim.
- * Blue Blossom uses the same fill and rim as its cards (without glow and flowers); the other styles use the card colour.
- * It does not animate or react to touch, so typing inside it is never disturbed.
+ * Label background: the panel behind one part of a page (a row of the Translation Editor, a group of settings, an options section).
+ * It looks like a card (Blue Blossom fill, light rim and glow; the card colours, border and shadow of the other styles) but does not
+ * animate or react to touch, so typing inside it is never disturbed. Every label background in the app uses this one.
  */
 @Composable
 fun RowPanel(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
@@ -167,19 +169,17 @@ fun RowPanel(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
         blossom -> Brush.linearGradient(listOf(Color.White, Color(0xFFE9EEFF)))
         else -> Brush.linearGradient(listOf(p.card, p.card))
     }
-    val rim = when {
-        blossom && p.dark -> Brush.linearGradient(listOf(Color(0xFF5B72B0), Color(0xFF2C3A6A)))
-        blossom -> Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF)))
-        else -> Brush.linearGradient(listOf(p.cardBorder, p.cardBorder))
-    }
-    Box(modifier.clip(shape).background(fill).border(BorderStroke(1.dp, rim), shape)) { content() }
+    val rim = cardRim()
+    Box(modifier.cardShadow(CardRadius).clip(shape).background(fill).border(BorderStroke(rim.second, rim.first), shape)) { content() }
 }
 
-/** Border of a card, the same as the menu cards: the light rim of Blue Blossom (1.5dp) or the card border of the other styles (1dp). */
+/** A part of a page on its own label background: optional [title] (centered title with a line on each side) above the [content]. */
 @Composable
-fun cardRim(): Pair<Brush, Dp> {
-    val p = LocalPalette.current
-    return if (com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM) {
-        Pair(if (p.dark) Brush.linearGradient(listOf(Color(0xFF5B72B0), Color(0xFF2C3A6A))) else Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF))), 1.5.dp)
-    } else Pair(Brush.linearGradient(listOf(p.cardBorder, p.cardBorder)), 1.dp)
+fun LabelSection(title: String?, modifier: Modifier = Modifier.fillMaxWidth(), content: @Composable ColumnScope.() -> Unit) {
+    RowPanel(modifier) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (title != null) GroupTitle(title, top = 0.dp)
+            content()
+        }
+    }
 }

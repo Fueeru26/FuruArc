@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.furuarc.core.MediaFormats
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -204,22 +205,33 @@ private class Sections {
     val open = mutableStateMapOf<String, Boolean>()
 }
 
+/** Item inside a section panel (same lock rule as [litem]). */
 @Composable
-private fun SectionHeader(title: String, open: Boolean, onToggle: () -> Unit) {
-    val p = LocalPalette.current
-    AppCard(Modifier.fillMaxWidth()) {
-        Row(Modifier.fillMaxWidth().clickable { onToggle() }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 21.sp, modifier = Modifier.weight(1f))
-            Text(if (open) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
-        }
-    }
+private fun pitem(content: @Composable () -> Unit) = LockBox(content)
+
+@Composable
+private fun pitems(count: Int, content: @Composable (Int) -> Unit) {
+    for (i in 0 until count) LockBox { content(i) }
 }
 
-/** A section that can be opened/closed; its contents are only built when open. */
-private fun LazyListScope.section(sec: Sections, key: String, title: String, defaultOpen: Boolean = false, content: LazyListScope.() -> Unit) {
+/**
+ * A section that can be opened/closed, on its own label background (the same look as the label backgrounds of the settings).
+ * The title row toggles it; the contents are only built when open.
+ */
+private fun LazyListScope.section(sec: Sections, key: String, title: String, defaultOpen: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val isOpen = sec.open[key] ?: defaultOpen
-    litem { SectionHeader(title, isOpen) { sec.open[key] = !isOpen } }
-    if (isOpen) content()
+    litem {
+        val p = LocalPalette.current
+        RowPanel(Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().clickable { sec.open[key] = !isOpen }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp, modifier = Modifier.weight(1f))
+                    Text(if (isOpen) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
+                }
+                if (isOpen) Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() }
+            }
+        }
+    }
 }
 
 /** The error message stays visible even when its section is closed, so the disabled Start button has an explanation. */
@@ -575,22 +587,22 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bo
         options(sec)
 
         section(sec, "out", m.secOut) {
-            if (srcMode == 1) litem { SegmentedChips(m.outModes, outMode, 14.sp) { outMode = it } }
+            if (srcMode == 1) pitem { SegmentedChips(m.outModes, outMode, 14.sp) { outMode = it } }
             if (!inPlaceMode) {
-                if (srcMode == 1) litem { PickerCard(AppIcons.FolderUpload, m.outFolder, outName, AppIcons.FolderPlus) { pickOut() } }
-                litem { SectionLabel(m.conflict) }
-                litem { SegmentedChips(m.conflictOpts, polIdx, 14.sp) { i -> polIdx = i } }
-                if (srcMode == 0) litem { PickerCard(AppIcons.FolderUpload, m.outFolder, outName, AppIcons.FolderPlus) { pickOut() } }
+                if (srcMode == 1) pitem { PickerCard(AppIcons.FolderUpload, m.outFolder, outName, AppIcons.FolderPlus) { pickOut() } }
+                pitem { SectionLabel(m.conflict) }
+                pitem { SegmentedChips(m.conflictOpts, polIdx, 14.sp) { i -> polIdx = i } }
+                if (srcMode == 0) pitem { PickerCard(AppIcons.FolderUpload, m.outFolder, outName, AppIcons.FolderPlus) { pickOut() } }
             } else {
-                litem { CheckRow(m.backupCheck, backup) { backup = it } }
-                item { DetailHint(m.overwriteHow) }
-                if (!backup) litem { Text(m.backupWarn, color = WarnColor, fontSize = 13.sp, lineHeight = 18.sp) }
+                pitem { CheckRow(m.backupCheck, backup) { backup = it } }
+                pitem { DetailHint(m.overwriteHow) }
+                if (!backup) pitem { Text(m.backupWarn, color = WarnColor, fontSize = 13.sp, lineHeight = 18.sp) }
             }
             if (srcMode == 1 && kind <= 1) {
-                litem {
+                pitem {
                     SecondaryButton(m.sampleBtn, items.isNotEmpty() && optionsValid && !scanning && !MediaJobs.isRunning() && !sampling) { makeSample() }
                 }
-                item { DetailHint(m.sampleHint) }
+                pitem { DetailHint(m.sampleHint) }
             }
         }
 
@@ -690,11 +702,11 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bo
         }
         if (mine && st.finished && st.results.isNotEmpty()) {
             section(sec, "results", m.secResults(st.results.size)) {
-                litem { Hint(m.resUndoHint) }
-                litems(minOf(resShown, st.results.size)) { i ->
+                pitem { Hint(m.resUndoHint) }
+                pitems(minOf(resShown, st.results.size)) { i ->
                     ResultRow(m, st.results[i]) { MediaJobs.undo(i) }
                 }
-                if (st.results.size > resShown) litem { SecondaryButton(m.resMore) { resShown += 50 } }
+                if (st.results.size > resShown) pitem { SecondaryButton(m.resMore) { resShown += 50 } }
             }
         }
         litem { Hint(m.bgNote) }
@@ -854,14 +866,15 @@ private fun LazyListScope.compressBlock(
     onlyOver: Boolean, onOnlyOver: (Boolean) -> Unit,
     thr: String, onThr: (String) -> Unit,
 ) {
-    litem { SectionLabel(title) }
-    litem { SegmentedChips(m.compModes, mode, 14.sp) { onMode(it) } }
+    litem {
+    LabelSection(title) {
+    run { SegmentedChips(m.compModes, mode, 14.sp) { onMode(it) } }
     if (mode == 0) {
-        litem { PercentSlider(m.compPercent, pct, 1, 100, onPct) }
+        run { PercentSlider(m.compPercent, pct, 1, 100, onPct) }
     } else {
         val mult = if (unit == 1) 1024L else 1L
         val shown = if (kb.isEmpty()) "" else (kb.toLong() / mult).toString()
-        litem {
+        run {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) {
                     AppTextField(
@@ -881,15 +894,17 @@ private fun LazyListScope.compressBlock(
                 }
             }
         }
-        if (sizeOverSource(kb, items)) litem { RedText(m.compOver) }
+        if (sizeOverSource(kb, items)) run { RedText(m.compOver) }
     }
-    item { DetailHint(hint + " " + m.compHint) }
+    run { DetailHint(hint + " " + m.compHint) }
     if (isFolder) {
-        litem { CheckRow(m.onlyOver, onlyOver, onOnlyOver) }
+        run { CheckRow(m.onlyOver, onlyOver, onOnlyOver) }
         if (onlyOver) {
-            litem { AppTextField(value = thr, onValueChange = { onThr(digits(it, 9)) }, label = m.onlyOverKb, number = true) }
-            item { DetailHint(m.onlyOverHint) }
+            run { AppTextField(value = thr, onValueChange = { onThr(digits(it, 9)) }, label = m.onlyOverKb, number = true) }
+            run { DetailHint(m.onlyOverHint) }
         }
+    }
+    }
     }
 }
 
@@ -970,7 +985,7 @@ private fun LazyListScope.presetSection(
     restore: (Map<String, String>) -> Unit,
 ) {
     section(sec, "preset", m.secPreset) {
-        litem { PresetBlock(kind, m, builtins, snapshot, restore) }
+        pitem { PresetBlock(kind, m, builtins, snapshot, restore) }
     }
 }
 
@@ -1046,25 +1061,25 @@ fun AudioConvertScreen(onBack: () -> Unit) {
         compressBlock(m, m.audCompress, m.audCompressHint, cMode, { cMode = it }, cPct, { cPct = it }, cKb, { cKb = it }, cUnit, { cUnit = it }, src, isFolder, onlyOver, { onlyOver = it }, thr, { thr = it })
         section(sec, "audio", m.secAudio) {
             if (fmtSel != 3 && fmtSel != 5) {
-                litem { AppDropdown(m.audBitrate, kbps, listOf("0" to m.audBitrateAuto) + listOf("64", "96", "128", "160", "192", "256", "320").map { it to it }) { kbps = it } }
+                pitem { AppDropdown(m.audBitrate, kbps, listOf("0" to m.audBitrateAuto) + listOf("64", "96", "128", "160", "192", "256", "320").map { it to it }) { kbps = it } }
             }
-            litem {
+            pitem {
                 AppDropdown(
                     m.audRate, rate,
                     listOf("0" to m.audRateKeep, "22050" to "22050 Hz", "32000" to "32000 Hz", "44100" to "44100 Hz", "48000" to "48000 Hz"),
                 ) { rate = it }
             }
-            litem { SegmentedChips(m.audChannels, ch, 14.sp) { ch = it } }
-            litem { PercentSlider(m.audVolume, vol, 1, 200) { vol = it } }
+            pitem { SegmentedChips(m.audChannels, ch, 14.sp) { ch = it } }
+            pitem { PercentSlider(m.audVolume, vol, 1, 200) { vol = it } }
         }
         section(sec, "polish", m.secPolish) {
-            litem { SectionLabel(m.audNorm) }
-            litem { SegmentedChips(m.audNormOpts, norm, 14.sp) { norm = it } }
-            if (norm > 0) item { DetailHint(m.audNormHint) }
-            litem { CheckRow(m.audTrim, trim) { trim = it } }
-            if (trim) item { DetailHint(m.audTrimHint) }
-            litem { CheckRow(m.audKeepLoop, keepLoop) { keepLoop = it } }
-            item { DetailHint(m.audLoopHint) }
+            pitem { SectionLabel(m.audNorm) }
+            pitem { SegmentedChips(m.audNormOpts, norm, 14.sp) { norm = it } }
+            if (norm > 0) pitem { DetailHint(m.audNormHint) }
+            pitem { CheckRow(m.audTrim, trim) { trim = it } }
+            if (trim) pitem { DetailHint(m.audTrimHint) }
+            pitem { CheckRow(m.audKeepLoop, keepLoop) { keepLoop = it } }
+            pitem { DetailHint(m.audLoopHint) }
         }
         presetSection(sec, 0, m, builtins, { snapshot() }, { restore(it) })
     }
@@ -1172,11 +1187,11 @@ fun ImageConvertScreen(onBack: () -> Unit) {
             if (dither) item { DetailHint(m.imgDitherHint) }
         }
         section(sec, "image", m.secImage) {
-            litem { SectionLabel(m.imgResize) }
-            litem { SegmentedChips(m.imgResizeOpts, resize, 14.sp) { resize = it } }
-            if (resize == 1) litem { PercentSlider(m.imgPercent, pct, 1, 100) { pct = it } }
+            pitem { SectionLabel(m.imgResize) }
+            pitem { SegmentedChips(m.imgResizeOpts, resize, 14.sp) { resize = it } }
+            if (resize == 1) pitem { PercentSlider(m.imgPercent, pct, 1, 100) { pct = it } }
             if (resize == 2) {
-                litem {
+                pitem {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.weight(1f)) {
                             AppTextField(
@@ -1205,20 +1220,20 @@ fun ImageConvertScreen(onBack: () -> Unit) {
                         }
                     }
                 }
-                litem { CheckRow(m.imgKeepRatio, keepRatio) { keepRatio = it } }
-                if (sizeOver) litem { RedText(m.compOver) }
+                pitem { CheckRow(m.imgKeepRatio, keepRatio) { keepRatio = it } }
+                if (sizeOver) pitem { RedText(m.compOver) }
             }
             if (resize != 0) {
-                litem { AppDropdown(m.imgMultiple, mult.toString(), m.imgMultipleOpts.mapIndexed { i, t -> Pair(i.toString(), t) }) { mult = it.toInt() } }
-                item { DetailHint(m.imgMultipleHint) }
+                pitem { AppDropdown(m.imgMultiple, mult.toString(), m.imgMultipleOpts.mapIndexed { i, t -> Pair(i.toString(), t) }) { mult = it.toInt() } }
+                pitem { DetailHint(m.imgMultipleHint) }
             }
-            litem { SectionLabel(m.imgRotate) }
-            litem { SegmentedChips(listOf("0°", "90°", "180°", "270°"), rotate, 14.sp) { rotate = it } }
+            pitem { SectionLabel(m.imgRotate) }
+            pitem { SegmentedChips(listOf("0°", "90°", "180°", "270°"), rotate, 14.sp) { rotate = it } }
             if (fmtSel == 0 || fmtSel == 2) {
-                litem { SectionLabel(m.imgBg) }
-                litem { SegmentedChips(m.imgBgOpts, bg, 14.sp) { bg = it } }
+                pitem { SectionLabel(m.imgBg) }
+                pitem { SegmentedChips(m.imgBgOpts, bg, 14.sp) { bg = it } }
             }
-            item { DetailHint(m.imgNote) }
+            pitem { DetailHint(m.imgNote) }
         }
         closedErrors(sec, "image", if (sizeOver) m.compOver else null)
         presetSection(sec, 1, m, builtins, { snapshot() }, { restore(it) })
@@ -1288,23 +1303,23 @@ fun VideoConvertScreen(onBack: () -> Unit) {
         item { DetailHint(m.vidFormatHint) }
         compressBlock(m, m.vidCompress, m.vidCompressHint, cMode, { cMode = it }, cPct, { cPct = it }, cKb, { cKb = it }, cUnit, { cUnit = it }, src, isFolder, onlyOver, { onlyOver = it }, thr, { thr = it })
         section(sec, "video", m.secVideo) {
-            litem {
+            pitem {
                 AppDropdown(
                     m.vidRes, res,
                     listOf("0" to m.vidResKeep, "1080" to "1080p", "720" to "720p", "480" to "480p", "360" to "360p", "240" to "240p"),
                 ) { res = it }
             }
-            litem {
+            pitem {
                 AppDropdown(
                     m.vidBitrate, kbps,
                     listOf("0" to m.vidBitrateAuto) + listOf("500", "1000", "1500", "2000", "3000", "4000", "6000", "8000", "12000", "16000", "20000").map { it to "$it kbps" },
                 ) { kbps = it }
             }
-            litem { SectionLabel(m.vidFps) }
-            litem { SegmentedChips(m.vidFpsOpts, fps, 14.sp) { fps = it } }
-            litem { SectionLabel(m.vidAudio) }
-            litem { SegmentedChips(m.vidAudioOpts, audio, 14.sp) { audio = it } }
-            item { DetailHint(m.vidNote) }
+            pitem { SectionLabel(m.vidFps) }
+            pitem { SegmentedChips(m.vidFpsOpts, fps, 14.sp) { fps = it } }
+            pitem { SectionLabel(m.vidAudio) }
+            pitem { SegmentedChips(m.vidAudioOpts, audio, 14.sp) { audio = it } }
+            pitem { DetailHint(m.vidNote) }
         }
         presetSection(sec, 2, m, builtins, { snapshot() }, { restore(it) })
     }
@@ -1567,23 +1582,23 @@ fun MixedConvertScreen(onBack: () -> Unit) {
             compressBlock(m, m.audCompress, m.audCompressHint, aMode, { aMode = it }, aPct, { aPct = it }, aKb, { aKb = it }, aUnit, { aUnit = it }, la, true, aOnly, { aOnly = it }, aThr, { aThr = it })
             section(sec, "mixAadv", m.secPolish) {
                 if (aFmt != 3 && aFmt != 5) {
-                    litem { AppDropdown(m.audBitrate, aKbps, listOf("0" to m.audBitrateAuto) + listOf("64", "96", "128", "160", "192", "256", "320").map { it to it }) { aKbps = it } }
+                    pitem { AppDropdown(m.audBitrate, aKbps, listOf("0" to m.audBitrateAuto) + listOf("64", "96", "128", "160", "192", "256", "320").map { it to it }) { aKbps = it } }
                 }
-                litem {
+                pitem {
                     AppDropdown(
                         m.audRate, aRate,
                         listOf("0" to m.audRateKeep, "22050" to "22050 Hz", "32000" to "32000 Hz", "44100" to "44100 Hz", "48000" to "48000 Hz"),
                     ) { aRate = it }
                 }
-                litem { SegmentedChips(m.audChannels, aCh, 14.sp) { aCh = it } }
-                litem { PercentSlider(m.audVolume, aVol, 1, 200) { aVol = it } }
-                litem { SectionLabel(m.audNorm) }
-                litem { SegmentedChips(m.audNormOpts, aNorm, 14.sp) { aNorm = it } }
-                if (aNorm > 0) item { DetailHint(m.audNormHint) }
-                litem { CheckRow(m.audTrim, aTrim) { aTrim = it } }
-                if (aTrim) item { DetailHint(m.audTrimHint) }
-                litem { CheckRow(m.audKeepLoop, aLoop) { aLoop = it } }
-                item { DetailHint(m.audLoopHint) }
+                pitem { SegmentedChips(m.audChannels, aCh, 14.sp) { aCh = it } }
+                pitem { PercentSlider(m.audVolume, aVol, 1, 200) { aVol = it } }
+                pitem { SectionLabel(m.audNorm) }
+                pitem { SegmentedChips(m.audNormOpts, aNorm, 14.sp) { aNorm = it } }
+                if (aNorm > 0) pitem { DetailHint(m.audNormHint) }
+                pitem { CheckRow(m.audTrim, aTrim) { aTrim = it } }
+                if (aTrim) pitem { DetailHint(m.audTrimHint) }
+                pitem { CheckRow(m.audKeepLoop, aLoop) { aLoop = it } }
+                pitem { DetailHint(m.audLoopHint) }
             }
         }
 
@@ -1606,20 +1621,20 @@ fun MixedConvertScreen(onBack: () -> Unit) {
                 if (iDither) item { DetailHint(m.imgDitherHint) }
             }
             section(sec, "mixIadv", m.secPolish) {
-                litem { SectionLabel(m.imgResize) }
-                litem { SegmentedChips(m.imgResizeOpts.take(2), iResize, 14.sp) { iResize = it } }
-                if (iResize == 1) litem { PercentSlider(m.imgPercent, iScale, 1, 100) { iScale = it } }
+                pitem { SectionLabel(m.imgResize) }
+                pitem { SegmentedChips(m.imgResizeOpts.take(2), iResize, 14.sp) { iResize = it } }
+                if (iResize == 1) pitem { PercentSlider(m.imgPercent, iScale, 1, 100) { iScale = it } }
                 if (iResize != 0) {
-                    litem { AppDropdown(m.imgMultiple, iMult.toString(), m.imgMultipleOpts.mapIndexed { i, t -> Pair(i.toString(), t) }) { iMult = it.toInt() } }
-                    item { DetailHint(m.imgMultipleHint) }
+                    pitem { AppDropdown(m.imgMultiple, iMult.toString(), m.imgMultipleOpts.mapIndexed { i, t -> Pair(i.toString(), t) }) { iMult = it.toInt() } }
+                    pitem { DetailHint(m.imgMultipleHint) }
                 }
-                litem { SectionLabel(m.imgRotate) }
-                litem { SegmentedChips(listOf("0°", "90°", "180°", "270°"), iRot, 14.sp) { iRot = it } }
+                pitem { SectionLabel(m.imgRotate) }
+                pitem { SegmentedChips(listOf("0°", "90°", "180°", "270°"), iRot, 14.sp) { iRot = it } }
                 if (iFmt == 0 || iFmt == 2) {
-                    litem { SectionLabel(m.imgBg) }
-                    litem { SegmentedChips(m.imgBgOpts, iBg, 14.sp) { iBg = it } }
+                    pitem { SectionLabel(m.imgBg) }
+                    pitem { SegmentedChips(m.imgBgOpts, iBg, 14.sp) { iBg = it } }
                 }
-                item { DetailHint(m.imgNote) }
+                pitem { DetailHint(m.imgNote) }
             }
         }
 
@@ -1639,23 +1654,23 @@ fun MixedConvertScreen(onBack: () -> Unit) {
             item { DetailHint(m.vidFormatHint) }
             compressBlock(m, m.vidCompress, m.vidCompressHint, vMode, { vMode = it }, vPct, { vPct = it }, vKb, { vKb = it }, vUnit, { vUnit = it }, lv, true, vOnly, { vOnly = it }, vThr, { vThr = it })
             section(sec, "mixVadv", m.secPolish) {
-                litem {
+                pitem {
                     AppDropdown(
                         m.vidRes, vRes,
                         listOf("0" to m.vidResKeep, "1080" to "1080p", "720" to "720p", "480" to "480p", "360" to "360p", "240" to "240p"),
                     ) { vRes = it }
                 }
-                litem {
+                pitem {
                     AppDropdown(
                         m.vidBitrate, vKbps,
                         listOf("0" to m.vidBitrateAuto) + listOf("500", "1000", "1500", "2000", "3000", "4000", "6000", "8000", "12000", "16000", "20000").map { it to "$it kbps" },
                     ) { vKbps = it }
                 }
-                litem { SectionLabel(m.vidFps) }
-                litem { SegmentedChips(m.vidFpsOpts, vFps, 14.sp) { vFps = it } }
-                litem { SectionLabel(m.vidAudio) }
-                litem { SegmentedChips(m.vidAudioOpts, vAudio, 14.sp) { vAudio = it } }
-                item { DetailHint(m.vidNote) }
+                pitem { SectionLabel(m.vidFps) }
+                pitem { SegmentedChips(m.vidFpsOpts, vFps, 14.sp) { vFps = it } }
+                pitem { SectionLabel(m.vidAudio) }
+                pitem { SegmentedChips(m.vidAudioOpts, vAudio, 14.sp) { vAudio = it } }
+                pitem { DetailHint(m.vidNote) }
             }
         }
         presetSection(sec, 5, m, builtins, { snapshot() }, { restore(it) })
@@ -1696,18 +1711,18 @@ fun TextConvertScreen(onBack: () -> Unit) {
         },
     ) { sec ->
         section(sec, "text", m.secText, true) {
-            litem { SectionLabel(m.txtDirection) }
-            litem { SegmentedChips(m.txtDirections, dir, 14.sp) { dir = it } }
-            litem { AppDropdown(if (dir == 0) m.txtFrom else m.txtTo, cs, csOpts) { cs = it } }
+            pitem { SectionLabel(m.txtDirection) }
+            pitem { SegmentedChips(m.txtDirections, dir, 14.sp) { dir = it } }
+            pitem { AppDropdown(if (dir == 0) m.txtFrom else m.txtTo, cs, csOpts) { cs = it } }
             if (dir == 0) {
-                litem { SectionLabel(m.txtBom) }
-                litem { SegmentedChips(m.txtBomOpts, bom, 14.sp) { bom = it } }
+                pitem { SectionLabel(m.txtBom) }
+                pitem { SegmentedChips(m.txtBomOpts, bom, 14.sp) { bom = it } }
             }
-            litem { SectionLabel(m.txtNewline) }
-            litem { SegmentedChips(m.txtNewlineOpts, nl, 14.sp) { nl = it } }
-            litem { SectionLabel(m.txtStrict) }
-            litem { SegmentedChips(m.txtStrictOpts, lenient, 14.sp) { lenient = it } }
-            item { DetailHint(m.txtNote) }
+            pitem { SectionLabel(m.txtNewline) }
+            pitem { SegmentedChips(m.txtNewlineOpts, nl, 14.sp) { nl = it } }
+            pitem { SectionLabel(m.txtStrict) }
+            pitem { SegmentedChips(m.txtStrictOpts, lenient, 14.sp) { lenient = it } }
+            pitem { DetailHint(m.txtNote) }
         }
         presetSection(sec, 3, m, builtins, { snapshot() }, { restore(it) })
     }

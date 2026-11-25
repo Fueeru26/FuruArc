@@ -241,9 +241,9 @@ fun FormatTestScreen(onBack: () -> Unit) {
 @Composable
 private fun FtSectionHeader(title: String, open: Boolean, onToggle: () -> Unit) {
     val p = LocalPalette.current
-    AppCard(Modifier.fillMaxWidth()) {
+    RowPanel(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().clickable { onToggle() }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 21.sp, modifier = Modifier.weight(1f))
+            Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp, modifier = Modifier.weight(1f))
             Text(if (open) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
         }
     }

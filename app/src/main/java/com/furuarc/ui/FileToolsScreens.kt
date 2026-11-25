@@ -233,10 +233,10 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
         item {
             PickerCard(AppIcons.File, f.source, srcName?.let { f.info(it, fmtBytes(srcSize)) }, AppIcons.File) { if (!busy) pickSrc.launch(arrayOf("*/*")) }
         }
-        item { SectionLabel(f.splitBy) }
-        item { SegmentedChips(f.splitModes, mode) { mode = it } }
+        panel(f.splitBy) {
+        run { SegmentedChips(f.splitModes, mode) { mode = it } }
         if (mode == 0) {
-            item {
+            run {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.weight(1f)) {
                         AppTextField(value = amount, onValueChange = { v -> amount = v.filter { ch -> ch.isDigit() }.take(7) }, label = f.splitSize, number = true)
@@ -245,11 +245,11 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 }
             }
         } else {
-            item {
+            run {
                 AppTextField(value = parts, onValueChange = { v -> parts = v.filter { ch -> ch.isDigit() }.take(5) }, label = f.splitCount, number = true)
             }
         }
-        if (src != null && srcSize > 0L && partSize > 0L) item {
+        if (src != null && srcSize > 0L && partSize > 0L) run {
             when {
                 count > FileOps.MAX_PARTS -> Text(f.tooMany(FileOps.MAX_PARTS), color = ErrColor, fontSize = 13.sp, lineHeight = 19.sp)
                 count == 1 -> Text(f.splitOne, color = WarnColor, fontSize = 13.sp, lineHeight = 19.sp)
@@ -257,10 +257,11 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 else -> {}
             }
         }
-        item { DetailHint(f.splitHint) }
-        item { SegmentedChips(f.sumOpts, sumIdx, 14.sp) { sumIdx = it } }
-        item { AppTextField(value = baseName, onValueChange = { baseName = it }, label = f.splitBase) }
-        item { PickerCard(AppIcons.Folder, f.outFolder, outName, AppIcons.Folder) { if (!busy) pickOut() } }
+        run { DetailHint(f.splitHint) }
+        run { SegmentedChips(f.sumOpts, sumIdx, 14.sp) { sumIdx = it } }
+        run { AppTextField(value = baseName, onValueChange = { baseName = it }, label = f.splitBase) }
+        run { PickerCard(AppIcons.Folder, f.outFolder, outName, AppIcons.Folder) { if (!busy) pickOut() } }
+        }
         item { PrimaryButton(f.splitRun, src != null && !busy && count in 1..FileOps.MAX_PARTS) { run() } }
         if (busy) item {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

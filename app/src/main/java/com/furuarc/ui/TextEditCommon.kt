@@ -97,9 +97,16 @@ internal fun FoldHeader(title: String, open: Boolean, onToggle: () -> Unit) {
 @Composable
 internal fun FoldSection(fold: FoldState, key: String, title: String, defaultOpen: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val isOpen = fold.open[key] ?: defaultOpen
-    Column(verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
-        FoldHeader(title, isOpen) { fold.open[key] = !isOpen }
-        if (isOpen) content()
+    // header and contents sit together on one label background
+    val p = LocalPalette.current
+    RowPanel(Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().clickable { fold.open[key] = !isOpen }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp, modifier = Modifier.weight(1f))
+                Text(if (isOpen) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
+            }
+            if (isOpen) Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() }
+        }
     }
 }
 

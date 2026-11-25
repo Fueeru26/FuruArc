@@ -964,52 +964,59 @@ private fun EditorSettingsPage(
         ScreenHeader(s.r.edSettingsBtn, onDismiss)
     Column(
         Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(ScreenGap),
     ) {
-        // first letter
-        GroupTitle(s.r.setFirstLetter)
-        SegmentedChips(listOf(s.r.setUpper, s.r.setLower), letter) { i -> letter = i }
-        PrimaryButton(s.btnApply, true) { onFirst(letter == 0) }
+        // every part sits on its own label background
+        LabelSection(s.r.setFirstLetter) {
+            SegmentedChips(listOf(s.r.setUpper, s.r.setLower), letter) { i -> letter = i }
+            PrimaryButton(s.btnApply, true) { onFirst(letter == 0) }
+        }
         // auto wrap
-        GroupTitle(s.r.setWrap)
-        AppTextField(
-            value = wrapText, onValueChange = { v -> wrapText = v.filter { c -> c.isDigit() }.take(4) },
-            label = s.r.setWrapMax, number = true,
-        )
-        CheckLine(s.r.setKeepWords, keep) { v -> keep = v }
-        PrimaryButton(s.btnApply, wrapN > 0) { onWrap(wrapN, keep) }
+        LabelSection(s.r.setWrap) {
+            AppTextField(
+                value = wrapText, onValueChange = { v -> wrapText = v.filter { c -> c.isDigit() }.take(4) },
+                label = s.r.setWrapMax, number = true,
+            )
+            CheckLine(s.r.setKeepWords, keep) { v -> keep = v }
+            PrimaryButton(s.btnApply, wrapN > 0) { onWrap(wrapN, keep) }
+        }
         // replace
-        GroupTitle(s.r.setReplace)
-        AppTextField(value = find, onValueChange = { v -> find = v }, label = s.r.setFind)
-        AppTextField(value = rep, onValueChange = { v -> rep = v }, label = s.r.setReplaceWith)
-        CheckLine(s.r.setIgnoreCase, ignoreCase) { v -> ignoreCase = v }
-        CheckLine(s.r.setWholeWord, whole) { v -> whole = v }
-        if (find.isNotEmpty()) Text(s.r.edMatches(matches.first, matches.second), color = p.muted, fontSize = 13.sp)
-        PrimaryButton(s.btnApply, find.isNotEmpty()) { onReplace(find, rep, ignoreCase, whole) }
+        LabelSection(s.r.setReplace) {
+            AppTextField(value = find, onValueChange = { v -> find = v }, label = s.r.setFind)
+            AppTextField(value = rep, onValueChange = { v -> rep = v }, label = s.r.setReplaceWith)
+            CheckLine(s.r.setIgnoreCase, ignoreCase) { v -> ignoreCase = v }
+            CheckLine(s.r.setWholeWord, whole) { v -> whole = v }
+            if (find.isNotEmpty()) Text(s.r.edMatches(matches.first, matches.second), color = p.muted, fontSize = 13.sp)
+            PrimaryButton(s.btnApply, find.isNotEmpty()) { onReplace(find, rep, ignoreCase, whole) }
+        }
         // auto-fill identical entries
-        GroupTitle(s.r.fillTitle)
-        Text(s.r.fillHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
-        PrimaryButton(s.btnApply, true) { onFill() }
+        LabelSection(s.r.fillTitle) {
+            Text(s.r.fillHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
+            PrimaryButton(s.btnApply, true) { onFill() }
+        }
         // auto-fill control codes
-        GroupTitle(s.r.codesTitle)
-        Text(s.r.codesHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
-        CheckLine(s.r.codesEmpty, codesEmpty) { v -> codesEmpty = v }
-        PrimaryButton(s.btnApply, true) { onCodes(codesEmpty) }
+        LabelSection(s.r.codesTitle) {
+            Text(s.r.codesHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
+            CheckLine(s.r.codesEmpty, codesEmpty) { v -> codesEmpty = v }
+            PrimaryButton(s.btnApply, true) { onCodes(codesEmpty) }
+        }
         // import / export glossary (CSV)
-        GroupTitle(s.r.gcsvTitle)
-        Text(s.r.gcsvHint, color = p.muted, fontSize = 13.sp)
-        SegmentedChips(listOf(s.r.gcsvMerge, s.r.gcsvReplace), csvMode) { i -> csvMode = i }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.weight(1f)) { SecondaryButton(s.r.gcsvImport, true) { onGlossImport(csvMode == 1) } }
-            Box(Modifier.weight(1f)) { SecondaryButton(s.r.gcsvExport, true) { onGlossExport() } }
+        LabelSection(s.r.gcsvTitle) {
+            Text(s.r.gcsvHint, color = p.muted, fontSize = 13.sp)
+            SegmentedChips(listOf(s.r.gcsvMerge, s.r.gcsvReplace), csvMode) { i -> csvMode = i }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(Modifier.weight(1f)) { SecondaryButton(s.r.gcsvImport, true) { onGlossImport(csvMode == 1) } }
+                Box(Modifier.weight(1f)) { SecondaryButton(s.r.gcsvExport, true) { onGlossExport() } }
+            }
         }
         // draft autosave (takes effect immediately, no Apply button)
-        GroupTitle(s.r.autoTitle)
-        Text(s.r.autoHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
-        SegmentedChips(listOf(s.r.autoOff, s.r.autoOn), if (autoOn) 1 else 0) { i -> onAutoOn(i == 1) }
-        if (autoOn) {
-            SegmentedChips(AUTO_MINUTES.map { m -> s.r.autoMin(m) }, AUTO_MINUTES.indexOf(autoMin).coerceAtLeast(0)) { i ->
-                onAutoMin(AUTO_MINUTES[i])
+        LabelSection(s.r.autoTitle) {
+            Text(s.r.autoHint, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
+            SegmentedChips(listOf(s.r.autoOff, s.r.autoOn), if (autoOn) 1 else 0) { i -> onAutoOn(i == 1) }
+            if (autoOn) {
+                SegmentedChips(AUTO_MINUTES.map { m -> s.r.autoMin(m) }, AUTO_MINUTES.indexOf(autoMin).coerceAtLeast(0)) { i ->
+                    onAutoMin(AUTO_MINUTES[i])
+                }
             }
         }
     }
