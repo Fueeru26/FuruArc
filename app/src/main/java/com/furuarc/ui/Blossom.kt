@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -169,6 +170,59 @@ fun cardRim(): Pair<Brush, androidx.compose.ui.unit.Dp> {
 }
 
 /**
+ * Cover card of the reference design: a glass card (label-background look) holding a rounded, thinly bordered cover
+ * and a darker name pill below it. Used by the game list, the RPGM/VN tool cards and the engine list.
+ * Entrance, jelly and press animations sit on the outermost node, so the cover, the card and the name move together.
+ * [cover] draws the cover content; [aspect] is width / height of the cover; [nameHeight] is the fixed height of the pill.
+ */
+@Composable
+fun CoverCard(
+    name: String,
+    modifier: Modifier = Modifier,
+    aspect: Float = 0.75f,
+    nameSize: androidx.compose.ui.unit.TextUnit = 15.sp,
+    bold: Boolean = false,
+    subtitle: String = "",
+    onClick: () -> Unit,
+    cover: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit,
+) {
+    val p = LocalPalette.current
+    val rim = cardRim()
+    val inner = RoundedCornerShape((CardRadius.value - 4f).coerceAtLeast(8f).dp)
+    Box(modifier.staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = onClick)) {
+        RowPanel(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    Modifier.fillMaxWidth().aspectRatio(aspect).clip(inner)
+                        .background(Brush.verticalGradient(listOf(androidx.compose.ui.graphics.lerp(p.card, p.accent, 0.22f), androidx.compose.ui.graphics.lerp(p.card, p.accent, 0.05f))))
+                        .border(BorderStroke(1.dp, rim.first), inner),
+                    contentAlignment = Alignment.Center,
+                    content = cover,
+                )
+                Spacer(Modifier.height(8.dp))
+                Column(
+                    Modifier.fillMaxWidth().height(if (subtitle.isBlank()) 52.dp else 72.dp).clip(inner)
+                        .background(if (p.dark) Color(0x33000000) else p.accent.copy(alpha = 0.08f))
+                        .padding(horizontal = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        name, fontSize = nameSize, lineHeight = (nameSize.value + 7f).sp,
+                        fontWeight = if (bold) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.SemiBold,
+                        color = if (p.dark) Color.White else p.accent, maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    if (subtitle.isNotBlank()) Text(
+                        subtitle, fontSize = 12.sp, lineHeight = 16.sp, color = p.muted, maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
  * Label background: the panel behind one part of a page (a row of the Translation Editor, a group of settings, an options section).
  * It looks like a card (Blue Blossom fill, light rim and glow; the card colours, border and shadow of the other styles) but does not
  * animate or react to touch, so typing inside it is never disturbed. Every label background in the app uses this one.
@@ -184,7 +238,9 @@ fun RowPanel(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
         else -> Brush.linearGradient(listOf(p.card, p.card))
     }
     val rim = cardRim()
-    Box(modifier.cardShadow(CardRadius).clip(shape).background(fill).border(BorderStroke(rim.second, rim.first), shape)) { content() }
+    Box(modifier.cardShadow(CardRadius).clip(shape).background(fill).border(BorderStroke(rim.second, rim.first), shape)) {
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material.LocalContentColor provides p.text) { content() }
+    }
 }
 
 /** A part of a page on its own label background: optional [title] (centered title with a line on each side) above the [content]. */

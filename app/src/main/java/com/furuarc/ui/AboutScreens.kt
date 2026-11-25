@@ -7,6 +7,12 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,61 +49,118 @@ fun AboutMenuScreen(onHow: () -> Unit, onQna: () -> Unit, onTrouble: () -> Unit,
     )
 }
 
+/** Case-insensitive highlight of every [q] in [text] (the searched word is marked). */
+private fun highlight(text: String, q: String, color: androidx.compose.ui.graphics.Color): androidx.compose.ui.text.AnnotatedString =
+    androidx.compose.ui.text.buildAnnotatedString {
+        val needle = q.trim().lowercase()
+        if (needle.isEmpty()) { append(text); return@buildAnnotatedString }
+        val low = text.lowercase()
+        // lowercase() can change the length of rare characters; then the text is shown unmarked instead of wrongly marked
+        if (low.length != text.length) { append(text); return@buildAnnotatedString }
+        var i = 0
+        while (true) {
+            val j = low.indexOf(needle, i)
+            if (j < 0) { append(text.substring(i)); break }
+            append(text.substring(i, j))
+            pushStyle(androidx.compose.ui.text.SpanStyle(background = color))
+            append(text.substring(j, j + needle.length))
+            pop()
+            i = j + needle.length
+        }
+    }
+
+/**
+ * Guide page (How to Use, Q&A, Troubleshooting): collapsible entries, a header that keeps its size while scrolling and a
+ * search icon at its right end. The search bar (with previous / next buttons) opens below the header; entries that contain
+ * the word open by themselves and the word is marked. [bodyMuted] = the answer uses the muted colour (Q&A); the other pages keep the normal text colour.
+ */
+@Composable
+private fun GuideListScreen(title: String, entries: List<Pair<String, String>>, bodyMuted: Boolean, onBack: () -> Unit) {
+    val a = AboutStr.of(LocalLang.current)
+    val p = LocalPalette.current
+    var open by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    var searching by remember { mutableStateOf(false) }
+    var q by remember { mutableStateOf("") }
+    var cur by remember { mutableStateOf(0) }
+    val state = rememberLazyListState()
+    val needle = if (searching) q.trim() else ""
+    val matches = remember(needle, entries) {
+        if (needle.isEmpty()) emptyList() else entries.indices.filter { entries[it].first.contains(needle, true) || entries[it].second.contains(needle, true) }
+    }
+    // a matching entry opens by itself (the user can still close it afterwards)
+    LaunchedEffect(matches) {
+        cur = 0
+        if (matches.isNotEmpty()) {
+            open = open + matches
+            state.animateScrollToItem(matches[0])
+        }
+    }
+    fun go(step: Int) {
+        if (matches.isEmpty()) return
+        cur = (cur + step + matches.size) % matches.size
+    }
+    LaunchedEffect(cur) { if (matches.isNotEmpty()) state.animateScrollToItem(matches[cur.coerceIn(0, matches.size - 1)]) }
+    val mark = p.accent.copy(alpha = 0.40f)
+    Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
+        ScreenHeader(title, onBack, fixed = true, trailing = {
+            IconButton(onClick = { searching = !searching; if (!searching) q = "" }) {
+                Icon(Icons.Default.Search, a.searchBtn, tint = if (searching) p.accent else p.text)
+            }
+        })
+        if (searching) {
+            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) { AppTextField(q, { q = it }, a.searchHint) }
+                Box(Modifier.size(44.dp).clip(RoundedCornerShape(22.dp)).clickableScale(enabled = matches.size > 1, pressed = 0.88f) { go(-1) }, contentAlignment = Alignment.Center) {
+                    Text("‹", color = if (matches.size > 1) p.accent else p.muted, fontSize = 26.sp)
+                }
+                Box(Modifier.size(44.dp).clip(RoundedCornerShape(22.dp)).clickableScale(enabled = matches.size > 1, pressed = 0.88f) { go(1) }, contentAlignment = Alignment.Center) {
+                    Text("›", color = if (matches.size > 1) p.accent else p.muted, fontSize = 26.sp)
+                }
+            }
+            if (needle.isNotEmpty()) {
+                Text(
+                    if (matches.isEmpty()) a.searchNone else "${cur.coerceIn(0, matches.size - 1) + 1} / ${matches.size}",
+                    color = p.muted, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
+        }
+        LazyColumn(state = state, modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+            items(entries.size) { i ->
+                val (h, b) = entries[i]
+                val isOpen = i in open
+                AppCard(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.clickable { open = if (isOpen) open - i else open + i }.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row {
+                            Text(highlight(h, needle, mark), color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 21.sp, modifier = Modifier.weight(1f))
+                            Text(if (isOpen) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
+                        }
+                        if (isOpen) Text(highlight(b, needle, mark), color = if (bodyMuted) p.muted else p.text, fontSize = 14.sp, lineHeight = 21.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun HowToScreen(onBack: () -> Unit) {
     val a = AboutStr.of(LocalLang.current)
-    val p = LocalPalette.current
-    Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
-    ScreenHeader(a.howTitle, onBack)
-    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
-        items(a.howTo.size) { i ->
-            val (h, b) = a.howTo[i]
-            SectionCard(h) { Text(b, color = p.text, fontSize = 14.sp, lineHeight = 21.sp) }
-        }
-    }
-    }
+    GuideListScreen(a.howTitle, a.howTo, false, onBack)
 }
 
 @Composable
 fun QnaScreen(onBack: () -> Unit) {
     val a = AboutStr.of(LocalLang.current)
-    val p = LocalPalette.current
-    var open by remember { mutableStateOf(-1) }
-    Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
-    ScreenHeader(a.qnaTitle, onBack)
-    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
-        items(a.qna.size) { i ->
-            val (q, ans) = a.qna[i]
-            AppCard(Modifier.fillMaxWidth()) {
-                Column(
-                    Modifier.clickable { open = if (open == i) -1 else i }.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Row {
-                        Text(q, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 21.sp, modifier = Modifier.weight(1f))
-                        Text(if (open == i) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
-                    }
-                    if (open == i) Text(ans, color = p.muted, fontSize = 14.sp, lineHeight = 21.sp)
-                }
-            }
-        }
-    }
-    }
+    GuideListScreen(a.qnaTitle, a.qna, true, onBack)
 }
 
 @Composable
 fun TroubleScreen(onBack: () -> Unit) {
     val a = AboutStr.of(LocalLang.current)
-    val p = LocalPalette.current
-    Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
-    ScreenHeader(a.troubleTitle, onBack)
-    LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
-        items(a.trouble.size) { i ->
-            val (h, b) = a.trouble[i]
-            SectionCard(h) { Text(b, color = p.text, fontSize = 14.sp, lineHeight = 21.sp) }
-        }
-    }
-    }
+    GuideListScreen(a.troubleTitle, a.trouble, false, onBack)
 }
 
 @Composable

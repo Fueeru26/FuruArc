@@ -297,41 +297,41 @@ ScreenHeader(o.title, back)
 LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
 
             // ---- Translation Service ----
-            item { SectionTitle(o.secService, first = true) }
-            item { RadioLine(o.optLingva, mode == 0, !running) { mode = 0 } }
-            item { RadioLine(o.optBilibili, mode == 2, !running) { mode = 2 } }
-            item { RadioLine(o.optApi, mode == 1, !running) { mode = 1 } }
+            panel(o.secService) {
+            run { RadioLine(o.optLingva, mode == 0, !running) { mode = 0 } }
+            run { RadioLine(o.optBilibili, mode == 2, !running) { mode = 2 } }
+            run { RadioLine(o.optApi, mode == 1, !running) { mode = 1 } }
             if (mode == 2) {
-                item { DetailLink(o.biliNote, 12.sp, 17.sp) }
-                item { AppDropdown(o.biliModel, biliModel, BILI_MODELS.map { it to it }, !running) { biliModel = it } }
-                item { DetailLink(o.biliModelHint, 12.sp, 17.sp) }
-                item { AppDropdown(o.parallel, conc.toString(), listOf(1, 2, 3, 4).map { it.toString() to it.toString() }, !running) { conc = it.toInt() } }
-                item { Text(o.parallelHint, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
+                run { DetailLink(o.biliNote, 12.sp, 17.sp) }
+                run { AppDropdown(o.biliModel, biliModel, BILI_MODELS.map { it to it }, !running) { biliModel = it } }
+                run { DetailLink(o.biliModelHint, 12.sp, 17.sp) }
+                run { AppDropdown(o.parallel, conc.toString(), listOf(1, 2, 3, 4).map { it.toString() to it.toString() }, !running) { conc = it.toInt() } }
+                run { Text(o.parallelHint, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
             } else if (mode == 0) {
-                item { DetailLink(o.lingvaNote, 12.sp, 17.sp) }
-                item { AppTextField(value = instances, onValueChange = { instances = it }, label = o.instances, mono = true, multiline = true) }
+                run { DetailLink(o.lingvaNote, 12.sp, 17.sp) }
+                run { AppTextField(value = instances, onValueChange = { instances = it }, label = o.instances, mono = true, multiline = true) }
             } else {
-                item {
+                run {
                     AppDropdown(o.provider, prov.id, PROVIDERS.map { it.p.id to it.label }, !running) { id ->
                         provIdx = PROVIDERS.indexOfFirst { it.p.id == id }.coerceAtLeast(0); modelMsg = null
                     }
                 }
-                item {
+                run {
                     val ph = o.providerHint(prov.id)
                     if (ph.length >= DETAIL_MIN_CHARS) DetailLink(ph, 12.sp, 17.sp) else Text(ph, color = p.muted, fontSize = 12.sp)
                 }
                 val keyUrl = info.keyUrl
-                if (keyUrl != null) item {
+                if (keyUrl != null) run {
                     Text(
                         o.getKey(info.label), color = p.accent, fontSize = 14.sp, textDecoration = TextDecoration.Underline,
                         modifier = Modifier.clickable { try { uri.openUri(keyUrl) } catch (e: Exception) { status = e.message } },
                     )
                 }
                 if (prov == OtProvider.CUSTOM) {
-                    item { AppTextField(value = customUrl, onValueChange = { customUrl = it.trim() }, label = o.customUrl, mono = true) }
-                    item { Text(o.customUrlHint, color = p.muted, fontSize = 12.sp) }
+                    run { AppTextField(value = customUrl, onValueChange = { customUrl = it.trim() }, label = o.customUrl, mono = true) }
+                    run { Text(o.customUrlHint, color = p.muted, fontSize = 12.sp) }
                 }
-                item {
+                run {
                     AppTextField(
                         value = keys[prov.id].orEmpty(), onValueChange = { keys[prov.id] = it.trim() }, label = o.apiKey, mono = true,
                         password = !showKey,
@@ -347,52 +347,56 @@ LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp), 
                     val list = modelLists[prov.id].orEmpty()
                     val cur = models[prov.id].orEmpty()
                     val opts = (if (cur.isNotEmpty() && cur !in list) listOf(cur) else emptyList()) + list
-                    if (opts.isNotEmpty()) item { AppDropdown(o.model, cur, opts.map { it to it }, !running) { models[prov.id] = it } }
-                    else item { Text(o.modelNone, color = p.muted, fontSize = 12.sp) }
-                    if (prov == OtProvider.CUSTOM && opts.isEmpty()) item {
+                    if (opts.isNotEmpty()) run { AppDropdown(o.model, cur, opts.map { it to it }, !running) { models[prov.id] = it } }
+                    else run { Text(o.modelNone, color = p.muted, fontSize = 12.sp) }
+                    if (prov == OtProvider.CUSTOM && opts.isEmpty()) run {
                         AppTextField(value = cur, onValueChange = { models[prov.id] = it.trim() }, label = o.modelManual, mono = true)
                     }
-                    item { SecondaryButton(if (loadingModels) o.loadingModels else o.loadModels, !loadingModels && !running) { loadModels() } }
-                    modelMsg?.let { m -> item { Text(m, color = p.muted, fontSize = 12.sp) } }
+                    run { SecondaryButton(if (loadingModels) o.loadingModels else o.loadModels, !loadingModels && !running) { loadModels() } }
+                    modelMsg?.let { m -> run { Text(m, color = p.muted, fontSize = 12.sp) } }
                 }
-                item { DetailLink(o.keyNote, 12.sp, 17.sp) }
-                item { AppDropdown(o.parallel, conc.toString(), listOf(1, 2, 3, 4).map { it.toString() to it.toString() }, !running) { conc = it.toInt() } }
-                item { Text(o.parallelHint, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
+                run { DetailLink(o.keyNote, 12.sp, 17.sp) }
+                run { AppDropdown(o.parallel, conc.toString(), listOf(1, 2, 3, 4).map { it.toString() to it.toString() }, !running) { conc = it.toInt() } }
+                run { Text(o.parallelHint, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
             }
-            if (mode == 0) item { SecondaryButton(o.refill, !running && instances != DEFAULT_INSTANCES) { instances = DEFAULT_INSTANCES } }
-            item { SecondaryButton(if (testing) o.testing else o.testConn, !running) { testConn() } }
-            item { CheckLine(o.fillOrig, fillOrig) { fillOrig = it } }
+            if (mode == 0) run { SecondaryButton(o.refill, !running && instances != DEFAULT_INSTANCES) { instances = DEFAULT_INSTANCES } }
+            run { SecondaryButton(if (testing) o.testing else o.testConn, !running) { testConn() } }
+            run { CheckLine(o.fillOrig, fillOrig) { fillOrig = it } }
 
             // ---- Quality (LLM) ----
-            item { SectionTitle(o.secQuality) }
+            }
+            panel(o.secQuality) {
             if (mode == 1 && prov.isLlm) {
-                item {
+                run {
                     AppDropdown(o.style, style, listOf("natural" to o.styleNatural, "casual" to o.styleCasual, "formal" to o.styleFormal, "literal" to o.styleLiteral), !running) { style = it }
                 }
-                item { AppTextField(value = ctxNote, onValueChange = { ctxNote = it.take(1500) }, label = o.noteLabel, multiline = true) }
-                item { DetailLink(o.noteHint, 12.sp, 17.sp) }
-                item { CheckLine(o.useContext, useCtx) { useCtx = it } }
-                item { Text(o.useContextHint, color = p.muted, fontSize = 12.sp) }
-            } else item { Text(o.llmOnly, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
+                run { AppTextField(value = ctxNote, onValueChange = { ctxNote = it.take(1500) }, label = o.noteLabel, multiline = true) }
+                run { DetailLink(o.noteHint, 12.sp, 17.sp) }
+                run { CheckLine(o.useContext, useCtx) { useCtx = it } }
+                run { Text(o.useContextHint, color = p.muted, fontSize = 12.sp) }
+            } else run { Text(o.llmOnly, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
 
             // ---- Translation Language ----
-            item { SectionTitle(o.secLang) }
-            item {
+            }
+            panel(o.secLang) {
+            run {
                 AppDropdown(o.srcLang, src, listOf("auto" to o.autoLang) + LANGS.map { it.first to (if (idUi) it.second else it.third) }, !running) { src = it }
             }
-            item {
+            run {
                 AppDropdown(o.tgtLang, tgt, LANGS.map { it.first to (if (idUi) it.second else it.third) }, !running) { tgt = it }
             }
 
             // ---- Translation Rows ----
-            item { SectionTitle(o.secRows) }
-            item { SegmentedChips(listOf(o.scEmpty, o.scPage, o.scAll), scopeMode, 13.sp) { i -> if (!running) scopeMode = i } }
-            item { Text(o.scopeNote, color = p.muted, fontSize = 12.sp) }
+            }
+            panel(o.secRows) {
+            run { SegmentedChips(listOf(o.scEmpty, o.scPage, o.scAll), scopeMode, 13.sp) { i -> if (!running) scopeMode = i } }
+            run { Text(o.scopeNote, color = p.muted, fontSize = 12.sp) }
 
             // ---- Translation Results ----
-            item { SectionTitle(o.secResult) }
-            item { CheckLine(o.useCache, useCache) { useCache = it } }
-            item {
+            }
+            panel(o.secResult) {
+            run { CheckLine(o.useCache, useCache) { useCache = it } }
+            run {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(o.cacheInfo(cacheN), color = p.muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Box(Modifier.weight(1f)) {
@@ -402,17 +406,18 @@ LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp), 
                     }
                 }
             }
-            item { CheckLine(o.wrapOn, wrapOn) { wrapOn = it } }
-            if (wrapOn) item {
+            run { CheckLine(o.wrapOn, wrapOn) { wrapOn = it } }
+            if (wrapOn) run {
                 AppTextField(value = wrapW, onValueChange = { v -> wrapW = v.filter { c -> c.isDigit() }.take(3) }, label = o.wrapWidth, number = true)
             }
 
             // ---- Glossary ----
-            item { SectionTitle(o.glossTitle) }
-            item { DetailLink(o.glossHint, 12.sp, 17.sp) }
-            item { AppTextField(value = gSrc, onValueChange = { gSrc = it }, label = o.glossSrc) }
-            item { AppTextField(value = gDst, onValueChange = { gDst = it }, label = o.glossDst) }
-            item {
+            }
+            panel(o.glossTitle) {
+            run { DetailLink(o.glossHint, 12.sp, 17.sp) }
+            run { AppTextField(value = gSrc, onValueChange = { gSrc = it }, label = o.glossSrc) }
+            run { AppTextField(value = gDst, onValueChange = { gDst = it }, label = o.glossDst) }
+            run {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Box(Modifier.weight(1f)) {
                         SecondaryButton(o.glossAdd, gSrc.isNotBlank() && gDst.isNotBlank() && !running) {
@@ -429,10 +434,10 @@ LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp), 
                     }
                 }
             }
-            item { SecondaryButton(if (suggesting) o.glossAutoBusy else o.glossAuto, !running) { autoGlossary() } }
-            item { Text(o.glossAutoNote, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
-            if (glossary.isEmpty()) item { Text(o.glossEmpty, color = p.muted, fontSize = 13.sp) }
-            itemsIndexed(glossary) { gi, g ->
+            run { SecondaryButton(if (suggesting) o.glossAutoBusy else o.glossAuto, !running) { autoGlossary() } }
+            run { Text(o.glossAutoNote, color = p.muted, fontSize = 12.sp, lineHeight = 17.sp) }
+            if (glossary.isEmpty()) run { Text(o.glossEmpty, color = p.muted, fontSize = 13.sp) }
+            glossary.forEachIndexed { gi, g ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(g.first + "  →  " + g.second, color = p.text, fontSize = 14.sp, modifier = Modifier.weight(1f))
                     IconButton(onClick = {
@@ -442,6 +447,7 @@ LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp), 
                         }
                     }) { Icon(Icons.Filled.Close, contentDescription = null, tint = p.muted) }
                 }
+            }
             }
             item { Text(o.closeWarn, color = p.muted, fontSize = 11.sp) }
         }

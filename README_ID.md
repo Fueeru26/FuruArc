@@ -68,6 +68,7 @@ Tab pertama adalah peluncur untuk semua fitur di aplikasi.
 Tambahkan game sebagai pustaka dan telusuri isinya.
 
 - **Pustaka game** dengan cover, pengurutan (nama, terakhir ditambahkan, acak), favorit, tambah folder induk sekaligus (tiap subfolder jadi satu game) dan pencarian cover di internet.
+- Tiap daftar (Audio, Gambar, Video, Teks) punya ikon urutkan di kiri ikon cari: nama file A-Z / Z-A, ukuran besar / kecil dahulu, acak.
 - **Audio**: telusuri dan putar audio game, termasuk format khusus (OVK, NWA, MIO dan `.rpgmvo` / `.rpgmvm` RPG Maker terenkripsi).
 - **Gambar**: pratinjau gambar game, termasuk format khusus engine (`.crx`, `.pgd`, `.pna`, `.ycg`, `.hg2`, `.hg3`, `.tlg`, `.eri`, `.g00`, `.rct`, `.rc8`).
 - **Video**: putar video game.
@@ -161,7 +162,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - Galeri Gambar: Galeri, Folder, dan Koleksi; tampilan daftar atau kotak, 60 per halaman, zoom cubit, dan slideshow.
 - Pengaturan Media: banyak opsi pemutar serta ekspor / impor pengaturan dan semua daftar.
 - Terapkan ke Antrian / Galeri: Folder, Favorit, Koleksi, dan Daftar Putar langsung dimuat ke daftar yang kosong, jika tidak pilih Muat (dengan peringatan) atau Tambahkan. Subtitle Pemutar Video (SRT, VTT, ASS/SSA). Notifikasi bergaya media dengan bilah geser. Media dari "Buka dengan..." bersifat sementara dan tidak menimpa daftar Anda.
-- Pencarian di Antrian dan Galeri, Lihat isi / Kosongkan untuk daftar, lirik (.lrc), pengaturan waktu dan muat otomatis subtitle, bookmark, jendela mini (PiP), pengurutan drag atau panah, serta pemulihan audio / video terakhir.
+- Pencarian dan pengurutan di Antrian dan Galeri (ikon urutkan di kiri ikon cari: judul, artis, nama file, durasi, tanggal, ukuran, acak; daftarnya sendiri yang diurutkan), Lihat isi / Kosongkan untuk daftar, lirik (.lrc), pengaturan waktu dan muat otomatis subtitle, bookmark, jendela mini (PiP), pengurutan drag atau panah, serta pemulihan audio / video terakhir.
 - Penampil di Aset Game punya ikon Media Player untuk membuka aset di sini.
 - **Buka dengan...**: file dari aplikasi file manager atau Bagikan / Kirim ke bisa dibuka di FuruArc (media di Media Player; `.txt` dan format berstruktur yang terdaftar di mode Lihat pada Editor File Teks; format arsip lain di fitur yang cocok; format tidak dikenal yang berupa teks di mode Lihat pada File Teks Biasa; format tidak dikenal lainnya di Pemeriksaan File). Bisa dimatikan di Pengaturan Sistem.
 

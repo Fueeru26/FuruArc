@@ -301,7 +301,7 @@ private fun SampleDialog(kind: Int, data: SampleData, onClose: () -> Unit) {
         }
     }
     Dialog(onDismissRequest = { onClose() }) {
-        Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius), color = p.card) {
+        RowPanel(Modifier.fillMaxWidth().padding(12.dp)) {
             Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(m.sampleTitle(data.item.name), color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
@@ -958,7 +958,7 @@ private fun PresetBlock(
         Hint(m.presetHint)
     }
     if (naming) {
-        AlertDialog(
+        AppAlert(
             onDismissRequest = { naming = false },
             title = { DlgTitle(m.presetSave) },
             text = { AppTextField(value = name, onValueChange = { name = it.take(40) }, label = m.presetName) },

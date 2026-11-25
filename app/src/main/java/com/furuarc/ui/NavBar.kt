@@ -297,46 +297,20 @@ private fun TopLineBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> U
 @Composable
 fun BigToolCard(icon: ImageVector, title: String, subtitle: String = "", modifier: Modifier = Modifier, imageName: String = "", onClick: () -> Unit) {
     val p = LocalPalette.current
-    val shape = RoundedCornerShape(CardRadius)
-    val rim = cardRim()
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val res = remember(imageName) { if (imageName.isEmpty()) 0 else ctx.resources.getIdentifier(imageName, "drawable", ctx.packageName) }
+    CoverCard(name = title, modifier = modifier, aspect = 1f, nameSize = 17.sp, bold = true, subtitle = subtitle, onClick = onClick) {
+        if (res != 0) androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(res),
+            contentDescription = null,
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
         Box(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .cardShadow(CardRadius)
-                .clip(shape)
-                .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.26f), lerp(p.card, p.accent, 0.06f))))
-                .border(BorderStroke(rim.second, rim.first), shape)
-                .clickableScale(pressed = 0.95f, onClick = onClick),
+            Modifier.size(80.dp).clip(RoundedCornerShape(CardRadius)).background(if (res != 0) Color.Black.copy(alpha = 0.40f) else p.accent.copy(alpha = 0.18f)),
             contentAlignment = Alignment.Center,
         ) {
-            val ctx = androidx.compose.ui.platform.LocalContext.current
-            val res = remember(imageName) { if (imageName.isEmpty()) 0 else ctx.resources.getIdentifier(imageName, "drawable", ctx.packageName) }
-            if (res != 0) androidx.compose.foundation.Image(
-                painter = androidx.compose.ui.res.painterResource(res),
-                contentDescription = null,
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-            Box(
-                Modifier.size(80.dp).clip(RoundedCornerShape(CardRadius)).background(if (res != 0) Color.Black.copy(alpha = 0.40f) else p.accent.copy(alpha = 0.18f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(imageVector = icon, contentDescription = null, tint = if (res != 0) Color.White else p.accent, modifier = Modifier.size(48.dp))
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-        Text(
-            title, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold,
-            color = if (p.dark) Color.White else p.accent, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis,
-        )
-        if (subtitle.isNotBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text(
-                subtitle, fontSize = 12.sp, lineHeight = 16.sp,
-                color = p.muted, textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis,
-            )
+            Icon(imageVector = icon, contentDescription = null, tint = if (res != 0) Color.White else p.accent, modifier = Modifier.size(48.dp))
         }
     }
 }

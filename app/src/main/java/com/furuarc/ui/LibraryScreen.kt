@@ -307,9 +307,8 @@ fun LibraryScreen(onOpen: (GameEntry) -> Unit) {
     }
     // ---- rename ----
     renameFor?.let { e ->
-        AlertDialog(
+        AppAlert(
             onDismissRequest = { renameFor = null },
-            shape = RoundedCornerShape(CardRadius), backgroundColor = p.card, contentColor = p.text,
             title = { DlgTitle(g.rename) },
             text = { AppTextField(renameText, { renameText = it }, g.dlgName) },
             confirmButton = {
@@ -444,10 +443,7 @@ private fun ManualCoverDialog(initial: String, onPick: (File, String) -> Unit, o
     }
     LaunchedEffect(Unit) { run() }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(
-            shape = RoundedCornerShape(CardRadius), color = p.card, contentColor = p.text,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 24.dp),
-        ) {
+        RowPanel(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 24.dp)) {
             Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(g.manualTitle, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = p.text)
                 AppTextField(q, { q = it }, g.search, trailing = {
@@ -508,40 +504,26 @@ private fun HitCell(h: CoverHit, modifier: Modifier, onClick: () -> Unit) {
 private fun GameCard(e: GameEntry, modifier: Modifier, onOpen: () -> Unit, onRename: () -> Unit, onCover: () -> Unit, onRemove: () -> Unit) {
     val p = LocalPalette.current
     val g = gameStr(LocalLang.current)
-    val shape = RoundedCornerShape(CardRadius)
     var menu by remember { mutableStateOf(false) }
-    val rim = cardRim()
-    // the entrance, jelly and press animations sit on the outermost node, so the cover, its shadow and the name move together
-    Column(modifier.staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = onOpen), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            Modifier.fillMaxWidth().aspectRatio(0.75f).cardShadow(CardRadius).clip(shape)
-                .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.22f), lerp(p.card, p.accent, 0.05f))))
-                .border(BorderStroke(rim.second, rim.first), shape),
-            contentAlignment = Alignment.Center,
-        ) {
-            val f = GameLibrary.displayCover(e)
-            if (f == null) Icon(AppIcons.Library, null, tint = p.accent.copy(alpha = 0.6f), modifier = Modifier.size(36.dp))
-            else FileImage(f, Modifier.fillMaxSize())
-            val showEngine = LocalShowEngineLabel.current
-            if ((showEngine && e.engine.isNotEmpty()) || e.missing) {
-                Box(Modifier.align(Alignment.BottomStart).padding(6.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xB3000000)).padding(horizontal = 6.dp, vertical = 2.dp)) {
-                    Text(if (e.missing) g.missing else e.engine, color = if (e.missing) Color(0xFFFFB74D) else Color.White, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
-            Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                Box(Modifier.size(30.dp).clip(CircleShape).background(Color(0x99000000)).clickable { menu = true }, contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.MoreVert, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(onClick = { menu = false; onRename() }) { Text(g.rename) }
-                    DropdownMenuItem(onClick = { menu = false; onCover() }) { Text(g.changeCover) }
-                    DropdownMenuItem(onClick = { menu = false; onRemove() }) { Text(g.removeFolder) }
-                }
+    CoverCard(name = e.name, modifier = modifier, nameSize = 13.sp, onClick = onOpen) {
+        val f = GameLibrary.displayCover(e)
+        if (f == null) Icon(AppIcons.Library, null, tint = p.accent.copy(alpha = 0.6f), modifier = Modifier.size(36.dp))
+        else FileImage(f, Modifier.fillMaxSize())
+        val showEngine = LocalShowEngineLabel.current
+        if ((showEngine && e.engine.isNotEmpty()) || e.missing) {
+            Box(Modifier.align(Alignment.BottomStart).padding(6.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xB3000000)).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                Text(if (e.missing) g.missing else e.engine, color = if (e.missing) Color(0xFFFFB74D) else Color.White, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        Spacer(Modifier.height(8.dp))
-        Box(Modifier.fillMaxWidth().height(44.dp), contentAlignment = Alignment.TopCenter) {
-            Text(e.name, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = p.text, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+        Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+            Box(Modifier.size(30.dp).clip(CircleShape).background(Color(0x99000000)).clickable { menu = true }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.MoreVert, null, tint = Color.White, modifier = Modifier.size(18.dp))
+            }
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(onClick = { menu = false; onRename() }) { Text(g.rename) }
+                DropdownMenuItem(onClick = { menu = false; onCover() }) { Text(g.changeCover) }
+                DropdownMenuItem(onClick = { menu = false; onRemove() }) { Text(g.removeFolder) }
+            }
         }
     }
 }

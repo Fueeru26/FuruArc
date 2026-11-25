@@ -606,6 +606,8 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
     val ctx = LocalContext.current
     val items = PlayerHub.items(kind)
     val size = MediaPrefs.pageQueue
+    var sortSel by remember { mutableStateOf(-1) }
+    val sortScope = androidx.compose.runtime.rememberCoroutineScope()
     var filt by remember { mutableStateOf(false) }
     var q by remember { mutableStateOf("") }
     // indexes (into the whole queue) of the rows that match the search
@@ -646,6 +648,15 @@ private fun QueueTab(kind: Int, onPlayVideo: () -> Unit) {
                 color = p.muted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
             )
             if (items.isNotEmpty()) {
+                SortMenuButton(PlayerSort.labels(pl, kind), sortSel, compact = true) { i ->
+                    sortSel = i
+                    val code = PlayerSort.codes(kind)[i]
+                    sortScope.launch {
+                        val r = withContext(Dispatchers.IO) { PlayerSort.sort(ctx, items, code) }
+                        PlayerHub.update(kind, r)
+                        page = 0
+                    }
+                }
                 RoundIcon(Icons.Default.Search, pl.search, if (filt) p.accent else p.text, 40, 24) { filt = !filt; if (!filt) q = "" }
                 RoundIcon(AppIcons.Checklist, pl.selMode, if (selMode) p.accent else p.text, 40, 24) { if (selMode) endSel() else selMode = true }
             }
@@ -1062,10 +1073,7 @@ internal fun ContentViewDialog(kind: Int, title: String, items: List<MItem>, onC
     val pg = page.coerceIn(0, pages - 1)
     val maxH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.9f
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(
-            shape = RoundedCornerShape(CardRadius), color = p.card, contentColor = p.text,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 24.dp).heightIn(max = maxH),
-        ) {
+        RowPanel(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 24.dp).heightIn(max = maxH)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = p.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(pl.pageInfo(shown.size), color = p.muted, fontSize = 12.sp)

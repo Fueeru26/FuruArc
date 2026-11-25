@@ -244,25 +244,27 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
         item { PickerCard(AppIcons.Folder, n.srcFolder, srcName, AppIcons.Folder) { if (!busy) pickSrc.launch(null) } }
         item { DetailHint(n.intro) }
 
-        item { AppDropdown(n.scope, scopeIdx.toString(), n.scopeOpts.mapIndexed { i, s -> i.toString() to s }, !busy) { scopeIdx = it.toInt() } }
-        item { DetailHint(n.scopeHint) }
-        item { AppDropdown(n.style, styleIdx.toString(), n.styleOpts.mapIndexed { i, s -> i.toString() to s }, !busy) { styleIdx = it.toInt() } }
-        item { DetailHint(n.styleHint) }
-        item { CheckRow(n.chkFolders, folders) { if (!busy) folders = it } }
-        item { CheckRow(n.chkSymbols, symbols) { if (!busy) symbols = it } }
-        item { DetailHint(n.symbolsHint) }
-        item { AppDropdown(n.refMode, if (wide) "1" else "0", n.refModes.mapIndexed { i, s -> i.toString() to s }, !busy) { wide = it == "1" } }
-        item { DetailHint(n.refHint) }
+        panel(n.optTitle) {
+        run { AppDropdown(n.scope, scopeIdx.toString(), n.scopeOpts.mapIndexed { i, s -> i.toString() to s }, !busy) { scopeIdx = it.toInt() } }
+        run { DetailHint(n.scopeHint) }
+        run { AppDropdown(n.style, styleIdx.toString(), n.styleOpts.mapIndexed { i, s -> i.toString() to s }, !busy) { styleIdx = it.toInt() } }
+        run { DetailHint(n.styleHint) }
+        run { CheckRow(n.chkFolders, folders) { if (!busy) folders = it } }
+        run { CheckRow(n.chkSymbols, symbols) { if (!busy) symbols = it } }
+        run { DetailHint(n.symbolsHint) }
+        run { AppDropdown(n.refMode, if (wide) "1" else "0", n.refModes.mapIndexed { i, s -> i.toString() to s }, !busy) { wide = it == "1" } }
+        run { DetailHint(n.refHint) }
         if (!wide) {
-            item { CheckRow(n.chkCase, caseFix) { if (!busy) caseFix = it } }
-            item { DetailHint(n.caseHint) }
+            run { CheckRow(n.chkCase, caseFix) { if (!busy) caseFix = it } }
+            run { DetailHint(n.caseHint) }
         }
-        item { AppTextField(value = textExts, onValueChange = { if (!busy) textExts = it.take(120) }, label = n.textExts) }
-        item { SecondaryButton(n.refill, !busy && textExts != NameOpt.DEFAULT_TEXT_EXTS) { textExts = NameOpt.DEFAULT_TEXT_EXTS } }
-        item { Hint(n.textExtsHint) }
+        run { AppTextField(value = textExts, onValueChange = { if (!busy) textExts = it.take(120) }, label = n.textExts) }
+        run { SecondaryButton(n.refill, !busy && textExts != NameOpt.DEFAULT_TEXT_EXTS) { textExts = NameOpt.DEFAULT_TEXT_EXTS } }
+        run { Hint(n.textExtsHint) }
 
-        item { PickerCard(AppIcons.Folder, n.backupFolder, backupName, AppIcons.Folder) { if (!busy) pickBackup.launch(null) } }
-        if (backup != null) item { SecondaryButton(n.clearBackup, !busy) { backup = null; backupName = null } }
+        run { PickerCard(AppIcons.Folder, n.backupFolder, backupName, AppIcons.Folder) { if (!busy) pickBackup.launch(null) } }
+        if (backup != null) run { SecondaryButton(n.clearBackup, !busy) { backup = null; backupName = null } }
+        }
 
         if (src == null) {
             item { Hint(n.noFolder) }
@@ -275,10 +277,8 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             }
         } else {
             // ---- Build Readiness Report ----
-            item { SectionLabel(n.readyTitle) }
-            item {
-                AppCard(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            panel(n.readyTitle) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(n.readyCounts(ready.files, ready.dirs), color = p.text, fontSize = 14.sp)
                         if (ready.nonAscii > 0) Text(n.readyNonAscii(ready.nonAscii), color = WarnColor, fontSize = 14.sp)
                         if (ready.symbols > 0) Text(n.readySymbols(ready.symbols), color = WarnColor, fontSize = 14.sp)
@@ -289,34 +289,35 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                         val probs = ready.longNames + ready.caseDups
                         if (probs.isNotEmpty()) DetailLink(n.readyDetail + ":\n" + listText(probs))
                     }
+                PrimaryButton(n.scanBtn, !busy && entries.isNotEmpty()) { doScan() }
+                if (busy && scanBusy) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(busyText ?: "", color = p.muted, fontSize = 13.sp)
+                        LinearProgressIndicator(progress, Modifier.fillMaxWidth(), color = p.accent)
+                    }
                 }
+                if (preview != null && !fresh) Hint(n.stale)
             }
-
-            item { PrimaryButton(n.scanBtn, !busy && entries.isNotEmpty()) { doScan() } }
-            if (busy && scanBusy) item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(busyText ?: "", color = p.muted, fontSize = 13.sp)
-                    LinearProgressIndicator(progress, Modifier.fillMaxWidth(), color = p.accent)
-                }
-            }
-            if (preview != null && !fresh) item { Hint(n.stale) }
 
             // ---- Preview ----
             if (pv != null) {
-                item { SectionLabel(n.prevTitle) }
-                if (moves.isEmpty() && pv.scan.files.isEmpty()) {
-                    item { Hint(n.prevNone) }
-                } else {
-                    if (moves.isEmpty()) item { Hint(n.prevOnlyCase) }
-                    item { Hint(n.prevSummary(pv.plan.files, pv.plan.dirs, pv.scan.files.size, pv.scan.replaced, pv.scan.caseFixes)) }
-                    if (pv.scan.skipped.isNotEmpty()) {
-                        item { Hint(n.prevSkipped(pv.scan.skipped.size)) }
-                        item { DetailLink(listText(pv.scan.skipped)) }
+                panel(n.prevTitle) {
+                    if (moves.isEmpty() && pv.scan.files.isEmpty()) {
+                        Hint(n.prevNone)
+                    } else {
+                        if (moves.isEmpty()) Hint(n.prevOnlyCase)
+                        Hint(n.prevSummary(pv.plan.files, pv.plan.dirs, pv.scan.files.size, pv.scan.replaced, pv.scan.caseFixes))
+                        if (pv.scan.skipped.isNotEmpty()) {
+                            Hint(n.prevSkipped(pv.scan.skipped.size))
+                            DetailLink(listText(pv.scan.skipped))
+                        }
+                        if (unref.isNotEmpty()) Hint(n.prevUnref(unref.size))
+                        SecondaryButton(n.checkedBtn, !busy) { showList = true; listTab = 0; listQuery = ""; listPage = 0 }
+                        AppTextField(value = query, onValueChange = { v -> query = v; page = 0 }, label = f.renSearch)
+                        if (visible.isEmpty()) Hint(f.renNoMatch)
                     }
-                    if (unref.isNotEmpty()) item { Hint(n.prevUnref(unref.size)) }
-                    item { SecondaryButton(n.checkedBtn, !busy) { showList = true; listTab = 0; listQuery = ""; listPage = 0 } }
-                    item { AppTextField(value = query, onValueChange = { v -> query = v; page = 0 }, label = f.renSearch) }
-                    if (visible.isEmpty()) item { Hint(f.renNoMatch) }
+                }
+                if (!(moves.isEmpty() && pv.scan.files.isEmpty())) {
                     if (pages > 1) item { RenPager(curPage, pages, n.pageLabel(curPage + 1, pages, visible.size)) { np -> page = np } }
                     items(pageItems) { m ->
                         AppCard(Modifier.fillMaxWidth()) {

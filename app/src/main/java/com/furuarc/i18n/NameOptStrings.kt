@@ -53,6 +53,7 @@ class NameOptStr(private val id: Boolean, private val lang: Lang = if (id) Lang.
     val textExtsHint get() = t("Dipisah koma. File yang bukan UTF-8 atau lebih dari 24 MB dilewati dan dilaporkan.", "Comma separated. Files that are not UTF-8 or larger than 24 MB are skipped and reported.")
 
     // ---- readiness report ----
+    val optTitle get() = t("Opsi", "Options")
     val readyTitle get() = t("Laporan Kesiapan Build", "Build Readiness Report")
     fun readyCounts(f: Int, d: Int) = tt("Isi folder: $f file, $d folder", "Folder contents: {0} files, {1} folders", f, d)
     fun readyNonAscii(n: Int) = tt("Nama non-ASCII: $n", "Non-ASCII names: {0}", n)

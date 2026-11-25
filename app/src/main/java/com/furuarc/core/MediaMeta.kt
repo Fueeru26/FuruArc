@@ -57,6 +57,30 @@ object MediaMeta {
         return m
     }
 
+    private val infoCache = java.util.concurrent.ConcurrentHashMap<String, MMeta>()
+
+    /** Tags and duration only (no cover, no video frame): cheap enough to read for a whole list when sorting. Blocking; call on an IO dispatcher. */
+    fun info(ctx: Context, item: MItem): MMeta {
+        cache.get(item.key)?.let { return it }
+        infoCache[item.key]?.let { return it }
+        val r = MediaMetadataRetriever()
+        var title: String? = null
+        var artist: String? = null
+        var dur = 0
+        try {
+            if (item.uri != null) r.setDataSource(ctx, item.uri) else r.setDataSource(item.path)
+            title = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()?.ifEmpty { null }
+            artist = (r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST))?.trim()?.ifEmpty { null }
+            dur = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toIntOrNull() ?: 0
+        } catch (e: Throwable) {
+        } finally {
+            try { r.release() } catch (e: Throwable) { }
+        }
+        val m = MMeta(title, artist, null, dur, null)
+        infoCache[item.key] = m
+        return m
+    }
+
     private fun scale(b: Bitmap, max: Int): Bitmap {
         val m = maxOf(b.width, b.height)
         if (m <= max) return b

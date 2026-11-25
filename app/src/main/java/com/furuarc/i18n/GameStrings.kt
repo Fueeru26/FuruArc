@@ -55,9 +55,11 @@ class GameStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID 
     val filterHint get() = t("Cari file…", "Search files…")
     val sortLabel get() = t("Urutkan", "Sort")
     val sortOpts get() = listOf(
-        t("Urutkan Nama A ➞ Z", "Sort by Name A ➞ Z"), t("Urutkan Nama Z ➞ A", "Sort by Name Z ➞ A"),
-        t("Urutkan Ukuran Kecil ➞ Besar", "Sort by Size Small ➞ Large"), t("Urutkan Ukuran Besar ➞ Kecil", "Sort by Size Large ➞ Small"),
-        t("Urutkan Acak", "Sort Random"),
+        p("Nama file (A-Z)", "File name (A-Z)", "ファイル名 (A-Z)", "文件名 (A-Z)", "파일 이름 (A-Z)"),
+        p("Nama file (Z-A)", "File name (Z-A)", "ファイル名 (Z-A)", "文件名 (Z-A)", "파일 이름 (Z-A)"),
+        p("Ukuran besar dahulu", "Largest first", "サイズの大きい順", "大文件优先", "큰 크기순"),
+        p("Ukuran kecil dahulu", "Smallest first", "サイズの小さい順", "小文件优先", "작은 크기순"),
+        p("Acak", "Random", "ランダム", "随机", "무작위"),
     )
     fun pageLabel(pg: Int, ps: Int, total: Int) = p("Halaman $pg / $ps · $total file", "Page $pg / $ps · $total files", "ページ $pg / $ps · ${total}ファイル", "第 $pg / $ps 页 · ${total}个文件", "페이지 $pg / $ps · 파일 ${total}개")
     fun arcScanning(d: Int, tt: Int, n: String) = tt("Memindai arsip ($d/$tt): $n", "Scanning archives ({0}/{1}): {2}", d, tt, n)

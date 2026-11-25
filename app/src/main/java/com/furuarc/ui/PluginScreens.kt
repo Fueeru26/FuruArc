@@ -118,11 +118,8 @@ private fun IssueCard(pl: PluginStr, i: PluginIssue, onIgnore: ((PluginIssue, Bo
         }
     }
     if (ask && onIgnore != null) {
-        AlertDialog(
+        AppAlert(
             onDismissRequest = { ask = false },
-            shape = RoundedCornerShape(CardRadius),
-            backgroundColor = p.card,
-            contentColor = p.text,
             title = { Text(pl.ignoreTitle, fontWeight = FontWeight.Bold, color = p.text) },
             text = { Text(pl.kindName(i.kind) + " · " + i.plugin + "\n\n" + pl.ignoreBody, color = p.text, fontSize = 14.sp) },
             buttons = {
@@ -139,11 +136,8 @@ private fun IssueCard(pl: PluginStr, i: PluginIssue, onIgnore: ((PluginIssue, Bo
 @Composable
 private fun IgnoredDialog(pl: PluginStr, keys: Set<String>, onRestore: (String) -> Unit, onRestoreAll: () -> Unit, onClose: () -> Unit) {
     val p = LocalPalette.current
-    AlertDialog(
+    AppAlert(
         onDismissRequest = onClose,
-        shape = RoundedCornerShape(CardRadius),
-        backgroundColor = p.card,
-        contentColor = p.text,
         title = { Text(pl.ignoredTitle, fontWeight = FontWeight.Bold, color = p.text) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -412,12 +406,13 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             }
             item { PickerCard(AppIcons.FolderPlus, pl.upNewPlugin, st.pendingName?.let { pl.pendingNew(it) }, AppIcons.File) { pickNew.launch(arrayOf("*/*")) } }
             item { PrimaryButton(pl.addPlugin, st.pendingName != null) { PluginListJobs.addPending() } }
-            item { PluginSectionTitle(pl.listTitle) }
-            item { Text(pl.count(st.entries.size, st.entries.count { it.enabled }), color = p.muted, fontSize = 13.sp) }
-            item { AppTextField(query, { query = it }, pl.searchPlugin) }
-            item { SegmentedChips(listOf(pl.fAll, pl.fOn, pl.fOff), filter) { filter = it } }
-            if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
-            if (shown.isEmpty()) item { Hint(pl.noneMatch) } else item { Hint(pl.tapHint) }
+            panel(pl.listTitle) {
+                Text(pl.count(st.entries.size, st.entries.count { it.enabled }), color = p.muted, fontSize = 13.sp)
+                AppTextField(query, { query = it }, pl.searchPlugin)
+                SegmentedChips(listOf(pl.fAll, pl.fOn, pl.fOff), filter) { filter = it }
+                if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
+                if (shown.isEmpty()) Hint(pl.noneMatch) else Hint(pl.tapHint)
+            }
             items(pageItems) { e ->
                 AppCard(Modifier.fillMaxWidth()) {
                     Row(Modifier.clickable { selected = e }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -484,11 +479,8 @@ private fun ProfileNameDialog(onSave: (String) -> Unit, onDismiss: () -> Unit) {
     val p = LocalPalette.current
     val pl = LocalStr.current.pl
     var name by remember { mutableStateOf("") }
-    AlertDialog(
+    AppAlert(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(CardRadius),
-        backgroundColor = p.card,
-        contentColor = p.text,
         title = { DlgTitle(pl.profSave) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -509,11 +501,8 @@ private fun ProfileNameDialog(onSave: (String) -> Unit, onDismiss: () -> Unit) {
 private fun ProfileListDialog(profiles: Map<String, Map<String, Boolean>>, onApply: (String) -> Unit, onDelete: (String) -> Unit, onDismiss: () -> Unit) {
     val p = LocalPalette.current
     val pl = LocalStr.current.pl
-    AlertDialog(
+    AppAlert(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(CardRadius),
-        backgroundColor = p.card,
-        contentColor = p.text,
         title = { Text(pl.profApply, fontWeight = FontWeight.Bold, color = p.text) },
         text = {
             Column(Modifier.fillMaxWidth().heightIn(max = 380.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -544,11 +533,8 @@ private fun PluginInfoDialog(entry: PluginEntry, order: Int, total: Int, issues:
     var on by remember(entry) { mutableStateOf(entry.enabled) }
     var confirmDel by remember { mutableStateOf(false) }
     val params = remember(entry) { entry.parameters.entries.toList() }
-    AlertDialog(
+    AppAlert(
         onDismissRequest = onClose,
-        shape = RoundedCornerShape(CardRadius),
-        backgroundColor = p.card,
-        contentColor = p.text,
         title = { Text(entry.name, fontWeight = FontWeight.Bold, color = p.text, maxLines = 2, overflow = TextOverflow.Ellipsis) },
         text = {
             Column(Modifier.fillMaxWidth().heightIn(max = 400.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {

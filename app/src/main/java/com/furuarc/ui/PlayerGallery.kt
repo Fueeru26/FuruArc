@@ -45,6 +45,7 @@ import com.furuarc.ui.theme.LocalPalette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Search
 import kotlinx.coroutines.withContext
 import java.io.FileInputStream
@@ -115,6 +116,8 @@ internal fun GalleryTab(onOpen: (Int) -> Unit) {
     val p = LocalPalette.current
     val items = PlayerHub.image
     val size = MediaPrefs.pageGallery
+    var sortSel by remember { mutableStateOf(-1) }
+    val sortScope = androidx.compose.runtime.rememberCoroutineScope()
     var filt by remember { mutableStateOf(false) }
     var q by remember { mutableStateOf("") }
     val vis = if (q.isBlank()) items.indices.toList() else items.indices.filter { items[it].name.contains(q.trim(), true) }
@@ -143,6 +146,15 @@ internal fun GalleryTab(onOpen: (Int) -> Unit) {
                 color = p.muted, fontSize = 13.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             if (items.isNotEmpty()) {
+                SortMenuButton(PlayerSort.labels(pl, 1), sortSel, compact = true) { i ->
+                    sortSel = i
+                    val code = PlayerSort.codes(1)[i]
+                    sortScope.launch {
+                        val r = withContext(Dispatchers.IO) { PlayerSort.sort(ctx, items, code) }
+                        PlayerHub.update(1, r)
+                        page = 0
+                    }
+                }
                 RoundIcon(Icons.Default.Search, pl.search, if (filt) p.accent else p.text, 40, 24) { filt = !filt; if (!filt) q = "" }
                 RoundIcon(AppIcons.Checklist, pl.selMode, if (selMode) p.accent else p.text, 40, 24) { if (selMode) endSel() else selMode = true }
             }

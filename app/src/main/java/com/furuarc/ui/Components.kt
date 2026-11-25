@@ -3,6 +3,7 @@ package com.furuarc.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -130,11 +131,11 @@ fun Modifier.cardShadow(radius: androidx.compose.ui.unit.Dp): Modifier {
 
 /** 64dp-tall title bar: 24dp back icon aligned with the content edge, 22sp title. */
 @Composable
-fun ScreenHeader(title: String, onBack: () -> Unit, trailing: (@Composable () -> Unit)? = null) {
+fun ScreenHeader(title: String, onBack: () -> Unit, trailing: (@Composable () -> Unit)? = null, fixed: Boolean = false) {
     val p = LocalPalette.current
     val s = LocalStr.current
     // the header shrinks while the user scrolls down (see HeaderScrollConnection)
-    val shrink by androidx.compose.animation.core.animateFloatAsState(if (HeaderState.collapsed) 1f else 0f)
+    val shrink by androidx.compose.animation.core.animateFloatAsState(if (HeaderState.collapsed && !fixed) 1f else 0f)
     Row(
         Modifier.fillMaxWidth().height((64f - 18f * shrink).dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -661,6 +662,30 @@ fun LazyListScope.processItems(
     items(s.log) { line -> Text(line, fontSize = 12.sp, color = LocalPalette.current.muted) }
 }
 
+/**
+ * Sort icon button: opens a small menu with [options]; the chosen one is marked with the accent colour.
+ * Placed in the header, to the left of the search icon.
+ */
+@Composable
+fun SortMenuButton(options: List<String>, selected: Int, modifier: Modifier = Modifier, compact: Boolean = false, onSelect: (Int) -> Unit) {
+    val p = LocalPalette.current
+    var open by remember { mutableStateOf(false) }
+    Box(modifier) {
+        if (compact) Box(
+            Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).clickableScale(pressed = 0.88f) { open = true },
+            contentAlignment = Alignment.Center,
+        ) { Icon(AppIcons.Sort, null, tint = if (open) p.accent else p.text, modifier = Modifier.size(24.dp)) }
+        else IconButton(onClick = { open = true }) { Icon(AppIcons.Sort, null, tint = if (open) p.accent else p.text) }
+        androidx.compose.material.DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            options.forEachIndexed { i, label ->
+                androidx.compose.material.DropdownMenuItem(onClick = { open = false; onSelect(i) }) {
+                    Text(label, color = if (i == selected) p.accent else p.text, fontWeight = if (i == selected) FontWeight.Bold else FontWeight.Normal)
+                }
+            }
+        }
+    }
+}
+
 /** General confirmation dialog. */
 @Composable
 fun ConfirmDialog(
@@ -672,11 +697,8 @@ fun ConfirmDialog(
     onDismiss: () -> Unit,
 ) {
     val p = LocalPalette.current
-    AlertDialog(
+    AppAlert(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(CardRadius),
-        backgroundColor = p.card,
-        contentColor = p.text,
         title = { Text(title, fontWeight = FontWeight.Bold, color = p.text) },
         text = { Text(message, color = p.muted) },
         confirmButton = {
@@ -686,6 +708,35 @@ fun ConfirmDialog(
             TextButton(onClick = onDismiss) { OneLineText(no, fontSize = 14.sp, color = p.text) }
         },
     )
+}
+
+/**
+ * Alert window used by every dialog with a title, text and buttons: same border and shadow as a label background
+ * (see [RowPanel]); the width follows the screen, the height follows the content.
+ */
+@Composable
+fun AppAlert(
+    onDismissRequest: () -> Unit,
+    title: (@Composable () -> Unit)? = null,
+    text: (@Composable () -> Unit)? = null,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: (@Composable () -> Unit)? = null,
+) {
+    val p = LocalPalette.current
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismissRequest, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        RowPanel(Modifier.fillMaxWidth().padding(16.dp)) {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material.LocalContentColor provides p.text) {
+                Column(Modifier.padding(start = 20.dp, end = 12.dp, top = 20.dp, bottom = 10.dp)) {
+                    title?.let { t -> Box(Modifier.padding(end = 8.dp, bottom = 8.dp)) { t() } }
+                    text?.let { t -> Box(Modifier.padding(end = 8.dp).weight(1f, fill = false).then(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()))) { t() } }
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                        dismissButton?.invoke()
+                        confirmButton()
+                    }
+                }
+            }
+        }
+    }
 }
 
 /** Confirmation dialog while a process is running. */
@@ -743,10 +794,7 @@ fun DetailLink(text: String, fontSize: androidx.compose.ui.unit.TextUnit = 13.sp
     )
     if (open) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { open = false }) {
-            androidx.compose.material.Surface(
-                Modifier.fillMaxWidth().clickable { open = false },
-                shape = RoundedCornerShape(CardRadius), color = p.card,
-            ) {
+            RowPanel(Modifier.fillMaxWidth().padding(12.dp).clickable { open = false }) {
                 Text(text, color = p.text, fontSize = 14.sp, lineHeight = 21.sp, modifier = Modifier.padding(16.dp))
             }
         }
@@ -781,10 +829,7 @@ fun AppDialog(title: String, onDismiss: () -> Unit, buttons: @Composable RowScop
 fun AppDialogW(title: String, onDismiss: () -> Unit, hPad: androidx.compose.ui.unit.Dp, buttons: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val p = LocalPalette.current
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(
-            shape = RoundedCornerShape(CardRadius), color = p.card, contentColor = p.text,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = hPad, vertical = 24.dp),
-        ) {
+        RowPanel(Modifier.fillMaxWidth().padding(horizontal = hPad, vertical = 24.dp)) {
             Column(Modifier.clearFocusOnOutsideTap().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = p.text)
                 content()
@@ -845,7 +890,7 @@ fun PageNav(page: Int, pages: Int, onPage: (Int) -> Unit, modifier: Modifier = M
             if (n != null) { onPage((n - 1).coerceIn(0, pages - 1)); dlg = false }
         }
         androidx.compose.ui.window.Dialog(onDismissRequest = { dlg = false }) {
-            Surface(shape = RoundedCornerShape(CardRadius), color = p.card, contentColor = p.text) {
+            RowPanel(Modifier.padding(12.dp)) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = p.text)
                     AppTextField(text, { s -> text = s.filter { it.isDigit() }.take(6) }, "1 – $pages", number = true)

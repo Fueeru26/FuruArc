@@ -1144,7 +1144,7 @@ private fun TrRow(orig: String, text: String, glossary: List<Pair<String, String
     val codeWarn = text.isNotBlank() && origCodes != RpgmText.controlCodes(text)
     // every translation row (Original Text + translation field) sits on its own label background
     RowPanel(Modifier.fillMaxWidth()) {
-    Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(s.r.edOriginal, color = p.muted, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             IconButton(onClick = { onText(orig) }) {
@@ -1157,11 +1157,6 @@ private fun TrRow(orig: String, text: String, glossary: List<Pair<String, String
         Text(orig, color = p.text, fontSize = 15.sp)
         AppTextField(
             value = text, onValueChange = onText, label = s.r.edTranslation, multiline = true,
-            trailing = {
-                IconButton(onClick = { copyToClipboard(ctx, text, s.r.edTrCopied) }) {
-                    Icon(AppIcons.ContentCopy, contentDescription = s.r.edCopyTr, tint = p.muted)
-                }
-            },
         )
         if (codeWarn) Text(s.r.edCodeWarn, color = Color(0xFFFFB74D), fontSize = 12.sp)
         // glossary suggestions: terms found in the original text; tap to insert its translation

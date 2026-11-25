@@ -103,47 +103,15 @@ fun VnEngineListScreen(onEngine: (VnEngine) -> Unit, onBack: () -> Unit) {
 /** Engine card: portrait card containing the letters [badge] (no name text), engine name below the card (max 2 lines). */
 @Composable
 private fun EngineCard(t: EngineTile) {
-    val p = LocalPalette.current
-    val shape = RoundedCornerShape(CardRadius)
-    val rim = cardRim()
-    // animations on the outermost node: the cover image, its border, its shadow and the name move together
-    Column(
-        Modifier.fillMaxWidth().staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = t.onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        val ctx = androidx.compose.ui.platform.LocalContext.current
-        val res = remember(t.id) { if (t.id.isEmpty()) 0 else ctx.resources.getIdentifier("eng_" + t.id, "drawable", ctx.packageName) }
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(0.75f)
-                .cardShadow(CardRadius)
-                .clip(shape)
-                .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.22f), lerp(p.card, p.accent, 0.05f))))
-                .border(BorderStroke(rim.second, rim.first), shape),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (res != 0) androidx.compose.foundation.Image(
-                painter = androidx.compose.ui.res.painterResource(res),
-                contentDescription = null,
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        // fixed space for 2 lines of name below the card, so all rows have the same height
-        Box(Modifier.fillMaxWidth().height(44.dp), contentAlignment = Alignment.TopCenter) {
-            Text(
-                t.name,
-                fontSize = 15.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = p.text,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-            )
-        }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val res = remember(t.id) { if (t.id.isEmpty()) 0 else ctx.resources.getIdentifier("eng_" + t.id, "drawable", ctx.packageName) }
+    CoverCard(name = t.name, modifier = Modifier.fillMaxWidth(), nameSize = 14.sp, onClick = t.onClick) {
+        if (res != 0) androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(res),
+            contentDescription = null,
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 

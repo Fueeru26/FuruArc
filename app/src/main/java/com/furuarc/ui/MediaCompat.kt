@@ -106,7 +106,7 @@ internal fun CompatDialog(results: List<MediaResult>, onClose: () -> Unit) {
     val list = files
     val issues = remember(list, eng) { list?.let { CompatCheck.check(eng, it, id) } }
     Dialog(onDismissRequest = { onClose() }) {
-        Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius), color = p.card) {
+        RowPanel(Modifier.fillMaxWidth().padding(12.dp)) {
             Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(m.compatTitle, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 AppDropdown(m.compatEngine, eng, CompatCheck.ENGINES.map { it to CompatCheck.engineName(it, id) }) { eng = it }

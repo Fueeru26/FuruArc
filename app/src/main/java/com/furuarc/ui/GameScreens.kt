@@ -150,9 +150,8 @@ private fun ExtractDialog() {
     val g = gameStr(LocalLang.current)
     val p = LocalPalette.current
     val running = GameExtract.running
-    AlertDialog(
+    AppAlert(
         onDismissRequest = { GameExtract.dismiss() },
-        shape = RoundedCornerShape(CardRadius), backgroundColor = p.card, contentColor = p.text,
         title = { Text(g.extractTitle, fontWeight = FontWeight.Bold, color = p.text) },
         text = {
             Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -276,7 +275,6 @@ private fun FilterBar(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (showFilters) {
             AppTextField(query, onQuery, hint)
-            AppDropdown(g.sortLabel, sort.toString(), g.sortOpts.mapIndexed { i, l -> Pair(i.toString(), l) }) { if (it == "4") GameShuffle.seed = (System.nanoTime() and 0x7fffffff).toInt(); onSort(it.toInt()) }
         }
         if (pages > 1) RenPager(page, pages, g.pageLabel(page + 1, pages, shown), onPage)
         Row(Modifier.fillMaxWidth().clickable { onFavOnly(!favOnly) }, verticalAlignment = Alignment.CenterVertically) {
@@ -296,8 +294,8 @@ private fun <T> sortFilter(list: List<T>, q: String, sort: Int, favOnly: Boolean
     if (favOnly) f = f.filter { id(it) in fav }
     return when (sort) {
         1 -> f.sortedByDescending { name(it).lowercase() }
-        2 -> f.sortedBy { size(it) }
-        3 -> f.sortedByDescending { size(it) }
+        2 -> f.sortedByDescending { size(it) }
+        3 -> f.sortedBy { size(it) }
         4 -> f.shuffled(java.util.Random(GameShuffle.seed.toLong()))
         else -> f.sortedBy { name(it).lowercase() }
     }
@@ -353,6 +351,7 @@ fun GameAudioScreen(onBack: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         ScreenHeader(g.menuAudio, onBack, trailing = {
+            SortMenuButton(g.sortOpts, sort) { if (it == 4) GameShuffle.seed = (System.nanoTime() and 0x7fffffff).toInt(); sort = it }
             IconButton(onClick = { filt = !filt; if (!filt) q = "" }) { Icon(Icons.Default.Search, g.search, tint = if (filt) p.accent else p.text) }
         })
         FilterBar(filt, q, { q = it }, g.filterHint, sort, { sort = it }, favOnly, { favOnly = it }, selMode, { selMode = !selMode; if (!selMode) sel = emptySet() }, list.size, all.size, pg, pages) { page = it }
@@ -457,6 +456,7 @@ fun GameImageScreen(onBack: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         ScreenHeader(g.menuImage, onBack, trailing = {
+            SortMenuButton(g.sortOpts, sort) { if (it == 4) GameShuffle.seed = (System.nanoTime() and 0x7fffffff).toInt(); sort = it }
             IconButton(onClick = { filt = !filt; if (!filt) q = "" }) { Icon(Icons.Default.Search, g.search, tint = if (filt) p.accent else p.text) }
         })
         FilterBar(filt, q, { q = it }, g.filterHint, sort, { sort = it }, favOnly, { favOnly = it }, selMode, { selMode = !selMode; if (!selMode) sel = emptySet() }, list.size, all.size, pg, pages) { page = it }
@@ -599,6 +599,7 @@ fun GameVideoScreen(onBack: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         ScreenHeader(g.menuVideo, onBack, trailing = {
+            SortMenuButton(g.sortOpts, sort) { if (it == 4) GameShuffle.seed = (System.nanoTime() and 0x7fffffff).toInt(); sort = it }
             IconButton(onClick = { filt = !filt; if (!filt) q = "" }) { Icon(Icons.Default.Search, g.search, tint = if (filt) p.accent else p.text) }
         })
         FilterBar(filt, q, { q = it }, g.filterHint, sort, { sort = it }, favOnly, { favOnly = it }, selMode, { selMode = !selMode; if (!selMode) sel = emptySet() }, list.size, all.size, pg, pages) { page = it }
@@ -739,6 +740,7 @@ fun GameTextScreen(onBack: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         ScreenHeader(g.menuText, onBack, trailing = {
+            SortMenuButton(g.sortOpts, sort) { if (it == 4) GameShuffle.seed = (System.nanoTime() and 0x7fffffff).toInt(); sort = it }
             IconButton(onClick = { filt = !filt; if (!filt) q = "" }) { Icon(Icons.Default.Search, g.search, tint = if (filt) p.accent else p.text) }
         })
         if (texts == null) {

@@ -68,6 +68,7 @@ The first tab is a launcher for everything in the app.
 Add your games as a library and browse what is inside them.
 
 - **Game library** with covers, sorting (name, recently added, random), favorites, bulk-add of a parent folder (every sub-folder becomes a game) and cover search on the internet.
+- Each list (Audio, Images, Video, Text) has a sort icon left of the search icon: file name A-Z / Z-A, largest / smallest first, random.
 - **Audio**: browse and play game audio, including special formats (OVK, NWA, MIO and encrypted RPG Maker `.rpgmvo` / `.rpgmvm`).
 - **Images**: preview game images, including special engine formats (`.crx`, `.pgd`, `.pna`, `.ycg`, `.hg2`, `.hg3`, `.tlg`, `.eri`, `.g00`, `.rct`, `.rc8`).
 - **Video**: play game video.
@@ -161,7 +162,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - Image Gallery: Gallery, Folders and Collections; list or grid view, 60 per page, pinch zoom and slideshow.
 - Media Settings: many player options plus export / import of settings and all lists.
 - Apply to Queue / Gallery: Folders, Favorites, Collections and Playlists load directly into an empty list, otherwise choose Load (with a warning) or Add. Video Player subtitles (SRT, VTT, ASS/SSA). Media-style notification with seek bar. "Open with..." media is temporary and never overwrites your lists.
-- Search in Queue and Gallery, View content / Empty for lists, lyrics (.lrc), subtitle timing and auto-load, bookmarks, picture-in-picture, drag or arrow ordering, and restoring the last played audio / video.
+- Search and sort in Queue and Gallery (sort icon left of the search icon: title, artist, file name, duration, date, size, random; the list itself is reordered), View content / Empty for lists, lyrics (.lrc), subtitle timing and auto-load, bookmarks, picture-in-picture, drag or arrow ordering, and restoring the last played audio / video.
 - Game Assets viewers have a Media Player icon to open an asset here.
 - **Open with...**: files from file managers or Share / Send to open in FuruArc (media in Media Player; `.txt` and registered structured formats in View mode of the Text Editor; other known archive formats in the matching feature; unknown formats that are text in View mode of Plain Text; other unknown formats in File Inspection). Can be disabled in System settings.
 
