@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 
 /** Overall look of the app ("Display Style" in Settings). [CLASSIC] is the original look. */
 enum class UiStyle(val id: Int) {
-    CLASSIC(0), MINIMAL(1), SOFT(2), GRADIENT(3), SOLID(4), SAKURA(5), OCEAN(6), FOREST(7), SUNSET(8), NEON(9), PAPER(10);
+    CLASSIC(0), MINIMAL(1), SOFT(2), GRADIENT(3), SOLID(4), SAKURA(5), OCEAN(6), FOREST(7), SUNSET(8), NEON(9), PAPER(10), BLOSSOM(12);
 
     companion object {
         fun of(id: Int): UiStyle {
@@ -28,7 +28,7 @@ enum class UiStyle(val id: Int) {
 
 /** Bottom navigation bar look ("Navigation Bar Style" in Settings). */
 enum class NavStyle(val id: Int) {
-    CLASSIC(0), FLOATING(1), ICONS(2), PILL(3), TOPLINE(4), FLOAT_ICONS(5), FAB(6);
+    CLASSIC(0), FLOATING(1), ICONS(2), PILL(3), TOPLINE(4), FLOAT_ICONS(5), FAB(6), GLASS(7);
 
     companion object { fun of(id: Int): NavStyle = values().firstOrNull { it.id == id } ?: CLASSIC }
 }
@@ -55,6 +55,7 @@ object AppStyle {
         UiStyle.SUNSET -> 18.dp
         UiStyle.NEON -> 8.dp
         UiStyle.PAPER -> 6.dp
+        UiStyle.BLOSSOM -> 26.dp
     }
     val controlRadius: Dp get() = when (ui) {
         UiStyle.CLASSIC -> 10.dp
@@ -68,6 +69,7 @@ object AppStyle {
         UiStyle.SUNSET -> 16.dp
         UiStyle.NEON -> 8.dp
         UiStyle.PAPER -> 6.dp
+        UiStyle.BLOSSOM -> 20.dp
     }
     val iconRadius: Dp get() = when (ui) {
         UiStyle.CLASSIC -> 8.dp
@@ -81,6 +83,7 @@ object AppStyle {
         UiStyle.SUNSET -> 14.dp
         UiStyle.NEON -> 6.dp
         UiStyle.PAPER -> 4.dp
+        UiStyle.BLOSSOM -> 18.dp
     }
 
     fun apply(uiId: Int, navId: Int, anim: Boolean = true, haptic: Boolean = false) {

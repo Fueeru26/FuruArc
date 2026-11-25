@@ -72,8 +72,10 @@ private fun shiftHue(c: Color, deg: Float, light: Float): Color {
  * top-left corner of buttons and icon badges is never brighter than the accent. The field is only a light tint of the card.
  */
 private fun finish(p: Palette): Palette {
-    val a = shiftHue(p.accent, -8f, if (p.dark) -0.08f else -0.03f)
-    val b = shiftHue(p.accent, 20f, if (p.dark) -0.16f else -0.12f)
+    // Blossom dark: icon badges go from a sky blue to a deep indigo
+    val blossomDark = p.dark && p.background == Color(0xFF0C142D)
+    val a = if (blossomDark) Color(0xFF3B9BDF) else shiftHue(p.accent, -8f, if (p.dark) -0.08f else -0.03f)
+    val b = if (blossomDark) Color(0xFF1A2F9C) else shiftHue(p.accent, 20f, if (p.dark) -0.16f else -0.12f)
     // icon / text colour on the gradient: decided by the accent (a darker end of the gradient does not flip it)
     val on = if (p.accent.luminance() > 0.42f) Color(0xFF101214) else Color.White
     val field = if (p.dark) lerp(lerp(p.card, Color.White, 0.03f), p.accent, 0.05f) else lerp(p.card, p.accent, 0.06f)
@@ -151,6 +153,22 @@ fun buildPalette(dark: Boolean, accent: AccentColor, style: UiStyle = UiStyle.CL
                         else mk(Color(0xFFF7F7FF), Color.White, lerp(Color.White, b.accent, 0.55f), 0.14f)
         UiStyle.PAPER -> if (dark) mk(Color(0xFF1B1914), Color(0xFF24211A), Color(0xFF3D382C), 0.20f)
                          else mk(Color(0xFFF5EEDC), Color(0xFFFBF6E9), Color(0xFFDDD1B3), 0.14f)
+        // blossom: blue sakura artwork behind glass cards (the background image is drawn in MainActivity)
+        UiStyle.BLOSSOM -> if (dark) Palette(
+            dark = true, background = Color(0xFF0C142D), card = Color(0xFF17213F),
+            iconBg = Color(0xFF22346E), iconFg = Color(0xFF8FB4FF),
+            trailingBg = Color(0xFF1B2850), trailingFg = Color(0xFFD8E6FF),
+            text = Color(0xFFFFFFFF), muted = Color(0xFF8197D6), accent = b.accent, onAccent = b.onAccent,
+            disabledBg = Color(0xFF1A2342), disabledFg = Color(0xFF6C7BA8),
+            outline = Color(0xFF4D6099), cardBorder = Color(0xFF364673),
+        ) else Palette(
+            dark = false, background = Color(0xFFE8EEFF), card = Color(0xFFF4F7FF),
+            iconBg = Color(0xFFD3DEFF), iconFg = b.accent,
+            trailingBg = Color(0xFFDCE5FF), trailingFg = b.accent,
+            text = Color(0xFF14214F), muted = Color(0xFF5B6791), accent = b.accent, onAccent = Color.White,
+            disabledBg = Color(0xFFDDE3F5), disabledFg = Color(0xFF9AA5C7),
+            outline = Color(0xFF6F82C8), cardBorder = Color(0xFFFFFFFF),
+        )
     })
 }
 

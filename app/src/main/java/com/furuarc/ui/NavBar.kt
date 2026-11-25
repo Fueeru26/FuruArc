@@ -52,6 +52,7 @@ fun AppBottomBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) {
         NavStyle.TOPLINE -> TopLineBar(items, selected, onSelect)
         NavStyle.FLOAT_ICONS -> Unit
         NavStyle.FAB -> Unit // drawn as an overlay by FabNav (see MainActivity)
+        NavStyle.GLASS -> Unit // drawn over the content by FloatingNav (see MainActivity)
     }
 }
 
@@ -101,7 +102,11 @@ private fun ClassicBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> U
 /** The floating bars (Floating, Floating Icons) are drawn over the content, so nothing sits behind or below them. */
 @Composable
 fun FloatingNav(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) {
-    if (AppStyle.nav == NavStyle.FLOAT_ICONS) FloatingIconsBar(items, selected, onSelect) else FloatingBar(items, selected, onSelect)
+    when (AppStyle.nav) {
+        NavStyle.FLOAT_ICONS -> FloatingIconsBar(items, selected, onSelect)
+        NavStyle.GLASS -> GlassBar(items, selected, onSelect)
+        else -> FloatingBar(items, selected, onSelect)
+    }
 }
 
 /** Floating: a rounded bar that hovers above the bottom edge; the active tab expands into icon + label. */
@@ -330,6 +335,42 @@ fun BigToolCard(icon: ImageVector, title: String, subtitle: String = "", modifie
                 subtitle, fontSize = 12.sp, lineHeight = 16.sp,
                 color = p.muted, textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis,
             )
+        }
+    }
+}
+
+/** Glass: wide rounded glass bar hovering above the bottom edge; every tab shows icon + label, the active one sits in a soft blue pill. */
+@Composable
+private fun GlassBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) {
+    val p = LocalPalette.current
+    val shape = RoundedCornerShape(30.dp)
+    val fill = if (p.dark) Brush.verticalGradient(listOf(Color(0xFF161D3A).copy(alpha = 0.95f), Color(0xFF0F152D).copy(alpha = 0.96f)))
+    else Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.92f), Color(0xFFEAF0FF).copy(alpha = 0.90f)))
+    val rim = if (p.dark) Brush.linearGradient(listOf(Color(0xFF4A5C94).copy(alpha = 0.95f), Color(0xFF2E3C6C).copy(alpha = 0.80f)))
+    else Brush.linearGradient(listOf(Color.White, Color(0xFFC9D6FF)))
+    val selTint = if (p.dark) Color(0xFF4AB0FF) else p.accent
+    val unselTint = if (p.dark) Color(0xFFA9BEF5) else p.muted
+    Box(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 8.dp)) {
+        Row(
+            Modifier.fillMaxWidth().height(70.dp).glassShadow(30.dp, p.dark).clip(shape).background(fill)
+                .border(BorderStroke(1.5.dp, rim), shape).padding(horizontal = 6.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            items.forEachIndexed { i, item ->
+                val sel = i == selected
+                val pill by animateColorAsState(if (sel) (if (p.dark) Color(0xFF27407B) else Color(0xFFD5DFFF)) else Color.Transparent)
+                val sc by animateFloatAsState(if (sel) 1.08f else 1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+                Column(
+                    Modifier.weight(1f).fillMaxHeight().padding(horizontal = 4.dp).clip(RoundedCornerShape(24.dp)).background(pill)
+                        .clickableScale(pressed = 0.92f, ripple = false) { onSelect(i) },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Box(Modifier.scale(sc)) { NavIcon(item, if (sel) selTint else unselTint, 28.dp) }
+                    Spacer(Modifier.height(2.dp))
+                    NavLabel(item.label, sel, if (sel) selTint else unselTint)
+                }
+            }
         }
     }
 }

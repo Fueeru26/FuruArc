@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
                 val darkNow = p.dark
                 val gradTop = com.furuarc.ui.theme.gradientTop(com.furuarc.ui.theme.UiStyle.of(settings.uiStyle), p)
                 val gradient = gradTop != null
+                val blossom = com.furuarc.ui.theme.UiStyle.of(settings.uiStyle) == com.furuarc.ui.theme.UiStyle.BLOSSOM
                 val top = gradTop ?: p.background
                 SideEffect {
                     window.statusBarColor = top.toArgb()
@@ -117,11 +118,22 @@ class MainActivity : ComponentActivity() {
                     controller?.isAppearanceLightNavigationBars = !darkNow
                 }
                 Box(Modifier.fillMaxSize()) {
+                    if (blossom) {
+                        val bgCtx = androidx.compose.ui.platform.LocalContext.current
+                        val bgRes = remember(darkNow) { bgCtx.resources.getIdentifier(if (darkNow) "bg_blossom_dark" else "bg_blossom_light", "drawable", bgCtx.packageName) }
+                        if (bgRes != 0) androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(bgRes),
+                            contentDescription = null,
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            alignment = androidx.compose.ui.Alignment.TopCenter,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                     Surface(
                         Modifier.fillMaxSize().then(
                             if (gradient) Modifier.background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(top, p.background))) else Modifier
                         ),
-                        color = if (gradient) androidx.compose.ui.graphics.Color.Transparent else p.background,
+                        color = if (gradient || blossom) androidx.compose.ui.graphics.Color.Transparent else p.background,
                     ) { App(vm) }
                 }
             }
@@ -420,7 +432,7 @@ fun App(vm: MainViewModel) {
     val activity = LocalContext.current as? Activity
     SideEffect {
         val navSt = com.furuarc.ui.theme.AppStyle.nav
-        val solidBar = tab >= 0 && navSt != com.furuarc.ui.theme.NavStyle.FLOATING && navSt != com.furuarc.ui.theme.NavStyle.FLOAT_ICONS && navSt != com.furuarc.ui.theme.NavStyle.FAB
+        val solidBar = tab >= 0 && navSt != com.furuarc.ui.theme.NavStyle.FLOATING && navSt != com.furuarc.ui.theme.NavStyle.FLOAT_ICONS && navSt != com.furuarc.ui.theme.NavStyle.GLASS && navSt != com.furuarc.ui.theme.NavStyle.FAB
         activity?.window?.navigationBarColor = (if (solidBar) p.card else p.background).toArgb()
     }
     // workflow: result of Media Asset Converter (Overwrite Original Files) -> Repack with that folder already selected
@@ -448,6 +460,7 @@ fun App(vm: MainViewModel) {
     val barInset = if (tab < 0) 0.dp else when (com.furuarc.ui.theme.AppStyle.nav) {
         com.furuarc.ui.theme.NavStyle.FLOATING -> 92.dp
         com.furuarc.ui.theme.NavStyle.FLOAT_ICONS -> 94.dp
+        com.furuarc.ui.theme.NavStyle.GLASS -> 92.dp
         com.furuarc.ui.theme.NavStyle.FAB -> 76.dp
         else -> 0.dp
     }
@@ -694,7 +707,7 @@ fun App(vm: MainViewModel) {
             }
             }
             if (tab >= 0 && com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FAB) com.furuarc.ui.FabNav(navItems, tab, Modifier, onNavSelect)
-            if (tab >= 0 && (com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FLOATING || com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FLOAT_ICONS))
+            if (tab >= 0 && (com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FLOATING || com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.FLOAT_ICONS || com.furuarc.ui.theme.AppStyle.nav == com.furuarc.ui.theme.NavStyle.GLASS))
                 Box(Modifier.align(Alignment.BottomCenter)) { com.furuarc.ui.FloatingNav(navItems, tab, onNavSelect) }
         }
         if (tab >= 0) AppBottomBar(navItems, tab, onNavSelect)

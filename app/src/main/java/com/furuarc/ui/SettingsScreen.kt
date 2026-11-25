@@ -107,7 +107,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             AppDropdown(
                 sys0.uiStyleLabel, draft.uiStyle.toString(),
                 listOf(
-                    "0" to sys0.uiClassic, "1" to sys0.uiMinimal, "2" to sys0.uiSoft, "3" to sys0.uiGradient, "4" to sys0.uiAmoled,
+                    "12" to sys0.uiBlossom, "0" to sys0.uiClassic, "1" to sys0.uiMinimal, "2" to sys0.uiSoft, "3" to sys0.uiGradient, "4" to sys0.uiAmoled,
                     "5" to sys0.uiSakura, "6" to sys0.uiOcean, "7" to sys0.uiForest, "8" to sys0.uiSunset, "9" to sys0.uiNeon, "10" to sys0.uiPaper, "11" to sys0.uiAuto,
                 ),
                 showLabel = false,
@@ -118,7 +118,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             AppDropdown(
                 sys0.navStyleLabel, draft.navStyle.toString(),
                 listOf(
-                    "0" to sys0.navClassic, "1" to sys0.navFloating, "5" to sys0.navFloatIcons, "2" to sys0.navIcons,
+                    "7" to sys0.navGlass, "0" to sys0.navClassic, "1" to sys0.navFloating, "5" to sys0.navFloatIcons, "2" to sys0.navIcons,
                     "3" to sys0.navPill, "4" to sys0.navTopLine, "6" to sys0.navFab,
                 ),
                 showLabel = false,

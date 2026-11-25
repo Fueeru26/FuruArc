@@ -60,10 +60,14 @@ val ScreenPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
 
 /** Base card: theme-colored background, large corners, thin border. */
 @Composable
-fun AppCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun AppCard(modifier: Modifier = Modifier, deco: Boolean = false, content: @Composable () -> Unit) {
     val p = LocalPalette.current
     val src = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val st = com.furuarc.ui.theme.AppStyle.ui
+    if (st == com.furuarc.ui.theme.UiStyle.BLOSSOM) {
+        BlossomCard(modifier.staggeredEntrance().scrollJelly().pressScale(src, 0.92f), src, deco, content)
+        return
+    }
     val soft = st == com.furuarc.ui.theme.UiStyle.SOFT
     val classic = st == com.furuarc.ui.theme.UiStyle.CLASSIC
     Surface(
@@ -148,6 +152,10 @@ fun ScreenHeader(title: String, onBack: () -> Unit, trailing: (@Composable () ->
 @Composable
 fun HomeHeader(title: String) {
     val p = LocalPalette.current
+    if (com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM) {
+        BlossomHeader(title)
+        return
+    }
     Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.CenterStart) {
         val dark = p.background.luminance() < 0.5f
         Text(title, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (dark) Color.White else p.accent)
@@ -209,6 +217,10 @@ fun MenuCard(icon: ImageVector, title: String, subtitle: String, onClick: () -> 
 @Composable
 fun MenuCard(icon: ImageVector, title: String, subtitle: String, badge: Boolean, onClick: () -> Unit) {
     val p = LocalPalette.current
+    if (com.furuarc.ui.theme.AppStyle.ui == com.furuarc.ui.theme.UiStyle.BLOSSOM) {
+        BlossomMenuRow(icon, title, subtitle, badge, onClick)
+        return
+    }
     AppCard(Modifier.fillMaxWidth()) {
         Row(
             Modifier.cardClickable(onClick).padding(16.dp),

@@ -28,9 +28,9 @@ data class AppSettings(
     val themeMode: Int = 0,
     val accent: AccentColor = AccentColor.BLUE,
     /** Display style (0 = Classic, 1 = Minimal, 2 = Soft, 3 = Gradient, 4 = Solid, 5..10 = Sakura, Ocean, Forest, Sunset, Neon, Paper, 11 = Seasonal). */
-    val uiStyle: Int = 0,
+    val uiStyle: Int = 12,
     /** Navigation bar style (0 = Classic, 1 = Floating, 2 = Icons Only, 3 = Sliding Pill, 4 = Top Line, 5 = Floating Icons, 6 = Floating Button). */
-    val navStyle: Int = 0,
+    val navStyle: Int = 7,
     /** Press animations and screen transitions. */
     val animations: Boolean = true,
     /** Light vibration on taps of tabs and buttons. */
@@ -61,16 +61,20 @@ class SettingsStore(ctx: Context) {
     fun load(): AppSettings {
         val accentId = sp.getString("accent", null)
         val langCode = sp.getString("lang", null)
+        // one-time switch to the Blossom look (Display Style 12 + Glass navigation bar 7); later changes in Settings are kept
+        if (!sp.getBoolean("lookBlossom", false)) {
+            sp.edit().putInt("uiStyle", 12).putInt("navStyle", 7).putBoolean("lookBlossom", true).apply()
+        }
         return AppSettings(
             themeMode = if (sp.contains("themeMode")) sp.getInt("themeMode", 0).coerceIn(0, 3)
             else if (sp.contains("dark")) (if (sp.getBoolean("dark", true)) 2 else 1) else 0,
             accent = AccentColor.values().firstOrNull { it.id == accentId } ?: AccentColor.BLUE,
-            uiStyle = sp.getInt("uiStyle", 0).coerceIn(0, 11),
+            uiStyle = sp.getInt("uiStyle", 12).coerceIn(0, 12),
             animations = sp.getBoolean("animations", true),
             haptics = sp.getBoolean("haptics", false),
             darkFrom = sp.getInt("darkFrom", 18).coerceIn(0, 23),
             darkTo = sp.getInt("darkTo", 6).coerceIn(0, 23),
-            navStyle = sp.getInt("navStyle", 0).coerceIn(0, 6),
+            navStyle = sp.getInt("navStyle", 7).coerceIn(0, 7),
             langPref = sp.getString("langPref", null) ?: (langCode?.takeIf { c -> Lang.values().any { it.code == c } } ?: "system"),
             conflict = sp.getInt("conflict", 0).coerceIn(0, 2),
             ignore = sp.getString("ignore", DEFAULT_IGNORE) ?: DEFAULT_IGNORE,

@@ -12,6 +12,8 @@ class SysStr(private val lang: Lang) {
     val uiSoft get() = p("Lembut", "Soft", "ソフト", "柔和", "소프트")
     val uiGradient get() = p("Gradien", "Gradient", "グラデーション", "渐变", "그라데이션")
     val uiAmoled get() = p("Warna Pekat", "Solid", "ソリッド", "纯色", "솔리드")
+    val uiBlossom get() = p("Sakura Biru", "Blue Blossom", "青い桜", "蓝色樱花", "푸른 벚꽃")
+    val navGlass get() = p("Kaca", "Glass", "ガラス", "玻璃", "글래스")
     val uiSakura get() = p("Sakura", "Sakura", "桜", "樱花", "벚꽃")
     val uiOcean get() = p("Samudra", "Ocean", "海", "海洋", "바다")
     val uiForest get() = p("Hutan", "Forest", "森", "森林", "숲")
