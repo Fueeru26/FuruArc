@@ -121,9 +121,11 @@ fun ToolJobScreen(vm: MainViewModel, engine: VnEngine?, tool: ScriptTool, onBack
                 )
             }
         }
-        if (tool == ScriptTool.EXPORT) {
-            item {
-                SectionCard(ts.formatLabel) {
+        // every setting of the tool sits in one "Options" label background
+        item {
+            LabelSection(optionsTitle(settings.lang)) {
+                if (tool == ScriptTool.EXPORT) {
+                    SectionLabel(ts.formatLabel)
                     val pickFmt = { i: Int ->
                         if (!st.running) {
                             fmt = i
@@ -135,25 +137,19 @@ fun ToolJobScreen(vm: MainViewModel, engine: VnEngine?, tool: ScriptTool, onBack
                         SegmentedChips(listOf("JSON", "JSON VNTP"), if (fmt >= 2) fmt - 2 else -1) { i -> pickFmt(i + 2) }
                     }
                     if (fmt == 3) DetailHint(ts.vntpHint)
+                    FileNameField(outBase, "." + com.furuarc.core.RpgmText.extFor(fmt), s.x.outFileName) {
+                        outBase = it; vm.setExportBase(it)
+                    }
                 }
-            }
-        }
-        if (tool == ScriptTool.EXPORT) {
-            item {
-                FileNameField(outBase, "." + com.furuarc.core.RpgmText.extFor(fmt), s.x.outFileName) {
-                    outBase = it; vm.setExportBase(it)
+                if (usesEnc) {
+                    OptionColumn(listOf(encSpec), optVals, settings.lang, !st.running) { k, v ->
+                        optVals[k] = v
+                        vm.setPref("sc_enc_" + engineKey, v)
+                    }
                 }
+                val nt = ts.note(tool, kind)
+                if (nt.length >= DETAIL_MIN_CHARS) DetailLink(nt, 13.sp, 19.sp) else Text(nt, color = p.muted, fontSize = 13.sp)
             }
-        }
-        if (usesEnc) {
-            optionPanel(null, listOf(encSpec), optVals, settings.lang, !st.running) { k, v ->
-                optVals[k] = v
-                vm.setPref("sc_enc_" + engineKey, v)
-            }
-        }
-        item {
-            val nt = ts.note(tool, kind)
-            if (nt.length >= DETAIL_MIN_CHARS) DetailLink(nt, 13.sp, 19.sp) else Text(nt, color = p.muted, fontSize = 13.sp)
         }
         val err = r.error
         if (err != null && tool != ScriptTool.LIST) item { ErrorCard(err) }

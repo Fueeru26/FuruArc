@@ -118,30 +118,6 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             }
         }
 
-        // All / Partial (does not apply to bulk unpack)
-        if (st.entryCount > 0 && st.batchCount == 0) {
-            item {
-                SectionCard(s.extractScope) {
-                    SegmentedChips(
-                        items = listOf(s.scopeAll, s.scopePartial),
-                        selected = if (st.scopePartial) 1 else 0,
-                        onSelect = { i ->
-                            if (!st.running) {
-                                if (i == 0) vm.clearSelection() else onSelect()
-                            }
-                        },
-                    )
-                    if (st.scopePartial) {
-                        Text(
-                            s.selectedInfo(st.selFiles, st.selFolders),
-                            color = p.accent,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
-            }
-        }
-
         item {
             PickerCard(
                 icon = AppIcons.FolderUpload,
@@ -152,19 +128,46 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             )
         }
 
-        optionPanel(optionsTitle(settings.lang), uspecs, uVals, settings.lang, !st.running) { k, v ->
-            uVals[k] = v
-            vm.setPref("uopt_${optId}_$k", v)
-        }
-
-        if (st.formatId == "xp3") {
+        // extract scope, unpack options and the XOR key: one "Options" label background
+        // (the key field of KiriKiri is shown from the start, it does not wait for a file)
+        val showScope = st.entryCount > 0 && st.batchCount == 0
+        val showKey = st.formatId == "xp3" || engine?.formatId == "xp3"
+        val visibleOpts = uspecs.any { sp -> val c = sp.showIf; c == null || (uVals[c.first] ?: uspecs.firstOrNull { it.key == c.first }?.default) == c.second }
+        if (showScope || showKey || visibleOpts) {
             item {
-                AppTextField(
-                    value = keyText,
-                    onValueChange = { keyText = it.filter { ch -> ch.isDigit() }.take(3) },
-                    label = s.xorKeyAutoLabel,
-                    number = true,
-                )
+                LabelSection(optionsTitle(settings.lang)) {
+                    if (showScope) {
+                        SectionLabel(s.extractScope)
+                        SegmentedChips(
+                            items = listOf(s.scopeAll, s.scopePartial),
+                            selected = if (st.scopePartial) 1 else 0,
+                            onSelect = { i ->
+                                if (!st.running) {
+                                    if (i == 0) vm.clearSelection() else onSelect()
+                                }
+                            },
+                        )
+                        if (st.scopePartial) {
+                            Text(
+                                s.selectedInfo(st.selFiles, st.selFolders),
+                                color = p.accent,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
+                    OptionColumn(uspecs, uVals, settings.lang, !st.running) { k, v ->
+                        uVals[k] = v
+                        vm.setPref("uopt_${optId}_$k", v)
+                    }
+                    if (showKey) {
+                        AppTextField(
+                            value = keyText,
+                            onValueChange = { keyText = it.filter { ch -> ch.isDigit() }.take(3) },
+                            label = s.xorKeyAutoLabel,
+                            number = true,
+                        )
+                    }
+                }
             }
         }
 

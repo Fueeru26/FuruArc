@@ -345,33 +345,31 @@ fun AssetJobScreen(vm: MainViewModel, engine: VnEngine, encrypt: Boolean, onBack
             }
         }
         item {
-            AppTextField(
-                value = keyText,
-                onValueChange = { keyText = it.filter { ch -> ch.isLetterOrDigit() }.take(32).lowercase() },
-                label = s.keyManualLabel,
-                mono = true,
-            )
-        }
-        if (encrypt) {
-            item {
-                SecondaryButton(s.btnRandomKey) {
-                    val b = ByteArray(16)
-                    SecureRandom().nextBytes(b)
-                    keyText = b.joinToString("") { x -> String.format("%02x", x.toInt() and 0xFF) }
+            LabelSection(optionsTitle(com.furuarc.ui.theme.LocalLang.current)) {
+                AppTextField(
+                    value = keyText,
+                    onValueChange = { keyText = it.filter { ch -> ch.isLetterOrDigit() }.take(32).lowercase() },
+                    label = s.keyManualLabel,
+                    mono = true,
+                )
+                if (encrypt) {
+                    SecondaryButton(s.btnRandomKey) {
+                        val b = ByteArray(16)
+                        SecureRandom().nextBytes(b)
+                        keyText = b.joinToString("") { x -> String.format("%02x", x.toInt() and 0xFF) }
+                    }
+                    DetailLink(s.assetEncryptNote, 13.sp, 18.sp)
+                }
+                if (!r.scanning && r.imgCount > 0) {
+                    SecondaryButton(if (r.previewBytes != null) s.r.previewNext else s.r.previewBtn) {
+                        if (!st.running) vm.previewAsset(keyText, r.previewBytes != null)
+                    }
+                    val pe = r.previewError
+                    if (pe != null) Text(pe, color = p.muted, fontSize = 13.sp)
+                    val pb = r.previewBytes
+                    if (pb != null) PreviewCard(r.previewName, pb)
                 }
             }
-            item { DetailLink(s.assetEncryptNote, 13.sp, 18.sp) }
-        }
-        if (!r.scanning && r.imgCount > 0) {
-            item {
-                SecondaryButton(if (r.previewBytes != null) s.r.previewNext else s.r.previewBtn) {
-                    if (!st.running) vm.previewAsset(keyText, r.previewBytes != null)
-                }
-            }
-            val pe = r.previewError
-            if (pe != null) item { Text(pe, color = p.muted, fontSize = 13.sp) }
-            val pb = r.previewBytes
-            if (pb != null) item(key = "preview") { PreviewCard(r.previewName, pb) }
         }
         val err = r.error
         if (err != null) item { ErrorCard(err) }
@@ -441,25 +439,25 @@ fun TranslateScreen(vm: MainViewModel, import: Boolean, onBack: () -> Unit, onTr
                     onClick = { if (!st.running) pickFile.launch(arrayOf("*/*")) },
                 )
             }
-        } else {
-            item {
-                SectionCard(s.trFormat) {
+        }
+        item {
+            LabelSection(optionsTitle(com.furuarc.ui.theme.LocalLang.current)) {
+                if (!import) {
+                    SectionLabel(s.trFormat)
                     SegmentedChips(listOf("CSV", "TXT", "JSON"), fmt) { i ->
                         if (!st.running) {
                             fmt = i
                             vm.setPref("tr_fmt", when (i) { 1 -> "txt"; 2 -> "json"; else -> "csv" })
                         }
                     }
+                    FileNameField(outBase, "." + com.furuarc.core.RpgmText.extFor(fmt), s.x.outFileName) {
+                        outBase = it; vm.setExportBase(it)
+                    }
                 }
-            }
-            item {
-                FileNameField(outBase, "." + com.furuarc.core.RpgmText.extFor(fmt), s.x.outFileName) {
-                    outBase = it; vm.setExportBase(it)
-                }
+                if (import) Text(s.trImportNote, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
+                DetailLink(s.r.trNoteCodes, 13.sp, 18.sp)
             }
         }
-        if (import) item { Text(s.trImportNote, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp) }
-        item { DetailLink(s.r.trNoteCodes, 13.sp, 18.sp) }
         val err = r.error
         if (err != null) item { ErrorCard(err) }
         item {
@@ -709,23 +707,19 @@ private fun LazyListScope.valueSectionItems(
     val pages = maxOf(1, (fields.size + PER_PAGE - 1) / PER_PAGE)
     val page = (v.pages[pageKey] ?: 0).coerceIn(0, pages - 1)
     val slice = fields.subList(page * PER_PAGE, minOf(fields.size, (page + 1) * PER_PAGE))
-    if (pages > 1) {
-        item(key = "pg-top-" + sec.id) { PagerBar(page, pages) { np -> v.pages[pageKey] = np } }
-        added++
-    }
-    items(slice, key = { f -> f.key }) { f -> ValueRow(f, v.edits) }
-    added += slice.size
-    var afterTop = 0
-    if (pages > 1) {
-        item(key = "pg-bot-" + sec.id) {
-            PagerBar(page, pages) { np ->
+    // the rows and their pagers share one label background (a single list item, so a page change jumps to its top)
+    item(key = "vals-" + sec.id) {
+        LabelSection(null) {
+            if (pages > 1) PagerBar(page, pages) { np -> v.pages[pageKey] = np }
+            slice.forEach { f -> key(f.key) { ValueRow(f, v.edits) } }
+            if (pages > 1) PagerBar(page, pages) { np ->
                 v.pages[pageKey] = np
                 scrollTo(sec.id)
             }
         }
-        added++
-        afterTop = slice.size + 1
     }
+    added++
+    val afterTop = 0
     return intArrayOf(added, afterTop)
 }
 

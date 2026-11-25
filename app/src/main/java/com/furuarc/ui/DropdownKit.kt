@@ -95,6 +95,7 @@ fun FieldDropdownMenu(
     expanded: Boolean,
     anchorWidth: Dp,
     onDismiss: () -> Unit,
+    labelStyle: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     if (!expanded) return
@@ -103,6 +104,19 @@ fun FieldDropdownMenu(
     val provider = remember(density) { BelowAnchorProvider(with(density) { 4.dp.roundToPx() }) }
     // uses Compose's own rememberScrollState directly (not the screen position keeper): the menu always starts from the top
     val state = androidx.compose.foundation.rememberScrollState()
+    if (labelStyle) {
+        // label-background look (border + shadow / glow); the outer padding leaves room for the shadow inside the popup window
+        Popup(popupPositionProvider = provider, onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)) {
+            Box(Modifier.padding(10.dp)) {
+                RowPanel(if (anchorWidth > 0.dp) Modifier.width(anchorWidth) else Modifier.width(264.dp)) {
+                    Box(Modifier.heightIn(max = DropdownMaxHeight).dropdownScrollbar(state, p.muted.copy(alpha = 0.7f))) {
+                        Column(Modifier.verticalScroll(state).padding(vertical = DropdownVPad), content = content)
+                    }
+                }
+            }
+        }
+        return
+    }
     Popup(popupPositionProvider = provider, onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)) {
         Surface(
             // elevation 0 (shadow drawn by Modifier.shadow): Material's dark-theme elevation overlay would make the menu lighter than the trigger

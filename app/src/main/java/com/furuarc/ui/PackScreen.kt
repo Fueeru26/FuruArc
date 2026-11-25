@@ -110,17 +110,20 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             }
         }
 
-        if (engine == null) {
-            optionPanel(null, listOf(formatSpec), mapOf("fmt" to (picked?.id ?: "")), settings.lang, !st.running, "fmt_") { _, v ->
-                picked = packable.firstOrNull { it.id == v }
-            }
-        }
-
-        if (eng != null) {
-            optionPanel(optionsTitle(settings.lang), specs, optVals, settings.lang, !st.running) { k, v -> optVals[k] = v }
-
+        // format choice (universal mode), format options and the output file name: one "Options" label background
+        if (engine == null || eng != null) {
             item {
-                FileNameField(fileName, "." + (fmt?.packExtension(optVals.toMap()) ?: eng.ext), s.outputFilename) { fileName = it }
+                LabelSection(optionsTitle(settings.lang)) {
+                    if (engine == null) {
+                        OptionColumn(listOf(formatSpec), mapOf("fmt" to (picked?.id ?: "")), settings.lang, !st.running) { _, v ->
+                            picked = packable.firstOrNull { it.id == v }
+                        }
+                    }
+                    if (eng != null) {
+                        OptionColumn(specs, optVals, settings.lang, !st.running) { k, v -> optVals[k] = v }
+                        FileNameField(fileName, "." + (fmt?.packExtension(optVals.toMap()) ?: eng.ext), s.outputFilename) { fileName = it }
+                    }
+                }
             }
         }
 

@@ -146,7 +146,7 @@ fun FormatTestScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(ScreenGap),
         ) {
             item { Hint(c.ftHint) }
-            optionPanel(null, listOf(engineSpec), mapOf("engine" to engineId), lang, !st.running, "ft_engine_") { _, v ->
+            optionPanel(optionsTitle(lang), listOf(engineSpec), mapOf("engine" to engineId), lang, !st.running, "ft_engine_") { _, v ->
                 engineId = v
             }
             item {

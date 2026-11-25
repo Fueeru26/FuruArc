@@ -412,20 +412,21 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 SegmentedChips(listOf(pl.fAll, pl.fOn, pl.fOff), filter) { filter = it }
                 if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
                 if (shown.isEmpty()) Hint(pl.noneMatch) else Hint(pl.tapHint)
-            }
-            items(pageItems) { e ->
-                AppCard(Modifier.fillMaxWidth()) {
-                    Row(Modifier.clickable { selected = e }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            (if (e.name.lowercase() in warned) "⚠ " else "") + e.name + (if (e.isNew) "  [" + pl.newTag + "]" else ""),
-                            color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
-                        )
-                        Text(if (e.enabled) pl.stOn else pl.stOff, color = if (e.enabled) OK_GREEN else BAD_RED, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                // the plugin rows and the bottom pager belong to the same label background
+                pageItems.forEach { e ->
+                    AppCard(Modifier.fillMaxWidth()) {
+                        Row(Modifier.clickable { selected = e }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                (if (e.name.lowercase() in warned) "⚠ " else "") + e.name + (if (e.isNew) "  [" + pl.newTag + "]" else ""),
+                                color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                            )
+                            Text(if (e.enabled) pl.stOn else pl.stOff, color = if (e.enabled) OK_GREEN else BAD_RED, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
+                if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
             }
-            if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
         }
     }
 }

@@ -676,12 +676,8 @@ fun SortMenuButton(options: List<String>, selected: Int, modifier: Modifier = Mo
             contentAlignment = Alignment.Center,
         ) { Icon(AppIcons.Sort, null, tint = if (open) p.accent else p.text, modifier = Modifier.size(24.dp)) }
         else IconButton(onClick = { open = true }) { Icon(AppIcons.Sort, null, tint = if (open) p.accent else p.text) }
-        androidx.compose.material.DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            options.forEachIndexed { i, label ->
-                androidx.compose.material.DropdownMenuItem(onClick = { open = false; onSelect(i) }) {
-                    Text(label, color = if (i == selected) p.accent else p.text, fontWeight = if (i == selected) FontWeight.Bold else FontWeight.Normal)
-                }
-            }
+        FieldDropdownMenu(expanded = open, anchorWidth = 0.dp, onDismiss = { open = false }, labelStyle = true) {
+            options.forEachIndexed { i, label -> DropdownOption(label, i == selected) { open = false; onSelect(i) } }
         }
     }
 }
