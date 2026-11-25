@@ -451,19 +451,16 @@ fun App(vm: MainViewModel) {
         com.furuarc.ui.theme.NavStyle.FAB -> 76.dp
         else -> 0.dp
     }
-    CompositionLocalProvider(com.furuarc.ui.LocalScrollKeeper provides scrollKeeper, com.furuarc.ui.LocalBarInset provides barInset) {
+    val jellyScope = androidx.compose.runtime.rememberCoroutineScope()
+    val jellyDensity = androidx.compose.ui.platform.LocalDensity.current.density
+    val jelly = remember(jellyDensity) { com.furuarc.ui.ScrollJelly(jellyScope, 3200f * jellyDensity) }
+    CompositionLocalProvider(com.furuarc.ui.LocalScrollKeeper provides scrollKeeper, com.furuarc.ui.LocalBarInset provides barInset, com.furuarc.ui.LocalScrollJelly provides jelly) {
     Column(Modifier.fillMaxSize().clearFocusOnOutsideTap()) {
-        Box(Modifier.weight(1f).fillMaxWidth().nestedScroll(headerScroll)) {
+        Box(Modifier.weight(1f).fillMaxWidth().nestedScroll(headerScroll).nestedScroll(jelly.connection)) {
             androidx.compose.animation.AnimatedContent(
                 targetState = screen,
-                // every screen change: cross-fade with a tiny upward slide (same as the Plain Text File screen)
-                transitionSpec = {
-                    if (!com.furuarc.ui.theme.AppStyle.animations) androidx.compose.animation.ContentTransform(
-                        androidx.compose.animation.EnterTransition.None, androidx.compose.animation.ExitTransition.None)
-                    else androidx.compose.animation.ContentTransform(
-                        androidx.compose.animation.fadeIn(tween(200)) + androidx.compose.animation.slideInVertically(tween(220)) { (it * 0.012f).toInt() },
-                        androidx.compose.animation.fadeOut(tween(120)))
-                },
+                // Tyranor-style: tabs slide sideways, menus/pages rise from the bottom, back sinks down (see ScreenTransitions)
+                transitionSpec = { ScreenTransitions.spec(this) },
             ) { sc ->
             when (sc) {
                 Screen.HOME -> com.furuarc.ui.StartScreen(onOpen = { id -> openFeature(id) }, onOpenWithFile = { id, u -> openFeatureWithFile(id, u) })

@@ -488,7 +488,7 @@ private fun HitCell(h: CoverHit, modifier: Modifier, onClick: () -> Unit) {
             try { CoverSearch.thumbBitmap(h, 300)?.also { Thumbs.put(k, it) } } catch (e: Exception) { null }
         }
     }
-    Box(modifier.aspectRatio(0.66f).clip(RoundedCornerShape(8.dp)).background(p.iconBg).clickable(onClick = onClick), contentAlignment = Alignment.BottomCenter) {
+    Box(modifier.staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = onClick).aspectRatio(0.66f).clip(RoundedCornerShape(8.dp)).background(p.iconBg), contentAlignment = Alignment.BottomCenter) {
         val b = bmp
         if (b != null) Image(b.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         if (h.title.isNotEmpty()) {
@@ -504,9 +504,10 @@ private fun GameCard(e: GameEntry, modifier: Modifier, onOpen: () -> Unit, onRen
     val g = gameStr(LocalLang.current)
     val shape = RoundedCornerShape(CardRadius)
     var menu by remember { mutableStateOf(false) }
-    Column(modifier.clip(shape).clickable(onClick = onOpen), horizontalAlignment = Alignment.CenterHorizontally) {
+    // the entrance, jelly and press animations sit on the outermost node, so the cover, its shadow and the name move together
+    Column(modifier.staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = onOpen), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
-            Modifier.fillMaxWidth().aspectRatio(0.75f).clip(shape)
+            Modifier.fillMaxWidth().aspectRatio(0.75f).cardShadow(CardRadius).clip(shape)
                 .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.22f), lerp(p.card, p.accent, 0.05f)))),
             contentAlignment = Alignment.Center,
         ) {

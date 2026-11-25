@@ -189,7 +189,8 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
 ### Settings and updates
 
-- Theme (light / dark), language, accent color.
+- Theme (light / dark), language, accent color. Buttons and icon badges use a gradient derived from the accent color. In light mode the background is tinted by the theme color and cards stay near-white with a soft shadow; in dark mode cards are lighter than the background.
+- Screen animations: sideways slide between tabs, pages rise from the bottom when opened and sink when closed (switch off in Display settings).
 - **Theme Schedule**, a **Seasonal** automatic style, and switches for animations and haptic feedback.
 - **Display Style** (Classic, Minimal, Soft, Gradient, Solid, and the themed Sakura, Ocean, Forest, Sunset, Neon, Paper) and **Navigation Bar Style** (Classic, Floating, Floating Icons, Icons Only, Sliding Pill, Top Line, Floating Button), both at the top of Display settings.
 - Press animations, soft screen transitions, shrinking headers and illustrated empty states.

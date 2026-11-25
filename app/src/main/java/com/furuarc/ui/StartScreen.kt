@@ -165,8 +165,8 @@ private fun QuickTile(f: Feature, modifier: Modifier, onClick: () -> Unit) {
     val p = LocalPalette.current
     AppCard(modifier) {
         Column(Modifier.cardClickable(onClick).padding(16.dp).fillMaxWidth()) {
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
-                Icon(f.icon, null, tint = p.iconFg, modifier = Modifier.size(24.dp))
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush), contentAlignment = Alignment.Center) {
+                Icon(f.icon, null, tint = p.onGrad, modifier = Modifier.size(24.dp))
             }
             Spacer(Modifier.height(10.dp))
             // always reserve two lines so every tile has the same height; longer labels are cut at two lines with "..."
@@ -185,8 +185,8 @@ private fun FeatureRow(f: Feature, fav: Boolean, onClick: () -> Unit, onFav: () 
     val nav = NavStr.of(LocalLang.current)
     AppCard(Modifier.fillMaxWidth()) {
         Row(Modifier.cardClickable(onClick).padding(start = 12.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
-                Icon(f.icon, null, tint = p.iconFg, modifier = Modifier.size(22.dp))
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush), contentAlignment = Alignment.Center) {
+                Icon(f.icon, null, tint = p.onGrad, modifier = Modifier.size(22.dp))
             }
             Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                 Text(f.title, color = p.text, fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)

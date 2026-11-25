@@ -2,6 +2,15 @@
 
 All notable changes to FuruArc are listed here.
 
+## 1.06
+
+### Changed
+- **Gradient look**: buttons, icon badges (menu cards, picker cards, quick tiles, folder and media badges), selected chips and the navigation bar indicators (dot, sliding pill, top line) now use a two-tone gradient derived from the accent color, with an icon/text color that stays readable on it. Secondary buttons and unselected chips use a soft version of the same gradient. Disabled buttons stay flat. The gradient starts at the accent color itself and ends in a deeper shade, so its top-left corner is never lighter than the accent.
+- **More colorful light mode**: the app background and card borders are tinted by the theme color, while cards stay near-white with a soft shadow, so menu cards clearly stand out from the background. In dark mode cards are clearly lighter than the background. Input controls (dropdown, dropdown menu, text field) use only a light tint of the card color and a softer border, so they no longer look heavy. Minimal, Soft, Gradient, Solid and Classic styles follow the accent color; the themed styles (Sakura, Ocean, Forest, Sunset, Paper) keep their own colors.
+- Cover placeholders (album art, thumbnails) keep their soft flat color.
+- **Card shadows in dark mode too**: Classic and Soft cards cast a grey-black shadow in light mode and the mirrored version in dark mode, a soft white glow below and around the card (the dark background is almost black so it stays visible). Game Assets cards and the Engine List cards (cover, border, shadow and name) have the same shadow and play the press, scroll jelly and entrance animations as one piece.
+- **New screen animations** (modelled on the motion code of Tyranor Next; all follow the Animations switch): switching between the four main tabs moves the whole page sideways with a spring (in the direction of the tab order, 6% depth scale and fade); opening a menu or page makes it rise from the bottom over the full screen height while the previous page recedes; going back sinks the page down again. Cards, buttons and chips shrink quickly when pressed and bounce back with overshoot (cards to 92%). While a list scrolls fast its cards stretch a little along the scroll direction and spring back when it stops (scroll jelly). Cards of a new screen pop in one after the other from top to bottom (staggered entrance).
+
 ## 1.05
 
 ### Added

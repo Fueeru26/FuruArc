@@ -10,6 +10,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.widget.EditText
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -74,9 +75,10 @@ internal fun NativeTextField(
             // the Compose field leaves 8dp above the border for the label that overlaps the border; match it so the position is the same
             .padding(top = 8.dp)
             .heightIn(min = 56.dp)
+            .background(p.field, RoundedCornerShape(ControlRadius))
             .border(
                 width = if (focused) 2.dp else 1.dp,
-                color = if (focused) p.accent else p.outline,
+                color = if (focused) p.accent else p.fieldBorder,
                 shape = RoundedCornerShape(ControlRadius),
             )
             .bringIntoViewRequester(requester),

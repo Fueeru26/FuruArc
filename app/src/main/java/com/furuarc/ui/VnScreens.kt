@@ -105,8 +105,9 @@ fun VnEngineListScreen(onEngine: (VnEngine) -> Unit, onBack: () -> Unit) {
 private fun EngineCard(t: EngineTile) {
     val p = LocalPalette.current
     val shape = RoundedCornerShape(CardRadius)
+    // animations on the outermost node: the cover image, its border, its shadow and the name move together
     Column(
-        Modifier.fillMaxWidth().clip(shape).clickable(onClick = t.onClick),
+        Modifier.fillMaxWidth().staggeredEntrance().scrollJelly().clickableScale(pressed = 0.92f, ripple = false, onClick = t.onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -115,6 +116,7 @@ private fun EngineCard(t: EngineTile) {
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.75f)
+                .cardShadow(CardRadius)
                 .clip(shape)
                 .background(Brush.verticalGradient(listOf(lerp(p.card, p.accent, 0.22f), lerp(p.card, p.accent, 0.05f))))
                 .border(BorderStroke(1.dp, p.accent.copy(alpha = 0.45f)), shape),

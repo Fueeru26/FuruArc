@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -63,15 +65,55 @@ fun AppCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val src = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val st = com.furuarc.ui.theme.AppStyle.ui
     val soft = st == com.furuarc.ui.theme.UiStyle.SOFT
+    val classic = st == com.furuarc.ui.theme.UiStyle.CLASSIC
     Surface(
         shape = RoundedCornerShape(CardRadius),
         color = p.card,
         border = if (soft) null else BorderStroke(1.dp, p.cardBorder),
-        elevation = if (soft && !p.dark) 3.dp else 0.dp,
-        modifier = modifier.pressScale(src, 0.97f),
+        // light mode: cards float a little above the tinted background; dark mode relies on the lighter card and its border
+        elevation = if (p.dark) 0.dp else cardElevation(),
+        modifier = modifier.staggeredEntrance().scrollJelly().pressScale(src, 0.92f).then(if (p.dark && cardElevation().value > 0f) Modifier.darkGlow(CardRadius) else Modifier),
     ) {
         androidx.compose.runtime.CompositionLocalProvider(LocalCardSource provides src) { content() }
     }
+}
+
+/** Card shadow depth: Classic and Soft styles cast a shadow in both modes (deeper in dark mode, where the background is almost black so the shadow stays visible). */
+@Composable
+fun cardElevation(): androidx.compose.ui.unit.Dp {
+    val st = com.furuarc.ui.theme.AppStyle.ui
+    val on = st == com.furuarc.ui.theme.UiStyle.SOFT || st == com.furuarc.ui.theme.UiStyle.CLASSIC
+    return if (!on) 0.dp else if (LocalPalette.current.dark) 8.dp else 4.dp
+}
+
+/**
+ * Light glow for dark mode (the mirror of the grey-black shadow of light mode): soft white rings fade out around the card and sit
+ * a little lower, like a shadow made of light. Drawn with plain shapes, so it also works on Android 7 to 9 (no shadow layer needed).
+ */
+fun Modifier.darkGlow(radius: androidx.compose.ui.unit.Dp, reach: androidx.compose.ui.unit.Dp = 10.dp, strength: Float = 0.16f): Modifier =
+    this.drawBehind {
+        val steps = 10
+        val stepPx = reach.toPx() / steps
+        val dy = 2.dp.toPx()
+        for (i in steps downTo 1) {
+            val grow = stepPx * i
+            val f = 1f - (i - 1) / steps.toFloat()
+            drawRoundRect(
+                color = Color.White.copy(alpha = strength * f * f / steps * 2.2f),
+                topLeft = androidx.compose.ui.geometry.Offset(-grow, -grow + dy),
+                size = androidx.compose.ui.geometry.Size(size.width + 2 * grow, size.height + 2 * grow),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius.toPx() + grow),
+            )
+        }
+    }
+
+/** Shadow for cards that are drawn by hand (cover cards): grey-black in light mode, a light glow in dark mode. Put it before the clip. */
+@Composable
+fun Modifier.cardShadow(radius: androidx.compose.ui.unit.Dp): Modifier {
+    val e = cardElevation()
+    return if (e.value <= 0f) this
+    else if (LocalPalette.current.dark) this.darkGlow(radius)
+    else this.shadow(e, RoundedCornerShape(radius), clip = false)
 }
 
 /** 64dp-tall title bar: 24dp back icon aligned with the content edge, 22sp title. */
@@ -113,12 +155,13 @@ fun HomeHeader(title: String) {
 }
 
 @Composable
-private fun IconBox(icon: ImageVector, bg: Color, fg: Color) {
+private fun IconBox(icon: ImageVector, soft: Boolean = false) {
+    val p = LocalPalette.current
     Box(
-        Modifier.size(40.dp).clip(RoundedCornerShape(IconRadius)).background(bg),
+        Modifier.size(40.dp).clip(RoundedCornerShape(IconRadius)).background(if (soft) p.softBrush else p.brush),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = fg, modifier = Modifier.size(24.dp))
+        Icon(imageVector = icon, contentDescription = null, tint = if (soft) p.accent else p.onGrad, modifier = Modifier.size(24.dp))
     }
 }
 
@@ -138,7 +181,7 @@ fun PickerCard(
             Modifier.cardClickable(onClick).padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconBox(icon, p.iconBg, p.iconFg)
+            IconBox(icon)
             Column(Modifier.weight(1f).padding(horizontal = 16.dp)) {
                 Text(label, fontSize = 12.sp, lineHeight = 16.sp, color = p.muted)
                 Text(
@@ -151,7 +194,7 @@ fun PickerCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            IconBox(trailingIcon, p.trailingBg, p.trailingFg)
+            IconBox(trailingIcon, soft = true)
         }
     }
 }
@@ -172,10 +215,10 @@ fun MenuCard(icon: ImageVector, title: String, subtitle: String, badge: Boolean,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(48.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg),
+                Modifier.size(48.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = p.iconFg, modifier = Modifier.size(24.dp))
+                Icon(imageVector = icon, contentDescription = null, tint = p.onGrad, modifier = Modifier.size(24.dp))
                 if (badge) Box(Modifier.align(Alignment.TopEnd).padding(top = 4.dp, end = 4.dp).size(10.dp).clip(androidx.compose.foundation.shape.CircleShape).background(BadgeRed))
             }
             Column(Modifier.weight(1f).padding(start = 20.dp)) {
@@ -212,7 +255,7 @@ fun SegmentedChips(items: List<String>, selected: Int, fontSize: androidx.compos
                     .weight(1f)
                     .height(44.dp)
                     .clip(RoundedCornerShape(ControlRadius - 4.dp))
-                    .background(if (sel) p.accent else p.trailingBg)
+                    .background(if (sel) p.brush else p.softBrush)
                     .clickableScale(pressed = 0.94f) { onSelect(i) },
                 contentAlignment = Alignment.Center,
             ) {
@@ -220,7 +263,7 @@ fun SegmentedChips(items: List<String>, selected: Int, fontSize: androidx.compos
                     label,
                     fontSize = fontSize,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (sel) p.onAccent else p.text,
+                    color = if (sel) p.onGrad else p.text,
                     modifier = Modifier.padding(horizontal = 8.dp),
                 )
             }
@@ -237,8 +280,8 @@ fun AppDropdown(label: String, value: String, options: List<Pair<String, String>
     val anchorW = remember { mutableStateOf(0.dp) }
     Box(Modifier.fillMaxWidth().trackWidth(anchorW)) {
         Surface(
-            shape = RoundedCornerShape(CardRadius), color = p.card,
-            border = BorderStroke(1.dp, p.outline),
+            shape = RoundedCornerShape(CardRadius), color = p.field,
+            border = BorderStroke(1.dp, p.fieldBorder),
             modifier = Modifier.fillMaxWidth().clickableScale(enabled = enabled, pressed = 0.98f) { open = true },
         ) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = if (showLabel) 10.dp else 0.dp).heightIn(min = if (showLabel) 0.dp else 52.dp), verticalArrangement = Arrangement.Center) {
@@ -317,9 +360,10 @@ fun AppTextField(
         keyboardOptions = KeyboardOptions(keyboardType = if (number) KeyboardType.Number else KeyboardType.Text),
         colors = TextFieldDefaults.outlinedTextFieldColors(
             textColor = p.text,
+            backgroundColor = p.field,
             cursorColor = p.accent,
             focusedBorderColor = p.accent,
-            unfocusedBorderColor = p.outline,
+            unfocusedBorderColor = p.fieldBorder,
             focusedLabelColor = p.accent,
             unfocusedLabelColor = p.muted,
         ),
@@ -364,13 +408,14 @@ fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
         interactionSource = src,
         shape = RoundedCornerShape(ControlRadius),
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = p.accent,
-            contentColor = p.onAccent,
-            disabledBackgroundColor = p.disabledBg,
+            backgroundColor = Color.Transparent,
+            contentColor = p.onGrad,
+            disabledBackgroundColor = Color.Transparent,
             disabledContentColor = p.disabledFg,
         ),
         elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
-        modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.97f),
+        modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.95f)
+            .clip(RoundedCornerShape(ControlRadius)).background(if (enabled) p.brush else androidx.compose.ui.graphics.SolidColor(p.disabledBg)),
     ) {
         OneLineText(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
@@ -389,13 +434,14 @@ fun SecondaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
         interactionSource = src,
         shape = RoundedCornerShape(ControlRadius),
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = p.trailingBg,
+            backgroundColor = Color.Transparent,
             contentColor = p.text,
-            disabledBackgroundColor = p.disabledBg,
+            disabledBackgroundColor = Color.Transparent,
             disabledContentColor = p.disabledFg,
         ),
         elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
-        modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.97f),
+        modifier = Modifier.fillMaxWidth().height(44.dp).pressScale(src, 0.95f)
+            .clip(RoundedCornerShape(ControlRadius)).background(if (enabled) p.softBrush else androidx.compose.ui.graphics.SolidColor(p.disabledBg)),
     ) {
         OneLineText(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }

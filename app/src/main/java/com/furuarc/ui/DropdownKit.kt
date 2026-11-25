@@ -108,8 +108,8 @@ fun FieldDropdownMenu(
             // elevation 0 (shadow drawn by Modifier.shadow): Material's dark-theme elevation overlay would make the menu lighter than the trigger
             modifier = (if (anchorWidth > 0.dp) Modifier.width(anchorWidth) else Modifier).shadow(4.dp, RoundedCornerShape(CardRadius)),
             shape = RoundedCornerShape(CardRadius),
-            color = p.card,
-            border = BorderStroke(1.dp, p.outline),
+            color = p.field,
+            border = BorderStroke(1.dp, p.fieldBorder),
             elevation = 0.dp,
         ) {
             Box(Modifier.heightIn(max = DropdownMaxHeight).dropdownScrollbar(state, p.muted.copy(alpha = 0.7f))) {

@@ -189,7 +189,8 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 
 ### Pengaturan dan pembaruan
 
-- Tema (terang / gelap), bahasa, warna aksen.
+- Tema (terang / gelap), bahasa, warna aksen. Tombol dan ikon memakai gradasi dari warna aksen. Di mode terang latar diberi warna sesuai tema dan kartu tetap putih keabuan dengan bayangan lembut; di mode gelap kartu lebih terang dari latar.
+- Animasi layar: geser samping antar tab, halaman naik dari bawah saat dibuka dan turun saat ditutup (bisa dimatikan di pengaturan Tampilan).
 - **Jadwal Tema**, gaya **Musiman** otomatis, serta saklar animasi dan getaran haptik.
 - **Gaya Tampilan** (Klasik, Minimalis, Lembut, Gradien, Warna Pekat, dan bertema Sakura, Samudra, Hutan, Senja, Neon, Kertas) dan **Gaya Navigasi Bar** (Klasik, Melayang, Ikon Layang, Hanya Ikon, Pil Bergeser, Garis Atas, Tombol Mengambang), keduanya di bagian atas Pengaturan Tampilan.
 - Animasi tekan, transisi layar yang halus, header yang menyusut saat di-scroll, dan ilustrasi untuk daftar kosong.

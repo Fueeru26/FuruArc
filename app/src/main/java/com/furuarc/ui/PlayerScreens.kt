@@ -771,10 +771,10 @@ private fun QueueRow(kind: Int, item: MItem, active: Boolean, selMode: Boolean, 
                     }
                 }
             }
-            Box(Modifier.padding(start = 4.dp).size(54.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
+            Box(Modifier.padding(start = 4.dp).size(54.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush), contentAlignment = Alignment.Center) {
                 val art = meta?.art
                 if (MediaPrefs.showCover && art != null) Image(art, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                else Icon(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, null, tint = if (active) p.accent else p.iconFg, modifier = Modifier.size(26.dp))
+                else Icon(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, null, tint = p.onGrad, modifier = Modifier.size(26.dp))
             }
             Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
                 Text(title, color = if (active) p.accent else p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -896,8 +896,8 @@ internal fun FolderTab(kind: Int, onLoaded: () -> Unit) {
                 itemsIndexed(folders, key = { _, f -> f.uri }) { _, f ->
                     AppCard(Modifier.fillMaxWidth()) {
                         Row(Modifier.fillMaxWidth().cardClickable { if (!scanning) load(f.uri, f.name) }.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
-                                Icon(AppIcons.Folder, null, tint = p.iconFg, modifier = Modifier.size(24.dp))
+                            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush), contentAlignment = Alignment.Center) {
+                                Icon(AppIcons.Folder, null, tint = p.onGrad, modifier = Modifier.size(24.dp))
                             }
                             Text(f.name, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(horizontal = 12.dp))
                             RoundIcon(AppIcons.MoreHoriz, "", p.text, 40, 22, p.trailingBg) { menu = f.uri }
@@ -1095,10 +1095,10 @@ private fun ViewRow(kind: Int, item: MItem) {
             val meta by produceState<MMeta?>(MediaMeta.cached(item.key), item.key) {
                 if (value == null) value = withContext(Dispatchers.IO) { MediaMeta.load(ctx, item, kind == 3, 96) }
             }
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.iconBg), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(IconRadius)).background(p.brush), contentAlignment = Alignment.Center) {
                 val art = meta?.art
                 if (art != null) Image(art, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                else Icon(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, null, tint = p.iconFg, modifier = Modifier.size(22.dp))
+                else Icon(if (kind == 2) AppIcons.MusicNote else AppIcons.Videocam, null, tint = p.onGrad, modifier = Modifier.size(22.dp))
             }
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text(meta?.title ?: item.name, color = p.text, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

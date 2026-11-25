@@ -227,7 +227,7 @@ private fun IconsBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Uni
                 ) {
                     Box(Modifier.scale(sc)) { NavIcon(item, if (sel) p.accent else p.muted, 26.dp) }
                     Spacer(Modifier.height(5.dp))
-                    Box(Modifier.size(5.dp).scale(dot).clip(CircleShape).background(p.accent))
+                    Box(Modifier.size(5.dp).scale(dot).clip(CircleShape).background(p.brush))
                 }
             }
         }
@@ -243,7 +243,7 @@ private fun PillBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit
         BoxWithConstraints(Modifier.fillMaxWidth().height(70.dp).padding(horizontal = 8.dp, vertical = 6.dp)) {
             val cell = maxWidth / items.size.coerceAtLeast(1)
             val x by animateDpAsState(cell * selected, spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow))
-            Box(Modifier.offset(x = x).width(cell).fillMaxHeight().padding(horizontal = 4.dp).clip(RoundedCornerShape(CardRadius + 6.dp)).background(p.accent.copy(alpha = 0.20f)))
+            Box(Modifier.offset(x = x).width(cell).fillMaxHeight().padding(horizontal = 4.dp).clip(RoundedCornerShape(CardRadius + 6.dp)).background(p.softBrush))
             Row(Modifier.fillMaxSize()) {
                 items.forEachIndexed { i, item ->
                     val sel = i == selected
@@ -269,7 +269,7 @@ private fun TopLineBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> U
         BoxWithConstraints(Modifier.fillMaxWidth().height(3.dp).background(p.cardBorder)) {
             val cell = maxWidth / items.size.coerceAtLeast(1)
             val x by animateDpAsState(cell * selected + (cell - 40.dp) / 2, spring(stiffness = Spring.StiffnessMediumLow))
-            Box(Modifier.offset(x = x).width(40.dp).fillMaxHeight().clip(RoundedCornerShape(bottomStart = 3.dp, bottomEnd = 3.dp)).background(p.accent))
+            Box(Modifier.offset(x = x).width(40.dp).fillMaxHeight().clip(RoundedCornerShape(bottomStart = 3.dp, bottomEnd = 3.dp)).background(p.brush))
         }
         Row(Modifier.fillMaxWidth().height(66.dp).padding(horizontal = 8.dp)) {
             items.forEachIndexed { i, item ->

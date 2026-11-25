@@ -11,7 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -38,7 +41,48 @@ class Palette(
     val disabledFg: Color,
     val outline: Color,
     val cardBorder: Color,
-)
+    /** Fill of input-like controls (dropdown, text field, pop-up menu): a stronger theme tint than the card. */
+    val field: Color = card,
+    /** Gradient pair derived from the accent (hue shifted a little each way), used by buttons and icon badges. */
+    val gradA: Color = accent,
+    val gradB: Color = accent,
+    /** Content colour (icon / text) that stays readable on top of the gradient. */
+    val onGrad: Color = onAccent,
+    /** Border of input-like controls when not focused: softer than [outline], so fields do not look heavy. */
+    val fieldBorder: Color = outline,
+) {
+    /** Diagonal gradient used by buttons, icon badges and selected chips. */
+    val brush: Brush get() = Brush.linearGradient(listOf(gradA, gradB))
+    /** Soft gradient (tint of the gradient over the card) for secondary buttons and unselected chips. */
+    val softBrush: Brush get() = Brush.linearGradient(listOf(lerp(card, gradA, if (dark) 0.30f else 0.26f), lerp(card, gradB, if (dark) 0.22f else 0.38f)))
+}
+
+/** Rotates the hue of [c] by [deg] degrees and blends it with white/black by [light] (-1..1). */
+private fun shiftHue(c: Color, deg: Float, light: Float): Color {
+    val hsv = FloatArray(3)
+    android.graphics.Color.colorToHSV(c.toArgb(), hsv)
+    hsv[0] = ((hsv[0] + deg) % 360f + 360f) % 360f
+    val r = Color(android.graphics.Color.HSVToColor(hsv))
+    return if (light >= 0f) lerp(r, Color.White, light) else lerp(r, Color.Black, -light)
+}
+
+/**
+ * Adds the gradient pair, the field colour and the field border to a finished palette.
+ * The gradient starts at the accent itself (no white blended in, hue moved only a little) and ends in a deeper shade, so the
+ * top-left corner of buttons and icon badges is never brighter than the accent. The field is only a light tint of the card.
+ */
+private fun finish(p: Palette): Palette {
+    val a = shiftHue(p.accent, -8f, if (p.dark) -0.08f else -0.03f)
+    val b = shiftHue(p.accent, 20f, if (p.dark) -0.16f else -0.12f)
+    // icon / text colour on the gradient: decided by the accent (a darker end of the gradient does not flip it)
+    val on = if (p.accent.luminance() > 0.42f) Color(0xFF101214) else Color.White
+    val field = if (p.dark) lerp(lerp(p.card, Color.White, 0.03f), p.accent, 0.05f) else lerp(p.card, p.accent, 0.06f)
+    val fieldBorder = lerp(p.outline, p.card, if (p.dark) 0.30f else 0.25f)
+    return Palette(
+        p.dark, p.background, p.card, p.iconBg, p.iconFg, p.trailingBg, p.trailingFg, p.text, p.muted, p.accent, p.onAccent,
+        p.disabledBg, p.disabledFg, p.outline, p.cardBorder, field, a, b, on, fieldBorder,
+    )
+}
 
 /** Qanelas font (Regular, SemiBold, Bold, ExtraBold). Other weights use the nearest one. */
 val Qanelas = FontFamily(
@@ -80,20 +124,20 @@ fun buildPalette(dark: Boolean, accent: AccentColor, style: UiStyle = UiStyle.CL
         disabledBg = lerp(card, if (dark) Color.White else Color.Black, 0.08f), disabledFg = b.disabledFg,
         outline = b.outline, cardBorder = border,
     )
-    return when (style) {
+    return finish(when (style) {
         UiStyle.CLASSIC -> b
         // flat: no tint, cards blend into the background and are only outlined
         UiStyle.MINIMAL -> if (dark) mk(Color(0xFF121212), Color(0xFF121212), Color(0xFF3A3D40), 0.18f)
-                           else mk(Color.White, Color.White, Color(0xFFD5D8DC), 0.12f)
+                           else mk(lerp(Color.White, b.accent, 0.05f), lerp(Color.White, b.accent, 0.07f), lerp(Color.White, b.accent, 0.28f), 0.16f)
         // soft: pastel-tinted background, lighter cards, hardly any outline
-        UiStyle.SOFT -> if (dark) mk(lerp(Color(0xFF14171B), b.accent, 0.10f), lerp(Color(0xFF22262B), b.accent, 0.10f), Color.Transparent, 0.26f)
-                        else mk(lerp(Color(0xFFF1F3F6), b.accent, 0.12f), Color.White, Color.Transparent, 0.16f)
+        UiStyle.SOFT -> if (dark) mk(lerp(Color(0xFF07090C), b.accent, 0.06f), lerp(Color(0xFF22262B), b.accent, 0.10f), Color.Transparent, 0.26f)
+                        else mk(lerp(Color(0xFFF1F3F6), b.accent, 0.16f), lerp(Color.White, b.accent, 0.09f), lerp(Color.White, b.accent, 0.18f), 0.18f)
         // gradient: the app background is a gradient (see MainActivity); cards are a little translucent-looking
         UiStyle.GRADIENT -> if (dark) mk(lerp(Color(0xFF101318), b.accent, 0.10f), lerp(Color(0xFF1B1F26), b.accent, 0.14f), lerp(Color(0xFF1B1F26), b.accent, 0.35f), 0.30f)
-                            else mk(lerp(Color(0xFFF4F6F8), b.accent, 0.14f), lerp(Color.White, b.accent, 0.05f), lerp(Color.White, b.accent, 0.30f), 0.20f)
+                            else mk(lerp(Color(0xFFF4F6F8), b.accent, 0.18f), lerp(Color.White, b.accent, 0.10f), lerp(Color.White, b.accent, 0.34f), 0.22f)
         // pure black for OLED screens (light mode just gets pure white)
         UiStyle.SOLID -> if (dark) mk(Color.Black, Color(0xFF0C0C0E), Color(0xFF26282B), 0.22f)
-                         else mk(Color.White, Color(0xFFF6F7F8), Color(0xFFE0E3E6), 0.14f)
+                         else mk(lerp(Color.White, b.accent, 0.04f), lerp(Color.White, b.accent, 0.08f), lerp(Color.White, b.accent, 0.24f), 0.16f)
         // themed styles (fixed colours, independent of the accent colour)
         UiStyle.SAKURA -> if (dark) mk(Color(0xFF1A1316), Color(0xFF281C22), Color(0xFF4A2F3B), 0.22f)
                           else mk(Color(0xFFFFF1F6), Color(0xFFFFFAFC), Color(0xFFF5CADB), 0.16f)
@@ -107,7 +151,7 @@ fun buildPalette(dark: Boolean, accent: AccentColor, style: UiStyle = UiStyle.CL
                         else mk(Color(0xFFF7F7FF), Color.White, lerp(Color.White, b.accent, 0.55f), 0.14f)
         UiStyle.PAPER -> if (dark) mk(Color(0xFF1B1914), Color(0xFF24211A), Color(0xFF3D382C), 0.20f)
                          else mk(Color(0xFFF5EEDC), Color(0xFFFBF6E9), Color(0xFFDDD1B3), 0.14f)
-    }
+    })
 }
 
 /** Top colour of the app background gradient for [style], or null when the background is a plain colour. */
@@ -121,10 +165,11 @@ fun gradientTop(style: UiStyle, p: Palette): Color? = when (style) {
 private fun basePalette(dark: Boolean, accent: AccentColor): Palette {
     val a = accentColor(accent, dark)
     return if (dark) {
-        val card = lerp(Color(0xFF1A1D21), a, 0.08f)
+        // the card is clearly lighter than the background (cards stand out, as in a card-based layout)
+        val card = lerp(Color(0xFF23272D), a, 0.06f)
         Palette(
             dark = true,
-            background = lerp(Color(0xFF0F1114), a, 0.05f),
+            background = lerp(Color(0xFF050608), a, 0.03f),
             card = card,
             iconBg = lerp(card, a, 0.30f),
             iconFg = a,
@@ -137,13 +182,14 @@ private fun basePalette(dark: Boolean, accent: AccentColor): Palette {
             disabledBg = lerp(card, Color.White, 0.08f),
             disabledFg = Color(0xFF8C9196),
             outline = lerp(Color(0xFF8A8F94), a, 0.30f),
-            cardBorder = lerp(card, Color.White, 0.11f),
+            cardBorder = lerp(card, Color.White, 0.10f),
         )
     } else {
-        val card = lerp(Color(0xFFFFFFFF), a, 0.08f)
+        // near-white cards with a soft shadow (see AppCard) on a tinted background
+        val card = lerp(Color(0xFFFFFFFF), a, 0.02f)
         Palette(
             dark = false,
-            background = lerp(Color(0xFFF4F6F8), a, 0.06f),
+            background = lerp(Color(0xFFF1F3FA), a, 0.10f),
             card = card,
             iconBg = lerp(card, a, 0.18f),
             iconFg = a,
@@ -156,7 +202,7 @@ private fun basePalette(dark: Boolean, accent: AccentColor): Palette {
             disabledBg = lerp(card, Color.Black, 0.08f),
             disabledFg = Color(0xFF9AA0A6),
             outline = lerp(Color(0xFF6B7075), a, 0.40f),
-            cardBorder = lerp(card, Color.Black, 0.12f),
+            cardBorder = lerp(card, a, 0.14f),
         )
     }
 }
