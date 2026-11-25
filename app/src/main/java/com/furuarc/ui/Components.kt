@@ -714,13 +714,15 @@ fun ConfirmDialog(
  * Alert window used by every dialog with a title, text and buttons: same border and shadow as a label background
  * (see [RowPanel]); the width follows the screen, the height follows the content.
  */
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun AppAlert(
     onDismissRequest: () -> Unit,
     title: (@Composable () -> Unit)? = null,
     text: (@Composable () -> Unit)? = null,
-    confirmButton: @Composable () -> Unit,
+    confirmButton: (@Composable () -> Unit)? = null,
     dismissButton: (@Composable () -> Unit)? = null,
+    buttons: (@Composable () -> Unit)? = null,
 ) {
     val p = LocalPalette.current
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismissRequest, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
@@ -729,9 +731,10 @@ fun AppAlert(
                 Column(Modifier.padding(start = 20.dp, end = 12.dp, top = 20.dp, bottom = 10.dp)) {
                     title?.let { t -> Box(Modifier.padding(end = 8.dp, bottom = 8.dp)) { t() } }
                     text?.let { t -> Box(Modifier.padding(end = 8.dp).weight(1f, fill = false).then(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()))) { t() } }
-                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                    if (buttons != null) buttons()
+                    else Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                         dismissButton?.invoke()
-                        confirmButton()
+                        confirmButton?.invoke()
                     }
                 }
             }
