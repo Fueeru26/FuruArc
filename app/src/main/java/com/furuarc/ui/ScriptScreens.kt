@@ -146,7 +146,7 @@ fun ToolJobScreen(vm: MainViewModel, engine: VnEngine?, tool: ScriptTool, onBack
             }
         }
         if (usesEnc) {
-            optionItems(listOf(encSpec), optVals, settings.lang, !st.running) { k, v ->
+            optionPanel(null, listOf(encSpec), optVals, settings.lang, !st.running) { k, v ->
                 optVals[k] = v
                 vm.setPref("sc_enc_" + engineKey, v)
             }

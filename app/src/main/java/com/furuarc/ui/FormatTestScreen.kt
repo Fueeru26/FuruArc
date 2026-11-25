@@ -146,7 +146,7 @@ fun FormatTestScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(ScreenGap),
         ) {
             item { Hint(c.ftHint) }
-            optionItems(listOf(engineSpec), mapOf("engine" to engineId), lang, !st.running, "ft_engine_") { _, v ->
+            optionPanel(null, listOf(engineSpec), mapOf("engine" to engineId), lang, !st.running, "ft_engine_") { _, v ->
                 engineId = v
             }
             item {
@@ -177,10 +177,9 @@ fun FormatTestScreen(onBack: () -> Unit) {
 
             // the unpack settings are shown as soon as a file is chosen: some formats cannot be read without them
             if (eng != null && uri != null) {
-                item { FtSectionHeader(c.ftUnpackSection, openUnpack) { openUnpack = !openUnpack } }
-                if (openUnpack) {
-                    optionItems(uspecs, uVals, lang, !st.running, "ft_u_") { k, v -> uVals[k] = v }
-                    if (fmt?.id == "xp3") item {
+                item { FtSection(c.ftUnpackSection, openUnpack, { openUnpack = !openUnpack }) {
+                    OptionColumn(uspecs, uVals, lang, !st.running) { k, v -> uVals[k] = v }
+                    if (fmt?.id == "xp3") run {
                         AppTextField(
                             value = keyText,
                             onValueChange = { keyText = it.filter { ch -> ch.isDigit() }.take(3) },
@@ -188,8 +187,8 @@ fun FormatTestScreen(onBack: () -> Unit) {
                             number = true,
                         )
                     }
-                    optionItems(modeSpecs, ftVals, lang, !st.running, "ft_m_") { k, v -> ftVals[k] = v }
-                    if (!full) item {
+                    OptionColumn(modeSpecs, ftVals, lang, !st.running) { k, v -> ftVals[k] = v }
+                    if (!full) run {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Box(Modifier.weight(1f)) {
                                 AppTextField(
@@ -202,14 +201,13 @@ fun FormatTestScreen(onBack: () -> Unit) {
                             Box(Modifier.width(128.dp)) { SegmentedChips(listOf("KB", "MB"), unit) { unit = it } }
                         }
                     }
-                }
+                } }
             }
             if (ok) {
-                item { FtSectionHeader(c.ftPackSection, openPack) { openPack = !openPack } }
-                if (openPack) {
-                    if (pspecs.isEmpty()) item { Hint(c.ftNoPackOptions) }
-                    else optionItems(pspecs, pVals, lang, !st.running, "ft_p_") { k, v -> pVals[k] = v }
-                }
+                item { FtSection(c.ftPackSection, openPack, { openPack = !openPack }) {
+                    if (pspecs.isEmpty()) Hint(c.ftNoPackOptions)
+                    else OptionColumn(pspecs, pVals, lang, !st.running) { k, v -> pVals[k] = v }
+                } }
                 item {
                     if (st.running) SecondaryButton(c.ftStop) { FormatTestJobs.stopRun() }
                     else PrimaryButton(if (st.lines.isEmpty()) c.ftStart else c.ftAgain, maxBytes > 0 || full) {
@@ -239,12 +237,15 @@ fun FormatTestScreen(onBack: () -> Unit) {
 
 /** Open/closed header (same look as the sections of the Media Converter). */
 @Composable
-private fun FtSectionHeader(title: String, open: Boolean, onToggle: () -> Unit) {
+private fun FtSection(title: String, open: Boolean, onToggle: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val p = LocalPalette.current
     RowPanel(Modifier.fillMaxWidth()) {
-        Row(Modifier.fillMaxWidth().clickable { onToggle() }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp, modifier = Modifier.weight(1f))
-            Text(if (open) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
+        Column(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().clickable { onToggle() }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(title, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp, modifier = Modifier.weight(1f))
+                Text(if (open) "−" else "+", color = p.accent, fontSize = 20.sp, modifier = Modifier.padding(start = 12.dp))
+            }
+            if (open) Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() }
         }
     }
 }

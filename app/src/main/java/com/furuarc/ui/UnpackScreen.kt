@@ -152,7 +152,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             )
         }
 
-        optionItems(uspecs, uVals, settings.lang, !st.running) { k, v ->
+        optionPanel(optionsTitle(settings.lang), uspecs, uVals, settings.lang, !st.running) { k, v ->
             uVals[k] = v
             vm.setPref("uopt_${optId}_$k", v)
         }

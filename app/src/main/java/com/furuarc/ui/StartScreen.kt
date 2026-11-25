@@ -94,19 +94,19 @@ fun StartScreen(onOpen: (String) -> Unit, onOpenWithFile: (String, android.net.U
             } else {
                 val hist = HomeStore.history
                 if (hist.isNotEmpty()) {
-                    SectionHeader(nav.history, nav.clear) { HomeStore.clearHistory() }
+                    SectionHeader(nav.history, nav.clear, AppIcons.Trash) { HomeStore.clearHistory() }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         for (h in hist) Chip(h, null) { q = h }
                     }
                 }
                 val recents = HomeStore.recents.mapNotNull { byId[it] }
                 if (recents.isNotEmpty()) {
-                    SectionHeader(nav.recents, nav.clear) { HomeStore.clearRecents() }
+                    SectionHeader(nav.recents, nav.clear, AppIcons.Trash) { HomeStore.clearRecents() }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         for (f in recents) Chip(f.title, f) { open(f.id, false) }
                     }
                 }
-                SectionHeader(nav.quick, nav.editQuick) { editQuick = true }
+                SectionHeader(nav.quick, nav.editQuick, AppIcons.Gear) { editQuick = true }
                 val quick = HomeStore.quick.mapNotNull { byId[it] }
                 if (quick.isEmpty()) EmptyState(Icons.Default.Add, nav.quickEmpty)
                 for (row in quick.chunked(2)) {
@@ -136,11 +136,15 @@ private fun StartDialogs(
 }
 
 @Composable
-private fun SectionHeader(title: String, action: String?, onAction: () -> Unit) {
+private fun SectionHeader(title: String, action: String?, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, onAction: () -> Unit) {
     val p = LocalPalette.current
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(title, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-        if (action != null) Text(action, color = p.accent, fontSize = 14.sp, modifier = Modifier.clickable(onClick = onAction).padding(4.dp))
+        if (action != null && icon != null) Icon(
+            icon, action, tint = if (p.dark) Color.White else Color.Black,
+            modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onAction).padding(6.dp).size(22.dp),
+        )
+        else if (action != null) Text(action, color = p.accent, fontSize = 14.sp, modifier = Modifier.clickable(onClick = onAction).padding(4.dp))
     }
 }
 

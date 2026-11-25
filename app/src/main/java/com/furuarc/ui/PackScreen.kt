@@ -111,13 +111,13 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
         }
 
         if (engine == null) {
-            optionItems(listOf(formatSpec), mapOf("fmt" to (picked?.id ?: "")), settings.lang, !st.running) { _, v ->
+            optionPanel(null, listOf(formatSpec), mapOf("fmt" to (picked?.id ?: "")), settings.lang, !st.running, "fmt_") { _, v ->
                 picked = packable.firstOrNull { it.id == v }
             }
         }
 
         if (eng != null) {
-            optionItems(specs, optVals, settings.lang, !st.running) { k, v -> optVals[k] = v }
+            optionPanel(optionsTitle(settings.lang), specs, optVals, settings.lang, !st.running) { k, v -> optVals[k] = v }
 
             item {
                 FileNameField(fileName, "." + (fmt?.packExtension(optVals.toMap()) ?: eng.ext), s.outputFilename) { fileName = it }

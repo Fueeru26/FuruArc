@@ -40,6 +40,46 @@ private fun OptionSpec.hint(lang: Lang) = if (lang == Lang.ID) hintId else hintE
 fun optionDefaults(specs: List<OptionSpec>, load: (OptionSpec) -> String?): Map<String, String> =
     specs.associate { sp -> sp.key to (load(sp) ?: sp.default) }
 
+private fun visibleSpecs(specs: List<OptionSpec>, values: Map<String, String>): List<OptionSpec> = specs.filter { sp ->
+    val cond = sp.showIf
+    cond == null || (values[cond.first] ?: specs.firstOrNull { it.key == cond.first }?.default) == cond.second
+}
+
+/** The option rows (visible ones only) as plain children of a Column, for use inside a label background. */
+@Composable
+fun ColumnScope.OptionColumn(
+    specs: List<OptionSpec>,
+    values: Map<String, String>,
+    lang: Lang,
+    enabled: Boolean,
+    onChange: (String, String) -> Unit,
+) {
+    for (sp in visibleSpecs(specs, values)) {
+        OptionRow(sp, values[sp.key] ?: sp.default, lang, enabled) { v -> onChange(sp.key, v) }
+    }
+}
+
+/** Title of the option label background in the current language. */
+fun optionsTitle(lang: Lang): String = when (lang) {
+    Lang.ID -> "Opsi"; Lang.JA -> "オプション"; Lang.ZH -> "选项"; Lang.KO -> "옵션"; else -> "Options"
+}
+
+/** Like [optionItems], but all visible options sit in one label background ([title] may be null for a lone selector). */
+fun LazyListScope.optionPanel(
+    title: String?,
+    specs: List<OptionSpec>,
+    values: Map<String, String>,
+    lang: Lang,
+    enabled: Boolean,
+    keyPrefix: String = "opt_",
+    onChange: (String, String) -> Unit,
+) {
+    if (visibleSpecs(specs, values).isEmpty()) return
+    item(key = keyPrefix + "panel") {
+        LabelSection(title) { OptionColumn(specs, values, lang, enabled, onChange) }
+    }
+}
+
 /**
  * Add one list item per currently visible option (dropdown / text field / number / checkbox).
  * [values] must be a state (e.g. mutableStateMapOf) so conditional options ([OptionSpec.showIf]) change too.
