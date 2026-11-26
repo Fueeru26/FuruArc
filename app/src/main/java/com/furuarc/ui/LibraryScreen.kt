@@ -519,7 +519,7 @@ private fun GameCard(e: GameEntry, modifier: Modifier, onOpen: () -> Unit, onRen
             Box(Modifier.size(30.dp).clip(CircleShape).background(if (p.dark) Color(0x99000000) else Color(0xB3FFFFFF)).clickable { menu = true }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Default.MoreVert, null, tint = if (p.dark) Color.White else Color(0xFF222222), modifier = Modifier.size(18.dp))
             }
-            FieldDropdownMenu(expanded = menu, anchorWidth = 0.dp, onDismiss = { menu = false }, labelStyle = true) {
+            FieldDropdownMenu(expanded = menu, anchorWidth = 0.dp, onDismiss = { menu = false }, labelStyle = true, menuWidth = 144.dp) {
                 DropdownOption(g.rename, false) { menu = false; onRename() }
                 DropdownOption(g.changeCover, false) { menu = false; onCover() }
                 DropdownOption(g.removeFolder, false) { menu = false; onRemove() }

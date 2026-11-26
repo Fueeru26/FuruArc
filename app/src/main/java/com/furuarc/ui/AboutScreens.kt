@@ -108,16 +108,16 @@ private fun GuideListScreen(title: String, entries: List<Pair<String, String>>, 
             }
         })
         if (searching) {
-            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp).height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) { AppTextField(q, { q = it }, a.searchHint) }
-                Spacer(Modifier.width(8.dp))
-                RowPanel(Modifier.size(44.dp)) {
+                Spacer(Modifier.width(6.dp))
+                RowPanel(Modifier.width(60.dp).fillMaxHeight()) {
                     Box(Modifier.fillMaxSize().clickableScale(enabled = matches.size > 1, pressed = 0.88f) { go(-1) }, contentAlignment = Alignment.Center) {
                         Text("‹", color = if (matches.size > 1) p.accent else p.muted, fontSize = 26.sp)
                     }
                 }
-                Spacer(Modifier.width(8.dp))
-                RowPanel(Modifier.size(44.dp)) {
+                Spacer(Modifier.width(6.dp))
+                RowPanel(Modifier.width(60.dp).fillMaxHeight()) {
                     Box(Modifier.fillMaxSize().clickableScale(enabled = matches.size > 1, pressed = 0.88f) { go(1) }, contentAlignment = Alignment.Center) {
                         Text("›", color = if (matches.size > 1) p.accent else p.muted, fontSize = 26.sp)
                     }
