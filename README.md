@@ -153,7 +153,14 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 ### Create Project
 
-Game Tools > Create Project (below the RPGM Tools and VN Tools cards) holds step-by-step workflows built from the existing tools. The first is the **Translation Project**: name a project, then follow Unpack archive, Export text, Translate, Import text, Pack archive and Format test. Each step opens the matching tool and Back returns to the project; mark steps as Done, skip any, add a note, rename or delete the project (game files are never deleted).
+Game Tools > Create Project (below the RPGM Tools and VN Tools cards) holds step-by-step workflows built from the existing tools. Pick a source archive and a work folder once and the tools open with them filled in. Each step opens the matching tool, Back returns to the project, the next step has a "Continue" button, and Unpack, Export, Import, Pack and converter steps are marked Done automatically when they ran without failures. Add a note, rename or delete a project (game files are never deleted).
+
+- **Translation Project**: Unpack archive, Export text, Translate, Import text, Pack archive and Format test.
+- **Compress Game Project**: Unpack archive, Scan assets, Compress audio, Compress images, Compress video and Pack archive. Compressed assets may not be accepted by the engine; keep the original archive and test the result.
+- **Extract Assets Project**: Unpack archive, Scan assets, View assets in the Media Player, Convert assets, Find duplicates and Batch rename.
+- **Make Patch Project**: Unpack the original, Edit files, Compare with the original, Pack the changed files as the patch archive and Format test.
+- **Audit / Check Game Project**: Unpack, Scan assets, Check translations, Find duplicates and Format test (read-only checks).
+- **Clean Up Project**: Unpack, Scan assets, Find duplicates, Tidy file names, Shrink assets and Pack. Work on a copy: the Duplicate Finder deletes files.
 
 ### Media Player
 

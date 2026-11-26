@@ -187,7 +187,9 @@ fun App(vm: MainViewModel) {
     val toEngineMenu = {
         vm.setMode(0)
         if (com.furuarc.core.Projects.active != null) {
-            // the tool was opened from a project: Back returns to it
+            // the tool was opened from a project: Back returns to it (a successful run marks the step as done)
+            val es = com.furuarc.Engine.state.value
+            com.furuarc.core.Projects.autoMark(es.done && es.summary?.let { it.failed == 0 && it.ok > 0 } == true)
             screen = Screen.PROJECT
         } else {
             engine.parent?.let { engineId = it }
@@ -200,6 +202,14 @@ fun App(vm: MainViewModel) {
         screen = if (parent == Screen.SUPPORT && com.furuarc.core.Projects.active != null) Screen.PROJECT else parent
     }
     var projectId by remember { mutableStateOf<String?>(null) }
+    var projectType by remember { mutableStateOf(0) }
+    // a media converter / folder check opened from a project: Back returns to it (a converter run without failures marks the step as done)
+    val backToProject = {
+        val ms = MediaJobs.state.value
+        com.furuarc.core.Projects.autoMark(ms.finished && ms.failed == 0 && ms.ok > 0)
+        MediaJobs.clear()
+        screen = Screen.PROJECT
+    }
     var kfEngine by remember { mutableStateOf(KeyFinder.ALL) }
     var kfFrom by remember { mutableStateOf(Screen.VN_TOOLS) }
     var browseFromInspect by remember { mutableStateOf(false) }
@@ -214,28 +224,30 @@ fun App(vm: MainViewModel) {
                 screen = if (inspectFromFolder) Screen.INSPECT_FOLDER else Screen.FILECHECK
                 inspectFromFolder = false
             }
-            Screen.INSPECT_FOLDER -> { FolderJobs.clear(); screen = Screen.FILECHECK }
+            Screen.INSPECT_FOLDER -> { FolderJobs.clear(); if (com.furuarc.core.Projects.active != null) { com.furuarc.core.Projects.autoMark(false); screen = Screen.PROJECT } else screen = Screen.FILECHECK }
             Screen.KEYFINDER -> { KeyFinderJobs.clear(); screen = kfFrom }
             Screen.GAME -> { GameSession.close(); GamePlayer.stop(); screen = Screen.LIBRARY }
             Screen.GAME_AUDIO, Screen.GAME_IMAGE, Screen.GAME_VIDEO, Screen.GAME_TEXT -> { GamePlayer.stop(); screen = Screen.GAME }
             Screen.VN_TOOLS, Screen.RPGM_TOOLS -> screen = Screen.SUPPORT
             Screen.FILETOOLS -> screen = Screen.SUPPORT
-            Screen.NAMEOPT -> screen = Screen.SUPPORT
+            Screen.NAMEOPT -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT
             Screen.MEDIA -> screen = Screen.SUPPORT
-            Screen.MPLAYER -> screen = Screen.SUPPORT
+            Screen.MPLAYER -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT
             Screen.MPLAYER_IMAGE, Screen.MPLAYER_AUDIO, Screen.MPLAYER_VIDEO, Screen.MPLAYER_SETTINGS -> screen = Screen.MPLAYER
-            Screen.TEXTEDIT -> screen = Screen.SUPPORT
+            Screen.TEXTEDIT -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT
             Screen.TEXTEDIT_PLAIN, Screen.TEXTEDIT_STRUCT, Screen.TEXTEDIT_BULK -> screen = Screen.TEXTEDIT
-            Screen.MEDIA_AUDIO, Screen.MEDIA_IMAGE, Screen.MEDIA_VIDEO, Screen.MEDIA_MIXED, Screen.MEDIA_TEXT -> { MediaJobs.clear(); screen = Screen.MEDIA }
+            Screen.MEDIA_AUDIO, Screen.MEDIA_IMAGE, Screen.MEDIA_VIDEO, Screen.MEDIA_MIXED, Screen.MEDIA_TEXT -> { if (com.furuarc.core.Projects.active != null) backToProject() else { MediaJobs.clear(); screen = Screen.MEDIA } }
             Screen.MEDIA_SPECIAL -> { MediaJobs.clear(); if (com.furuarc.ui.SpecialNav.engine != null) com.furuarc.ui.SpecialNav.engine = null else screen = Screen.MEDIA }
-            Screen.FILECUT, Screen.FILESPLIT, Screen.FILEJOIN, Screen.FILERENAME -> screen = Screen.FILETOOLS
-            Screen.INSPECT_COMPARE -> { CompareJobs.clear(); screen = Screen.FILECHECK }
-            Screen.INSPECT_DUP, Screen.INSPECT_HEX -> screen = Screen.FILECHECK
+            Screen.FILERENAME -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILETOOLS
+            Screen.FILECUT, Screen.FILESPLIT, Screen.FILEJOIN -> screen = Screen.FILETOOLS
+            Screen.INSPECT_COMPARE -> { CompareJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
+            Screen.INSPECT_DUP -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK
+            Screen.INSPECT_HEX -> screen = Screen.FILECHECK
             Screen.INSPECT_FORMATTEST -> { FormatTestJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
             Screen.PROJECT_MENU -> screen = Screen.SUPPORT
             Screen.PROJECT_LIST -> screen = Screen.PROJECT_MENU
             Screen.PROJECT -> { com.furuarc.core.Projects.active = null; screen = Screen.PROJECT_LIST }
-            Screen.INSPECT_TR -> { TrScanJobs.clear(); screen = Screen.FILECHECK }
+            Screen.INSPECT_TR -> { TrScanJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
             Screen.SELECT -> screen = Screen.UNPACK
             Screen.UNPACK, Screen.PACK -> toEngineMenu()
             Screen.ASSET_JOB, Screen.TOOL_JOB -> toEngineMenu()
@@ -520,7 +532,7 @@ fun App(vm: MainViewModel) {
                     onAudio = { screen = Screen.MPLAYER_AUDIO },
                     onVideo = { screen = Screen.MPLAYER_VIDEO },
                     onSettings = { screen = Screen.MPLAYER_SETTINGS },
-                    onBack = { screen = Screen.SUPPORT },
+                    onBack = { screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT },
                 )
                 Screen.MPLAYER_IMAGE -> com.furuarc.ui.PlayerListScreen(1) { screen = Screen.MPLAYER }
                 Screen.MPLAYER_AUDIO -> com.furuarc.ui.PlayerListScreen(2) { screen = Screen.MPLAYER }
@@ -530,7 +542,7 @@ fun App(vm: MainViewModel) {
                     onPlain = { screen = Screen.TEXTEDIT_PLAIN },
                     onStruct = { screen = Screen.TEXTEDIT_STRUCT },
                     onBulk = { screen = Screen.TEXTEDIT_BULK },
-                    onBack = { screen = Screen.SUPPORT },
+                    onBack = { screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT },
                 )
                 Screen.TEXTEDIT_PLAIN -> com.furuarc.ui.PlainTextScreen(onBack = { screen = Screen.TEXTEDIT })
                 Screen.TEXTEDIT_STRUCT -> com.furuarc.ui.StructuredHubScreen { screen = Screen.TEXTEDIT }
@@ -544,14 +556,14 @@ fun App(vm: MainViewModel) {
                     onMixed = { MediaJobs.clear(); screen = Screen.MEDIA_MIXED },
                     onBack = { screen = Screen.SUPPORT },
                 )
-                Screen.MEDIA_AUDIO -> com.furuarc.ui.AudioConvertScreen { MediaJobs.clear(); screen = Screen.MEDIA }
-                Screen.MEDIA_IMAGE -> com.furuarc.ui.ImageConvertScreen { MediaJobs.clear(); screen = Screen.MEDIA }
-                Screen.MEDIA_VIDEO -> com.furuarc.ui.VideoConvertScreen { MediaJobs.clear(); screen = Screen.MEDIA }
-                Screen.MEDIA_MIXED -> com.furuarc.ui.MixedConvertScreen { MediaJobs.clear(); screen = Screen.MEDIA }
+                Screen.MEDIA_AUDIO -> com.furuarc.ui.AudioConvertScreen { if (com.furuarc.core.Projects.active != null) backToProject() else { MediaJobs.clear(); screen = Screen.MEDIA } }
+                Screen.MEDIA_IMAGE -> com.furuarc.ui.ImageConvertScreen { if (com.furuarc.core.Projects.active != null) backToProject() else { MediaJobs.clear(); screen = Screen.MEDIA } }
+                Screen.MEDIA_VIDEO -> com.furuarc.ui.VideoConvertScreen { if (com.furuarc.core.Projects.active != null) backToProject() else { MediaJobs.clear(); screen = Screen.MEDIA } }
+                Screen.MEDIA_MIXED -> com.furuarc.ui.MixedConvertScreen { if (com.furuarc.core.Projects.active != null) backToProject() else { MediaJobs.clear(); screen = Screen.MEDIA } }
                 Screen.MEDIA_TEXT -> com.furuarc.ui.TextConvertScreen { MediaJobs.clear(); screen = Screen.MEDIA }
                 Screen.MEDIA_SPECIAL -> com.furuarc.ui.SpecialConvertScreen { MediaJobs.clear(); com.furuarc.ui.SpecialNav.engine = null; screen = Screen.MEDIA }
                 Screen.NAMEOPT -> com.furuarc.ui.NameOptScreen(
-                    onBack = { screen = Screen.SUPPORT },
+                    onBack = { screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT },
                     onMixed = { MediaJobs.clear(); screen = Screen.MEDIA_MIXED },
                 )
                 Screen.FILETOOLS -> com.furuarc.ui.FileToolsMenuScreen(
@@ -564,7 +576,7 @@ fun App(vm: MainViewModel) {
                 Screen.FILECUT -> com.furuarc.ui.FileCutterScreen { screen = Screen.FILETOOLS }
                 Screen.FILESPLIT -> com.furuarc.ui.FileSplitterScreen { screen = Screen.FILETOOLS }
                 Screen.FILEJOIN -> com.furuarc.ui.FileJoinerScreen { screen = Screen.FILETOOLS }
-                Screen.FILERENAME -> com.furuarc.ui.BatchRenameScreen { screen = Screen.FILETOOLS }
+                Screen.FILERENAME -> com.furuarc.ui.BatchRenameScreen { screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILETOOLS }
                 Screen.MORE -> MoreScreen(
                     vm,
                     onSettings = { screen = Screen.SETTINGS },
@@ -659,14 +671,15 @@ fun App(vm: MainViewModel) {
                 )
                 Screen.INSPECT_FOLDER -> FolderCheckScreen(
                     onOpenFile = { item -> inspectFromFolder = true; InspectJobs.inspect(item.uri); screen = Screen.INSPECT },
-                    onBack = { FolderJobs.clear(); screen = Screen.FILECHECK },
+                    onBack = { FolderJobs.clear(); if (com.furuarc.core.Projects.active != null) { com.furuarc.core.Projects.autoMark(false); screen = Screen.PROJECT } else screen = Screen.FILECHECK },
                 )
-                Screen.INSPECT_COMPARE -> CompareScreen { CompareJobs.clear(); screen = Screen.FILECHECK }
-                Screen.INSPECT_DUP -> com.furuarc.ui.DupFinderScreen { screen = Screen.FILECHECK }
+                Screen.INSPECT_COMPARE -> CompareScreen { CompareJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
+                Screen.INSPECT_DUP -> com.furuarc.ui.DupFinderScreen { screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
                 Screen.INSPECT_HEX -> com.furuarc.ui.HexViewerScreen { screen = Screen.FILECHECK }
                 Screen.INSPECT_FORMATTEST -> com.furuarc.ui.FormatTestScreen { FormatTestJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
-                Screen.PROJECT_MENU -> com.furuarc.ui.ProjectMenuScreen(onTranslation = { screen = Screen.PROJECT_LIST }, onBack = { screen = Screen.SUPPORT })
+                Screen.PROJECT_MENU -> com.furuarc.ui.ProjectMenuScreen(onTranslation = { projectType = 0; screen = Screen.PROJECT_LIST }, onCompress = { projectType = 1; screen = Screen.PROJECT_LIST }, onExtract = { projectType = 2; screen = Screen.PROJECT_LIST }, onPatch = { projectType = 3; screen = Screen.PROJECT_LIST }, onAudit = { projectType = 4; screen = Screen.PROJECT_LIST }, onClean = { projectType = 5; screen = Screen.PROJECT_LIST }, onBack = { screen = Screen.SUPPORT })
                 Screen.PROJECT_LIST -> com.furuarc.ui.ProjectListScreen(
+                    type = projectType,
                     onOpen = { id -> projectId = id; com.furuarc.core.Projects.active = null; screen = Screen.PROJECT },
                     onBack = { screen = Screen.PROJECT_MENU },
                 )
@@ -674,18 +687,45 @@ fun App(vm: MainViewModel) {
                     id = projectId ?: "",
                     onStep = { pr, step ->
                         com.furuarc.core.Projects.opened(pr, step)
+                        val work = try { if (pr.workUri.isNotEmpty()) android.net.Uri.parse(pr.workUri) else null } catch (e: Exception) { null }
+                        val src = try { if (pr.sourceUri.isNotEmpty()) android.net.Uri.parse(pr.sourceUri) else null } catch (e: Exception) { null }
+                        // the tools start with the archive and the work folder of the project already chosen
                         when (step) {
-                            com.furuarc.core.Projects.UNPACK -> { enter(1, Screen.UNPACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
-                            com.furuarc.core.Projects.EXPORT -> { enter(ScriptTool.EXPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
+                            com.furuarc.core.Projects.UNPACK -> {
+                                enter(1, Screen.UNPACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO
+                                try { src?.let { vm.setArchive(it, null) }; work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
+                            }
+                            com.furuarc.core.Projects.EXPORT -> {
+                                enter(ScriptTool.EXPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO
+                                try { work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
+                            }
                             com.furuarc.core.Projects.TRANSLATE -> enter(10, Screen.TR_EDIT_JOB)
-                            com.furuarc.core.Projects.IMPORT -> { enter(ScriptTool.IMPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
-                            com.furuarc.core.Projects.PACK -> { enter(2, Screen.PACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
+                            com.furuarc.core.Projects.IMPORT -> {
+                                enter(ScriptTool.IMPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO
+                                try { work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
+                            }
+                            com.furuarc.core.Projects.PACK -> {
+                                enter(2, Screen.PACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO
+                                try { work?.let { vm.setPackOutput(it) } } catch (e: Exception) { }
+                            }
+                            com.furuarc.core.Projects.SCAN -> screen = Screen.INSPECT_FOLDER
+                            com.furuarc.core.Projects.NAMES -> screen = Screen.NAMEOPT
+                            com.furuarc.core.Projects.TRCHECK -> screen = Screen.INSPECT_TR
+                            com.furuarc.core.Projects.EDIT -> screen = Screen.TEXTEDIT
+                            com.furuarc.core.Projects.COMPARE -> screen = Screen.INSPECT_COMPARE
+                            com.furuarc.core.Projects.VIEW -> screen = Screen.MPLAYER
+                            com.furuarc.core.Projects.CONVERT -> { MediaJobs.clear(); screen = Screen.MEDIA_MIXED }
+                            com.furuarc.core.Projects.DUPES -> screen = Screen.INSPECT_DUP
+                            com.furuarc.core.Projects.RENAME -> screen = Screen.FILERENAME
+                            com.furuarc.core.Projects.AUDIO -> { MediaJobs.clear(); screen = Screen.MEDIA_AUDIO }
+                            com.furuarc.core.Projects.IMAGE -> { MediaJobs.clear(); screen = Screen.MEDIA_IMAGE }
+                            com.furuarc.core.Projects.VIDEO -> { MediaJobs.clear(); screen = Screen.MEDIA_VIDEO }
                             else -> { FormatTestJobs.clear(); screen = Screen.INSPECT_FORMATTEST }
                         }
                     },
                     onBack = { com.furuarc.core.Projects.active = null; screen = Screen.PROJECT_LIST },
                 )
-                Screen.INSPECT_TR -> TrScanScreen { TrScanJobs.clear(); screen = Screen.FILECHECK }
+                Screen.INSPECT_TR -> TrScanScreen { TrScanJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
                 Screen.PACK -> PackScreen(vm, engineOrNull, onBack = toEngineMenu)
                 Screen.SETTINGS -> SettingsScreen(vm) { screen = Screen.MORE }
 

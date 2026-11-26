@@ -5,7 +5,13 @@ All notable changes to FuruArc are listed here.
 ## 1.07
 
 ### Added
-- **Create Project** (Game Tools tab, below the RPGM Tools and VN Tools cards, above the Support Tools label): a menu of workflows that follow the existing tools step by step. The first one is the **Translation Project**: each project has a name, a note and six steps (Unpack archive, Export text, Translate, Import text, Pack archive, Format test). A step opens the existing tool (the engine is detected automatically) and the tool's Back button returns to the project. A step is marked "Opened" when it is opened and "Done" when you tick it; steps can be done in any order or skipped. Projects can be renamed and deleted (game files and results are never deleted) and are saved in the app.
+- **Create Project** (Game Tools tab, below the RPGM Tools and VN Tools cards, above the Support Tools label): a menu of workflows that follow the existing tools step by step. Each project has a name, a note, an optional source archive and work folder (picked once and used to fill the tools), and a progress count. A step opens the existing tool (the engine is detected automatically), the tool's Back button returns to the project, the next unfinished step has a highlighted "Continue" button, and steps can be done in any order or skipped. Unpack, Export, Import, Pack and the converter steps are marked Done automatically when they ran without failures; the others are ticked by you. Projects can be renamed and deleted (game files and results are never deleted) and are saved in the app.
+  - **Translation Project**: Unpack archive, Export text, Translate, Import text, Pack archive, Format test.
+  - **Compress Game Project**: Unpack archive, Scan assets (Folder Check), Compress audio, Compress images, Compress video, Pack archive. Compressed assets may not be accepted by the game engine, so the project advises using the Compatibility Checker and keeping the original archive.
+  - **Extract Assets Project**: Unpack archive, Scan assets, View assets (Media Player), Convert assets (Mixed Converter), Find duplicates, Batch rename. Unpack and Convert are marked Done automatically.
+  - **Make Patch Project**: Unpack the original archive, Edit files (Text Editors), Compare with the original (changed files list, report), Pack the folder of changed files as the patch archive, Format test. Unpack and Pack are marked Done automatically.
+  - **Audit / Check Game Project**: Unpack archive, Scan assets (Folder Check), Check translations, Find duplicates, Format test. The check tools only read; results can be copied or saved as a report.
+  - **Clean Up Project**: Unpack archive, Scan assets, Find duplicates (delete the copies), Tidy file names (Name Optimization), Shrink assets (Mixed Converter), Pack archive. Unpack, Convert and Pack are marked Done automatically.
 
 ## 1.06
 

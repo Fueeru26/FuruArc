@@ -1,5 +1,7 @@
 package com.furuarc.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.documentfile.provider.DocumentFile
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,40 +31,46 @@ import com.furuarc.ui.theme.LocalPalette
 
 /** Create Project menu: one card per kind of project (for now only the Translation Project). */
 @Composable
-fun ProjectMenuScreen(onTranslation: () -> Unit, onBack: () -> Unit) {
+fun ProjectMenuScreen(onTranslation: () -> Unit, onCompress: () -> Unit, onExtract: () -> Unit, onPatch: () -> Unit, onAudit: () -> Unit, onClean: () -> Unit, onBack: () -> Unit) {
     val j = projectStr(LocalLang.current)
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(j.menuTitle, onBack)
         Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
             MenuCard(AppIcons.Translate, j.trTitle, j.trSub, onTranslation)
+            MenuCard(AppIcons.Folder, j.cmpTitle, j.cmpSub, onCompress)
+            MenuCard(AppIcons.Image, j.extTitle, j.extSub, onExtract)
+            MenuCard(AppIcons.Edit, j.patTitle, j.patSub, onPatch)
+            MenuCard(AppIcons.Checklist, j.audTitle, j.audSub, onAudit)
+            MenuCard(AppIcons.Trash, j.clnTitle, j.clnSub, onClean)
         }
     }
 }
 
-/** The projects of the Translation Project type, newest first. */
+/** The projects of one type (translation or compress game), newest first. */
 @Composable
-fun ProjectListScreen(onOpen: (String) -> Unit, onBack: () -> Unit) {
+fun ProjectListScreen(type: Int, onOpen: (String) -> Unit, onBack: () -> Unit) {
     val p = LocalPalette.current
     val j = projectStr(LocalLang.current)
     LaunchedEffect(Unit) { Projects.load() }
     var creating by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
+    val shown = Projects.list.filter { it.type == type }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
-        ScreenHeader(j.trTitle, onBack, fixed = true, trailing = {
+        ScreenHeader(j.typeTitle(type), onBack, fixed = true, trailing = {
             IconButton(onClick = { name = ""; creating = true }) { Icon(Icons.Default.Add, j.newBtn, tint = p.text) }
         })
         LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
-            if (Projects.list.isEmpty()) item { Hint(j.empty) }
-            items(Projects.list.size) { i ->
-                val pr = Projects.list[i]
-                MenuCard(AppIcons.Translate, pr.name, j.progress(pr.doneCount(), Projects.STEPS.size)) { onOpen(pr.id) }
+            if (shown.isEmpty()) item { Hint(j.empty) }
+            items(shown.size) { i ->
+                val pr = shown[i]
+                MenuCard(when (type) { Projects.TYPE_COMPRESS -> AppIcons.Folder; Projects.TYPE_EXTRACT -> AppIcons.Image; Projects.TYPE_PATCH -> AppIcons.Edit; Projects.TYPE_AUDIT -> AppIcons.Checklist; Projects.TYPE_CLEAN -> AppIcons.Trash; else -> AppIcons.Translate }, pr.name, j.progress(pr.doneCount(), pr.steps.size)) { onOpen(pr.id) }
             }
         }
     }
     if (creating) {
-        AppDialog(j.newTitle, { creating = false }, buttons = {
+        AppDialog(j.typeNew(type), { creating = false }, buttons = {
             DlgBtn(j.cancel, false) { creating = false }
-            DlgBtn(j.create, true, enabled = name.isNotBlank()) { val pr = Projects.create(name); creating = false; onOpen(pr.id) }
+            DlgBtn(j.create, true, enabled = name.isNotBlank()) { val pr = Projects.create(name, type); creating = false; onOpen(pr.id) }
         }) {
             AppTextField(name, { name = it }, j.nameLabel)
         }
@@ -77,6 +87,25 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onBack: () -> Unit
     var renaming by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     var askDelete by remember { mutableStateOf(false) }
+    val ctx = LocalContext.current
+    val pickSource = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { u ->
+        if (u != null) {
+            try { ctx.contentResolver.takePersistableUriPermission(u, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) { }
+            pr.sourceUri = u.toString()
+            pr.sourceName = try { DocumentFile.fromSingleUri(ctx, u)?.name ?: "" } catch (e: Exception) { "" }
+            Projects.save()
+        }
+    }
+    val pickWork = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { u ->
+        if (u != null) {
+            try { ctx.contentResolver.takePersistableUriPermission(u, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } catch (e: Exception) { }
+            pr.workUri = u.toString()
+            pr.workName = try { DocumentFile.fromTreeUri(ctx, u)?.name ?: "" } catch (e: Exception) { "" }
+            Projects.save()
+        }
+    }
+    // the first step that is not done is the one to continue with
+    val nextStep = pr.steps.firstOrNull { pr.state(it) != Projects.ST_DONE }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(pr.name, onBack, fixed = true, trailing = {
             IconButton(onClick = { newName = pr.name; renaming = true }) { Icon(AppIcons.Edit, j.rename, tint = p.text) }
@@ -85,13 +114,16 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onBack: () -> Unit
         LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(j.progress(pr.doneCount(), Projects.STEPS.size), color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                    DetailLink(j.intro, 13.sp, 19.sp)
+                    Text(j.progress(pr.doneCount(), pr.steps.size), color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    DetailLink(j.typeIntro(pr.type), 13.sp, 19.sp)
                 }
             }
+            item { PickerCard(AppIcons.File, j.sourceLabel, pr.sourceName.ifEmpty { null }, AppIcons.Folder) { pickSource.launch(arrayOf("*/*")) } }
+            item { PickerCard(AppIcons.Folder, j.workLabel, pr.workName.ifEmpty { null }, AppIcons.Folder) { pickWork.launch(null) } }
+            item { DetailLink(j.pickNote, 13.sp, 19.sp) }
             item {
                 LabelSection(j.stepsTitle) {
-                    Projects.STEPS.forEachIndexed { i, step ->
+                    pr.steps.forEachIndexed { i, step ->
                         val st = pr.state(step)
                         if (i > 0) Divider(color = p.muted.copy(alpha = 0.25f))
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -102,9 +134,9 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onBack: () -> Unit
                                     color = if (st == Projects.ST_DONE) p.accent else p.muted, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                                 )
                             }
-                            Text(j.stepDesc(step), color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
+                            Text(j.stepDesc(step, pr.type), color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Box(Modifier.weight(1f)) { SecondaryButton(j.open) { onStep(pr, step) } }
+                                Box(Modifier.weight(1f)) { if (step == nextStep) PrimaryButton(j.next, true) { onStep(pr, step) } else SecondaryButton(j.open) { onStep(pr, step) } }
                                 Row(
                                     Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).clickable { Projects.setState(pr, step, if (st == Projects.ST_DONE) Projects.ST_OPEN else Projects.ST_DONE) },
                                     verticalAlignment = Alignment.CenterVertically,

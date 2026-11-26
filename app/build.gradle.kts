@@ -19,7 +19,7 @@ android {
     compileSdkVersion(33)
 
     defaultConfig {
-        applicationId = "com.furu.git.debug"
+        applicationId = "com.furuarc.debug"
         minSdkVersion(24)
         targetSdkVersion(34)
         versionCode = 107

@@ -153,7 +153,14 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 ### Buat Proyek
 
-Alat Game > Buat Proyek (di bawah kartu Alat RPGM dan Alat VN) berisi alur kerja bertahap dari alat yang sudah ada. Yang pertama adalah **Proyek Terjemahan**: beri nama proyek lalu ikuti Bongkar arsip, Ekspor teks, Terjemahkan, Impor teks, Kemas arsip, dan Uji format. Tiap langkah membuka alat yang sesuai dan tombol Kembali membawa Anda ke proyek; tandai langkah Selesai, lewati yang tidak perlu, tambah catatan, ganti nama atau hapus proyek (file game tidak pernah dihapus).
+Alat Game > Buat Proyek (di bawah kartu Alat RPGM dan Alat VN) berisi alur kerja bertahap dari alat yang sudah ada. Pilih arsip sumber dan folder kerja sekali, lalu alat terbuka dengan pilihan itu sudah terisi. Tiap langkah membuka alat yang sesuai, tombol Kembali membawa Anda ke proyek, langkah berikutnya punya tombol "Lanjutkan", dan langkah Bongkar, Ekspor, Impor, Kemas, serta konverter ditandai Selesai otomatis jika berjalan tanpa gagal. Tambah catatan, ganti nama, atau hapus proyek (file game tidak pernah dihapus).
+
+- **Proyek Terjemahan**: Bongkar arsip, Ekspor teks, Terjemahkan, Impor teks, Kemas arsip, dan Uji format.
+- **Proyek Audit / Cek Game**: Bongkar arsip, Pindai aset, Cek terjemahan, Cari duplikat, dan Uji format (hanya membaca).
+- **Proyek Pembersihan**: Bongkar arsip, Pindai aset, Cari duplikat, Rapikan nama file, Kecilkan aset, dan Kemas arsip. Kerjakan pada salinan: Pencari Duplikat menghapus file.
+- **Proyek Kompres Game**: Bongkar arsip, Pindai aset, Kompres audio, Kompres gambar, Kompres video, dan Kemas arsip. Aset hasil kompres bisa tidak diterima engine; simpan arsip asli dan uji hasilnya.
+- **Proyek Ekstrak Aset**: Bongkar arsip, Pindai aset, Lihat aset di Media Player, Konversi aset, Cari duplikat, dan Ganti nama massal.
+- **Proyek Buat Patch**: Bongkar arsip asli, Ubah file, Bandingkan dengan asli, Kemas file yang berubah menjadi arsip patch, dan Uji format.
 
 ### Media Player
 
