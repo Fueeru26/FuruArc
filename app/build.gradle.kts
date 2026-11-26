@@ -19,11 +19,11 @@ android {
     compileSdkVersion(33)
 
     defaultConfig {
-        applicationId = "com.furuarc"
+        applicationId = "com.furu.git.debug"
         minSdkVersion(24)
         targetSdkVersion(34)
-        versionCode = 106
-        versionName = "1.06"
+        versionCode = 107
+        versionName = "1.07"
     }
 
     // Release signing credentials are never stored in the repository. They are read from environment

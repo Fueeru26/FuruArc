@@ -16,7 +16,7 @@ import com.furuarc.ui.theme.LocalStr
 
 /** Tab 2 — Game Tools: RPGM Tools / VN Tools cards, then the Supporting Tools label with its menus. */
 @Composable
-fun SupportScreen(onVnTools: () -> Unit, onRpgmTools: () -> Unit, onEditor: () -> Unit, onInspect: () -> Unit, onKeyFinder: () -> Unit, onFileTools: () -> Unit = {}, onNameOpt: () -> Unit = {}, onMedia: () -> Unit = {}, onTextEdit: () -> Unit = {}, onPlayer: () -> Unit = {}) {
+fun SupportScreen(onVnTools: () -> Unit, onRpgmTools: () -> Unit, onEditor: () -> Unit, onInspect: () -> Unit, onKeyFinder: () -> Unit, onFileTools: () -> Unit = {}, onNameOpt: () -> Unit = {}, onMedia: () -> Unit = {}, onTextEdit: () -> Unit = {}, onPlayer: () -> Unit = {}, onProjects: () -> Unit = {}) {
     val md = com.furuarc.i18n.mediaStr(LocalLang.current)
     val tx = com.furuarc.i18n.textEditStr(LocalLang.current)
     val s = LocalStr.current
@@ -35,6 +35,8 @@ fun SupportScreen(onVnTools: () -> Unit, onRpgmTools: () -> Unit, onEditor: () -
             BigToolCard(AppIcons.Gamepad, s.menuRpgmTitle, modifier = Modifier.weight(1f), imageName = "card_rpgm", onClick = onRpgmTools)
             BigToolCard(AppIcons.MenuBook, s.menuVnTitle, modifier = Modifier.weight(1f), imageName = "card_vn", onClick = onVnTools)
         }
+        val pj = com.furuarc.i18n.projectStr(LocalLang.current)
+        MenuCard(AppIcons.Checklist, pj.menuTitle, pj.menuSub, onProjects)
         SupportTitle(nav.tabSupport)
         MenuCard(AppIcons.Edit, s.r.edTitle, s.r.edSub, onEditor)
         MenuCard(AppIcons.Description, tx.menuTitle, tx.menuSub, onTextEdit)

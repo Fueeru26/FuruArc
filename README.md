@@ -151,6 +151,10 @@ Convert and compress game audio, images and video, one file or a whole folder.
 - **Structured Text**: JSON (tree and text views), CSV / TSV (cell table), INI / CFG, XML and Markdown (with preview).
 - **Bulk Replace**: find and replace text across many files in one folder, with a match counter before anything is changed.
 
+### Create Project
+
+Game Tools > Create Project (below the RPGM Tools and VN Tools cards) holds step-by-step workflows built from the existing tools. The first is the **Translation Project**: name a project, then follow Unpack archive, Export text, Translate, Import text, Pack archive and Format test. Each step opens the matching tool and Back returns to the project; mark steps as Done, skip any, add a note, rename or delete the project (game files are never deleted).
+
 ### Media Player
 
 <p align="center"><img src="docs/pictures/08_media_player.webp" alt="Media Player" width="100%"></p>

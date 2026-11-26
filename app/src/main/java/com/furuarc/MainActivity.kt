@@ -79,7 +79,7 @@ import com.furuarc.ui.theme.FuruArcTheme
 import com.furuarc.ui.theme.LocalPalette
 
 enum class Screen {
-    HOME, LIBRARY, SUPPORT, MORE, FILECHECK, INSPECT, INSPECT_FOLDER, INSPECT_COMPARE, INSPECT_DUP, INSPECT_HEX, INSPECT_FORMATTEST, INSPECT_TR, ABOUT, ABOUT_TROUBLE, ABOUT_HOW, ABOUT_QNA, ABOUT_SRC, ABOUT_DEV,
+    HOME, LIBRARY, SUPPORT, MORE, FILECHECK, INSPECT, INSPECT_FOLDER, INSPECT_COMPARE, INSPECT_DUP, INSPECT_HEX, INSPECT_FORMATTEST, INSPECT_TR, PROJECT_MENU, PROJECT_LIST, PROJECT, ABOUT, ABOUT_TROUBLE, ABOUT_HOW, ABOUT_QNA, ABOUT_SRC, ABOUT_DEV,
     VN_TOOLS, VN_ENGINES, AUTO_SCRIPTS, KEYFINDER, TEXTEDIT, TEXTEDIT_PLAIN, TEXTEDIT_STRUCT, TEXTEDIT_BULK, FILETOOLS, NAMEOPT, FILECUT, FILESPLIT, FILEJOIN, FILERENAME, MEDIA, MEDIA_AUDIO, MEDIA_IMAGE, MEDIA_VIDEO, MEDIA_MIXED, MEDIA_TEXT, MEDIA_SPECIAL, ENGINE, UNPACK, PACK, SELECT, BROWSE, SETTINGS,
     GAME, GAME_AUDIO, GAME_IMAGE, GAME_VIDEO, GAME_TEXT,
     MPLAYER, MPLAYER_IMAGE, MPLAYER_AUDIO, MPLAYER_VIDEO, MPLAYER_SETTINGS,
@@ -92,6 +92,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.furuarc.core.MediaPrefs.init(this)
+        com.furuarc.core.Projects.load()
         if (savedInstanceState == null) com.furuarc.ui.IncomingFiles.handle(intent)
         setContent {
             val settings by vm.settings.collectAsState()
@@ -185,14 +186,20 @@ fun App(vm: MainViewModel) {
     // from the Unpack/Pack screen (or Decrypt/Encrypt/script tools) go back to the originating menu
     val toEngineMenu = {
         vm.setMode(0)
-        engine.parent?.let { engineId = it }
-        screen = if (!auto) Screen.ENGINE else if (screen == Screen.TOOL_JOB) Screen.AUTO_SCRIPTS else Screen.VN_TOOLS
+        if (com.furuarc.core.Projects.active != null) {
+            // the tool was opened from a project: Back returns to it
+            screen = Screen.PROJECT
+        } else {
+            engine.parent?.let { engineId = it }
+            screen = if (!auto) Screen.ENGINE else if (screen == Screen.TOOL_JOB) Screen.AUTO_SCRIPTS else Screen.VN_TOOLS
+        }
     }
     // from an RPGM job screen go back to its parent menu
     val toParent = { parent: Screen ->
         vm.setMode(0)
-        screen = parent
+        screen = if (parent == Screen.SUPPORT && com.furuarc.core.Projects.active != null) Screen.PROJECT else parent
     }
+    var projectId by remember { mutableStateOf<String?>(null) }
     var kfEngine by remember { mutableStateOf(KeyFinder.ALL) }
     var kfFrom by remember { mutableStateOf(Screen.VN_TOOLS) }
     var browseFromInspect by remember { mutableStateOf(false) }
@@ -224,7 +231,10 @@ fun App(vm: MainViewModel) {
             Screen.FILECUT, Screen.FILESPLIT, Screen.FILEJOIN, Screen.FILERENAME -> screen = Screen.FILETOOLS
             Screen.INSPECT_COMPARE -> { CompareJobs.clear(); screen = Screen.FILECHECK }
             Screen.INSPECT_DUP, Screen.INSPECT_HEX -> screen = Screen.FILECHECK
-            Screen.INSPECT_FORMATTEST -> { FormatTestJobs.clear(); screen = Screen.FILECHECK }
+            Screen.INSPECT_FORMATTEST -> { FormatTestJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
+            Screen.PROJECT_MENU -> screen = Screen.SUPPORT
+            Screen.PROJECT_LIST -> screen = Screen.PROJECT_MENU
+            Screen.PROJECT -> { com.furuarc.core.Projects.active = null; screen = Screen.PROJECT_LIST }
             Screen.INSPECT_TR -> { TrScanJobs.clear(); screen = Screen.FILECHECK }
             Screen.SELECT -> screen = Screen.UNPACK
             Screen.UNPACK, Screen.PACK -> toEngineMenu()
@@ -450,6 +460,7 @@ fun App(vm: MainViewModel) {
     androidx.compose.runtime.LaunchedEffect(screen) { com.furuarc.ui.HeaderState.collapsed = false }
     val headerScroll = remember { com.furuarc.ui.HeaderScrollConnection() }
     val onNavSelect: (Int) -> Unit = { i ->
+        com.furuarc.core.Projects.active = null
         val target = when (i) { 0 -> Screen.HOME; 1 -> Screen.LIBRARY; 2 -> Screen.SUPPORT; else -> Screen.MORE }
         navState.clearHome()
         if (target != screen) scrollKeeper.clearAll()
@@ -502,6 +513,7 @@ fun App(vm: MainViewModel) {
                     onTextEdit = { screen = Screen.TEXTEDIT },
                     onMedia = { screen = Screen.MEDIA },
                     onPlayer = { screen = Screen.MPLAYER },
+                    onProjects = { screen = Screen.PROJECT_MENU },
                 )
                 Screen.MPLAYER -> com.furuarc.ui.PlayerMenuScreen(
                     onImage = { screen = Screen.MPLAYER_IMAGE },
@@ -652,7 +664,27 @@ fun App(vm: MainViewModel) {
                 Screen.INSPECT_COMPARE -> CompareScreen { CompareJobs.clear(); screen = Screen.FILECHECK }
                 Screen.INSPECT_DUP -> com.furuarc.ui.DupFinderScreen { screen = Screen.FILECHECK }
                 Screen.INSPECT_HEX -> com.furuarc.ui.HexViewerScreen { screen = Screen.FILECHECK }
-                Screen.INSPECT_FORMATTEST -> com.furuarc.ui.FormatTestScreen { FormatTestJobs.clear(); screen = Screen.FILECHECK }
+                Screen.INSPECT_FORMATTEST -> com.furuarc.ui.FormatTestScreen { FormatTestJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
+                Screen.PROJECT_MENU -> com.furuarc.ui.ProjectMenuScreen(onTranslation = { screen = Screen.PROJECT_LIST }, onBack = { screen = Screen.SUPPORT })
+                Screen.PROJECT_LIST -> com.furuarc.ui.ProjectListScreen(
+                    onOpen = { id -> projectId = id; com.furuarc.core.Projects.active = null; screen = Screen.PROJECT },
+                    onBack = { screen = Screen.PROJECT_MENU },
+                )
+                Screen.PROJECT -> com.furuarc.ui.ProjectScreen(
+                    id = projectId ?: "",
+                    onStep = { pr, step ->
+                        com.furuarc.core.Projects.opened(pr, step)
+                        when (step) {
+                            com.furuarc.core.Projects.UNPACK -> { enter(1, Screen.UNPACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
+                            com.furuarc.core.Projects.EXPORT -> { enter(ScriptTool.EXPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
+                            com.furuarc.core.Projects.TRANSLATE -> enter(10, Screen.TR_EDIT_JOB)
+                            com.furuarc.core.Projects.IMPORT -> { enter(ScriptTool.IMPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
+                            com.furuarc.core.Projects.PACK -> { enter(2, Screen.PACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO }
+                            else -> { FormatTestJobs.clear(); screen = Screen.INSPECT_FORMATTEST }
+                        }
+                    },
+                    onBack = { com.furuarc.core.Projects.active = null; screen = Screen.PROJECT_LIST },
+                )
                 Screen.INSPECT_TR -> TrScanScreen { TrScanJobs.clear(); screen = Screen.FILECHECK }
                 Screen.PACK -> PackScreen(vm, engineOrNull, onBack = toEngineMenu)
                 Screen.SETTINGS -> SettingsScreen(vm) { screen = Screen.MORE }

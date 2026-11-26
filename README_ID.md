@@ -151,6 +151,10 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 - **File Teks Berstruktur**: JSON (tampilan pohon dan teks), CSV / TSV (tabel sel), INI / CFG, XML dan Markdown (dengan pratinjau).
 - **Ganti Massal**: cari dan ganti teks di banyak file dalam satu folder, dengan penghitung kecocokan sebelum apa pun diubah.
 
+### Buat Proyek
+
+Alat Game > Buat Proyek (di bawah kartu Alat RPGM dan Alat VN) berisi alur kerja bertahap dari alat yang sudah ada. Yang pertama adalah **Proyek Terjemahan**: beri nama proyek lalu ikuti Bongkar arsip, Ekspor teks, Terjemahkan, Impor teks, Kemas arsip, dan Uji format. Tiap langkah membuka alat yang sesuai dan tombol Kembali membawa Anda ke proyek; tandai langkah Selesai, lewati yang tidak perlu, tambah catatan, ganti nama atau hapus proyek (file game tidak pernah dihapus).
+
 ### Media Player
 
 <p align="center"><img src="docs/pictures/08_media_player.webp" alt="Media Player" width="100%"></p>
