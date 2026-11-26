@@ -108,7 +108,7 @@ fun FieldDropdownMenu(
         // label-background look (border + shadow / glow); the outer padding leaves room for the shadow inside the popup window
         Popup(popupPositionProvider = provider, onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)) {
             Box(Modifier.padding(10.dp)) {
-                RowPanel(if (anchorWidth > 0.dp) Modifier.width(anchorWidth) else Modifier.width(264.dp)) {
+                RowPanel(if (anchorWidth > 0.dp) Modifier.width(anchorWidth) else Modifier.width(232.dp)) {
                     Box(Modifier.heightIn(max = DropdownMaxHeight).dropdownScrollbar(state, p.muted.copy(alpha = 0.7f))) {
                         Column(Modifier.verticalScroll(state).padding(vertical = DropdownVPad), content = content)
                     }

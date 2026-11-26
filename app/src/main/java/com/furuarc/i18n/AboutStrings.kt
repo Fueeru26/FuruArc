@@ -212,7 +212,11 @@ class AboutStr(private val id: Boolean, private val lang: Lang = if (id) Lang.ID
             t("Dokumentasi resmi engine, sebagai acuan format skrip .rpy dan arsip RPA.", "Official engine documentation, used as a reference for the .rpy script and RPA archive formats."),
             "https://www.renpy.org",
         ),
-
+        SourceItem(
+            "Tyranor Next",
+            t("Referensi tampilan aplikasi (gaya visual dan animasi).", "Reference for the look of the app (visual style and animations)."),
+            "https://github.com/Weiss-UltimateSavior/Tyranor-Next",
+        ),
     )
 
     val devName get() = "Fueeru"
