@@ -773,6 +773,7 @@ fun BatchRenameScreen(onBack: () -> Unit) {
         )
     }
 
+    val renOptTitle = optionsTitle(com.furuarc.ui.theme.LocalLang.current)
     val wrongOpts = listOf("windows-1252" to "Windows-1252", "ISO-8859-1" to "ISO-8859-1", "IBM437" to "CP437 (DOS)")
     val rightOpts = listOf("Shift_JIS" to "Shift-JIS (JP)", "GBK" to "GBK (CN)", "Big5" to "Big5 (TW)", "EUC-KR" to "EUC-KR (KR)", "UTF-8" to "UTF-8")
 
@@ -780,7 +781,7 @@ fun BatchRenameScreen(onBack: () -> Unit) {
 ScreenHeader(f.renTitle, onBack)
 LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Folder, f.renFolder, dirName, AppIcons.Folder) { if (!busy) pickDir.launch(null) } }
-        panel(optionsTitle(com.furuarc.ui.theme.LocalLang.current)) {
+        panel(renOptTitle) {
         run { SegmentedChips(f.renRecursive, recIdx, 14.sp) { recIdx = it; undo = emptyList(); load() } }
         run { AppTextField(value = extFilter, onValueChange = { extFilter = it }, label = f.renExt) }
         run { Hint(f.renExtHint) }
