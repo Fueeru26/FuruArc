@@ -195,17 +195,31 @@ object MediaLib {
     }
 
     // ---- export / import (part of the Media Settings file)
+    private fun queueJson(k: Int): JSONObject =
+        JSONObject().put("items", JSONArray(sp?.getString("queue_$k", "[]") ?: "[]")).put("label", sp?.getString("queueLabel_$k", "") ?: "")
+
+    /** Per kind: folders, playlists / collections (with their files), favorites and the stored gallery / queue. */
     fun exportJson(): JSONObject {
         val o = JSONObject()
-        for (k in 1..3) o.put(k.toString(), JSONObject().put("folders", foldersJson(foldersOf(k))).put("lists", listsJson(listsOf(k))))
+        for (k in 1..3) o.put(
+            k.toString(),
+            JSONObject().put("folders", foldersJson(foldersOf(k))).put("lists", listsJson(listsOf(k))).put("queue", queueJson(k)),
+        )
         return o
     }
 
     fun importJson(o: JSONObject) {
         for (k in 1..3) {
             val x = o.optJSONObject(k.toString()) ?: continue
-            saveFolders(k, parseFolders(x.optJSONArray("folders")?.toString()))
+            val fl = parseFolders(x.optJSONArray("folders")?.toString())
+            saveFolders(k, fl)
             saveLists(k, parseLists(x.optJSONArray("lists")?.toString()))
+            x.optJSONObject("queue")?.let { q ->
+                sp?.edit()?.putString("queue_$k", (q.optJSONArray("items") ?: JSONArray()).toString())?.putString("queueLabel_$k", q.optString("label", ""))?.apply()
+            }
+            // the access grants of the folders only survive on the same device; try to renew them
+            val cr = try { com.furuarc.Engine.app.contentResolver } catch (e: Throwable) { null }
+            if (cr != null) for (f in fl) try { cr.takePersistableUriPermission(Uri.parse(f.uri), android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Throwable) { }
         }
     }
 

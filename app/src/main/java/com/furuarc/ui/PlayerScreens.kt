@@ -106,6 +106,24 @@ object PlayerHub {
                 val (l, lb) = MediaLib.loadQueue(k)
                 if (l.isNotEmpty()) setRaw(k, l, lb)
             }
+            restoreLast()
+        }
+    }
+
+    /** After a settings import: reload gallery, queues and last played from the stored data. */
+    fun reloadFromStore() {
+        init(Engine.app)
+        for (k in 1..3) {
+            val (l, lb) = MediaLib.loadQueue(k)
+            if (k == 2) AudioEngine.stop()
+            if (k == 3) videoIndex = -1
+            setRaw(k, l, lb)
+        }
+        if (MediaPrefs.restoreQueue) restoreLast()
+    }
+
+    private fun restoreLast() {
+        run {
             // bring back the last played audio / video (paused, at its last position)
             val ak = MediaPrefs.lastKey(2)
             if (ak != null && AudioEngine.current == null) {

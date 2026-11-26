@@ -767,6 +767,19 @@ fun androidx.compose.foundation.lazy.LazyListScope.panel(title: String?, content
     item { LabelSection(title, content = content) }
 }
 
+/** A list on a label background with 50 items per page; the page navigation shows only when there are more than [perPage] items. */
+@Composable
+fun <T> PagedPanel(title: String?, list: List<T>, perPage: Int = 50, resetKey: Any? = null, content: @Composable ColumnScope.(T) -> Unit) {
+    var page by androidx.compose.runtime.remember(resetKey) { androidx.compose.runtime.mutableStateOf(0) }
+    val n = maxOf(1, (list.size + perPage - 1) / perPage)
+    val cur = page.coerceIn(0, n - 1)
+    LabelSection(title) {
+        if (list.size > perPage) PageNav(cur, n, { page = it })
+        list.drop(cur * perPage).take(perPage).forEach { content(it) }
+        if (list.size > perPage) PageNav(cur, n, { page = it })
+    }
+}
+
 /** Section title (above a toggle/choice), equivalent to the Quality/Volume label style. */
 @Composable
 fun SectionLabel(text: String) {

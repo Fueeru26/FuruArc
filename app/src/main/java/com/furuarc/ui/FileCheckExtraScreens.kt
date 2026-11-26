@@ -255,7 +255,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                         Box(Modifier.weight(1f)) { SecondaryButton(f.dupClear, !busy) { selected = emptySet() } }
                     }
                 }
-                items(groups) { g ->
+                item { PagedPanel(f.dupTitle, groups, 50) { g ->
                     AppCard(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                             Text(f.dupGroup(g.files.size, fmtBytes(g.size)), color = p.muted, fontSize = 12.sp)
@@ -274,7 +274,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                             }
                         }
                     }
-                }
+                } }
                 item { Hint(f.dupSelected(selCount, fmtBytes(selBytes))) }
                 item { PrimaryButton(f.dupDelete(selCount), selCount > 0 && !busy) { confirm = true } }
             }

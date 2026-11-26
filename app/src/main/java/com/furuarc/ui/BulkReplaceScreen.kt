@@ -163,15 +163,15 @@ fun BulkReplaceScreen(onBack: () -> Unit) {
             val nt = note
             if (nt != null) item { NoteCard(nt, te.close) { note = null } }
             if (rs != null) {
-                items(minOf(rs.size, 200)) { i ->
-                    val r = rs[i]
-                    val rel = r.item.rel.substringAfter('/', "")
-                    Column(Modifier.fillMaxWidth()) {
-                        Text((if (rel.isEmpty()) "" else "$rel/") + r.item.name, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(te.matchCount(r.count), color = p.muted, fontSize = 12.sp)
+                item {
+                    PagedPanel(null, rs, 50) { r ->
+                        val rel = r.item.rel.substringAfter('/', "")
+                        Column(Modifier.fillMaxWidth()) {
+                            Text((if (rel.isEmpty()) "" else "$rel/") + r.item.name, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(te.matchCount(r.count), color = p.muted, fontSize = 12.sp)
+                        }
                     }
                 }
-                if (rs.size > 200) item { Hint("… +" + (rs.size - 200)) }
                 item { PrimaryButton(te.bulkApply, rs.isNotEmpty() && !busy) { confirm = true } }
             }
         }

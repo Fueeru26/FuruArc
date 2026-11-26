@@ -260,8 +260,8 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
         run { DetailHint(f.splitHint) }
         run { SegmentedChips(f.sumOpts, sumIdx, 14.sp) { sumIdx = it } }
         run { AppTextField(value = baseName, onValueChange = { baseName = it }, label = f.splitBase) }
-        run { PickerCard(AppIcons.Folder, f.outFolder, outName, AppIcons.Folder) { if (!busy) pickOut() } }
         }
+        item { PickerCard(AppIcons.Folder, f.outFolder, outName, AppIcons.Folder) { if (!busy) pickOut() } }
         item { PrimaryButton(f.splitRun, src != null && !busy && count in 1..FileOps.MAX_PARTS) { run() } }
         if (busy) item {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -726,7 +726,7 @@ fun BatchRenameScreen(onBack: () -> Unit) {
     val pageItems = remember(visible, curPage) { visible.drop(curPage * REN_PER_PAGE).take(REN_PER_PAGE) }
     val pageLabel = f.renPageLabel(curPage + 1, pages, visible.size)
     // index of the Preview title item in the LazyColumn: 6 fixed items + rule items (depending on mode) + 1 letter-case row
-    val previewIdx = 6 + (if (mode == 2) 2 else 3) + 1
+    val previewIdx = 2
 
     fun doRename() {
         val items = ArrayList<Triple<Uri, String, String>>()
@@ -780,21 +780,22 @@ fun BatchRenameScreen(onBack: () -> Unit) {
 ScreenHeader(f.renTitle, onBack)
 LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { PickerCard(AppIcons.Folder, f.renFolder, dirName, AppIcons.Folder) { if (!busy) pickDir.launch(null) } }
-        item { SegmentedChips(f.renRecursive, recIdx, 14.sp) { recIdx = it; undo = emptyList(); load() } }
-        item { AppTextField(value = extFilter, onValueChange = { extFilter = it }, label = f.renExt) }
-        item { Hint(f.renExtHint) }
-        item {
+        panel(optionsTitle(com.furuarc.ui.theme.LocalLang.current)) {
+        run { SegmentedChips(f.renRecursive, recIdx, 14.sp) { recIdx = it; undo = emptyList(); load() } }
+        run { AppTextField(value = extFilter, onValueChange = { extFilter = it }, label = f.renExt) }
+        run { Hint(f.renExtHint) }
+        run {
             AppDropdown(f.renRule, mode.toString(), f.renModes.mapIndexed { i, s -> i.toString() to s }, !busy) { mode = it.toInt() }
         }
         when (mode) {
             0 -> {
-                item { AppTextField(value = find, onValueChange = { find = it }, label = f.renFind) }
-                item { AppTextField(value = replace, onValueChange = { replace = it }, label = f.renReplace) }
-                item { SegmentedChips(f.renCaseMatch, caseIdx) { caseIdx = it } }
+                run { AppTextField(value = find, onValueChange = { find = it }, label = f.renFind) }
+                run { AppTextField(value = replace, onValueChange = { replace = it }, label = f.renReplace) }
+                run { SegmentedChips(f.renCaseMatch, caseIdx) { caseIdx = it } }
             }
             1 -> {
-                item { AppTextField(value = pattern, onValueChange = { pattern = it }, label = f.renPattern) }
-                item {
+                run { AppTextField(value = pattern, onValueChange = { pattern = it }, label = f.renPattern) }
+                run {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box(Modifier.weight(1f)) {
                             AppTextField(value = start, onValueChange = { v -> start = v.filter { ch -> ch.isDigit() }.take(6) }, label = f.renStart, number = true)
@@ -804,19 +805,20 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, contentPadding
                         }
                     }
                 }
-                item { DetailHint(f.renPatternHint) }
+                run { DetailHint(f.renPatternHint) }
             }
             2 -> {
-                item { AppTextField(value = prefix, onValueChange = { prefix = it }, label = f.renPrefix) }
-                item { AppTextField(value = suffix, onValueChange = { suffix = it }, label = f.renSuffix) }
+                run { AppTextField(value = prefix, onValueChange = { prefix = it }, label = f.renPrefix) }
+                run { AppTextField(value = suffix, onValueChange = { suffix = it }, label = f.renSuffix) }
             }
             else -> {
-                item { AppDropdown(f.renWrong, wrongCs, wrongOpts, !busy) { wrongCs = it } }
-                item { AppDropdown(f.renRight, rightCs, rightOpts, !busy) { rightCs = it } }
-                item { DetailHint(f.renFixHint) }
+                run { AppDropdown(f.renWrong, wrongCs, wrongOpts, !busy) { wrongCs = it } }
+                run { AppDropdown(f.renRight, rightCs, rightOpts, !busy) { rightCs = it } }
+                run { DetailHint(f.renFixHint) }
             }
         }
-        item { SegmentedChips(f.renLetters, letters, 14.sp) { letters = it } }
+        run { SegmentedChips(f.renLetters, letters, 14.sp) { letters = it } }
+        }
 
         if (dir == null) {
             item { Hint(f.renNoFolder) }
@@ -825,12 +827,12 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, contentPadding
         } else if (files.isEmpty()) {
             item { Hint(f.renEmpty) }
         } else {
-            item { SectionLabel(f.renPreview) }
-            item { Hint(f.renSummary(files.size, changed, same, bad)) }
-            item { AppTextField(value = query, onValueChange = { v -> query = v; page = 0 }, label = f.renSearch) }
-            if (visible.isEmpty()) item { Hint(f.renNoMatch) }
-            if (pages > 1) item { RenPager(curPage, pages, pageLabel) { np -> page = np } }
-            items(pageItems) { pi ->
+            panel(f.renPreview) {
+            run { Hint(f.renSummary(files.size, changed, same, bad)) }
+            run { AppTextField(value = query, onValueChange = { v -> query = v; page = 0 }, label = f.renSearch) }
+            if (visible.isEmpty()) run { Hint(f.renNoMatch) }
+            if (pages > 1) run { RenPager(curPage, pages, pageLabel) { np -> page = np } }
+            pageItems.forEach { pi ->
                 AppCard(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                         Text((if (pi.entry.dir.isEmpty()) "" else pi.entry.dir + "/") + pi.row.old, color = p.muted, fontSize = 12.sp, lineHeight = 16.sp)
@@ -844,12 +846,13 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, contentPadding
                 }
             }
             if (pages > 1) {
-                item {
+                run {
                     RenPager(curPage, pages, pageLabel) { np ->
                         page = np
                         scope.launch { listState.scrollToItem(previewIdx) }
                     }
                 }
+            }
             }
             if (bad > 0) item { Text(f.renBad, color = ErrColor, fontSize = 13.sp, lineHeight = 19.sp) }
         }

@@ -516,13 +516,13 @@ private fun GameCard(e: GameEntry, modifier: Modifier, onOpen: () -> Unit, onRen
             }
         }
         Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-            Box(Modifier.size(30.dp).clip(CircleShape).background(Color(0x99000000)).clickable { menu = true }, contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.MoreVert, null, tint = Color.White, modifier = Modifier.size(18.dp))
+            Box(Modifier.size(30.dp).clip(CircleShape).background(if (p.dark) Color(0x99000000) else Color(0xB3FFFFFF)).clickable { menu = true }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.MoreVert, null, tint = if (p.dark) Color.White else Color(0xFF222222), modifier = Modifier.size(18.dp))
             }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(onClick = { menu = false; onRename() }) { Text(g.rename) }
-                DropdownMenuItem(onClick = { menu = false; onCover() }) { Text(g.changeCover) }
-                DropdownMenuItem(onClick = { menu = false; onRemove() }) { Text(g.removeFolder) }
+            FieldDropdownMenu(expanded = menu, anchorWidth = 0.dp, onDismiss = { menu = false }, labelStyle = true) {
+                DropdownOption(g.rename, false) { menu = false; onRename() }
+                DropdownOption(g.changeCover, false) { menu = false; onCover() }
+                DropdownOption(g.removeFolder, false) { menu = false; onRemove() }
             }
         }
     }

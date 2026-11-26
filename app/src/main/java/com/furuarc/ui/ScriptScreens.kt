@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.furuarc.MainViewModel
@@ -122,8 +123,10 @@ fun ToolJobScreen(vm: MainViewModel, engine: VnEngine?, tool: ScriptTool, onBack
             }
         }
         // every setting of the tool sits in one "Options" label background
+        val hasOpts = tool == ScriptTool.EXPORT || usesEnc
         item {
-            LabelSection(optionsTitle(settings.lang)) {
+            // text-only content (note) gets no label background
+            val body: @Composable ColumnScope.() -> Unit = {
                 if (tool == ScriptTool.EXPORT) {
                     SectionLabel(ts.formatLabel)
                     val pickFmt = { i: Int ->
@@ -150,6 +153,8 @@ fun ToolJobScreen(vm: MainViewModel, engine: VnEngine?, tool: ScriptTool, onBack
                 val nt = ts.note(tool, kind)
                 if (nt.length >= DETAIL_MIN_CHARS) DetailLink(nt, 13.sp, 19.sp) else Text(nt, color = p.muted, fontSize = 13.sp)
             }
+            if (hasOpts) LabelSection(optionsTitle(settings.lang), content = body)
+            else Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { body() }
         }
         val err = r.error
         if (err != null && tool != ScriptTool.LIST) item { ErrorCard(err) }

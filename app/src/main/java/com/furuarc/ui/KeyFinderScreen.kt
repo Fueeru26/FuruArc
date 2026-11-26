@@ -94,17 +94,8 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                     }
                 }
                 item(key = "hitfiles$hi") {
-                    val total = h.files.size
-                    val n = maxOf(1, (total + KF_PAGE - 1) / KF_PAGE)
-                    val cur = (pages[hi] ?: 0).coerceIn(0, n - 1)
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(c.kfFiles(total), color = p.accent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                        if (total > KF_PAGE) {
-                            PageNav(cur, n, { pages[hi] = it })
-                        }
-                        h.files.drop(cur * KF_PAGE).take(KF_PAGE).forEach { f ->
-                            Text(f, color = p.text, fontSize = 13.sp, lineHeight = 18.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        }
+                    PagedPanel(c.kfFiles(h.files.size), h.files, KF_PAGE, hi) { f ->
+                        Text(f, color = p.text, fontSize = 13.sp, lineHeight = 18.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }

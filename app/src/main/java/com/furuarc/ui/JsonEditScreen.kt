@@ -357,7 +357,7 @@ fun JsonEditScreen(onBack: () -> Unit) {
             if (d != null && panel.mode != 2) {
                 AreaTitle(te.editorArea)
                 AreaFileName(d.item.name, dirty)
-                Column(Modifier.height(areaH).fillMaxWidth()) {
+                RowPanel(Modifier.height(areaH).fillMaxWidth()) { Column(Modifier.fillMaxSize().padding(10.dp)) {
             SegmentedChips(listOf(te.viewTree, te.viewText), view, 14.sp) { switchView(it) }
             Spacer(Modifier.height(8.dp))
             val canSave = teCanSave(ep, d.created, d.memo)
@@ -408,7 +408,7 @@ fun JsonEditScreen(onBack: () -> Unit) {
                 PrimaryButton(if (saving) te.saving else te.saveBtn, !saving && canSave) { save() }
             }
             Spacer(Modifier.height(12.dp))
-                }
+                } }
             }
             Spacer(Modifier.height(12.dp))
         }

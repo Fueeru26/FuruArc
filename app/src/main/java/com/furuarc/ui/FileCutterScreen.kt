@@ -182,8 +182,8 @@ LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bo
         }
         run { DetailHint(c.cutHint) }
         run { AppTextField(value = fileName, onValueChange = { fileName = it; nameEdited = true }, label = c.cutOutName) }
-        run { PickerCard(AppIcons.Folder, c.cutOutFolder, outName, AppIcons.Folder) { if (!busy) pickOut.launch(null) } }
         }
+        item { PickerCard(AppIcons.Folder, c.cutOutFolder, outName, AppIcons.Folder) { if (!busy) pickOut.launch(null) } }
         item { PrimaryButton(c.cutRun, src != null && !busy && bytes() > 0) { run() } }
         if (busy) item {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

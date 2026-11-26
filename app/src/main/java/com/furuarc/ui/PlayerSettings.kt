@@ -67,7 +67,7 @@ fun PlayerSettingsScreen(onBack: () -> Unit) {
     val import = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             val text = try { ctx.contentResolver.openInputStream(uri)?.use { String(it.readBytes(), Charsets.UTF_8) } } catch (e: Exception) { null }
-            msg = if (text != null && MediaPrefs.importJson(text)) pl.imported else pl.importFail
+            msg = if (text != null && MediaPrefs.importJson(text)) { PlayerHub.reloadFromStore(); pl.imported } else pl.importFail
         }
     }
     val rep = listOf(0, 1, 2).map { it to pl.repeat(it) }

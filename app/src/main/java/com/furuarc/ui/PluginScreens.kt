@@ -76,9 +76,11 @@ private fun PluginInfoPage(files: List<com.furuarc.core.PluginFileInfo>, onClose
 ScreenHeader(pl.infoPageTitle, onClose)
 LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { AppTextField(query, { query = it }, pl.infoSearch) }
-        if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
         if (shown.isEmpty()) item { Hint(pl.noneMatch) }
-        items(pageItems) { f ->
+        item {
+            LabelSection(null) {
+                if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
+        pageItems.forEach { f ->
             AppCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(f.file, color = p.text, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -87,7 +89,9 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 }
             }
         }
-        if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
+                if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
+            }
+        }
         item { SecondaryButton(pl.infoClose, onClose) }
     }
 }
@@ -271,8 +275,10 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                     }
                     item { SegmentedChips(listOf(pl.filterAll, pl.filterText, pl.filterValue), filter) { filter = it } }
                     item { AppTextField(query, { query = it }, pl.search) }
-                    if (rows.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, rows.size)) { page = it } }
-                    items(pageRows) { r ->
+                    item {
+                        LabelSection(null) {
+                            if (rows.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, rows.size)) { page = it }
+                    pageRows.forEach { r ->
                         val f = st.files[r.fileIdx]
                         val it = f.items[r.itemIdx]
                         val key = f.file + "\u0000" + r.itemIdx
@@ -292,8 +298,10 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                             }
                         }
                     }
+                            if (rows.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, rows.size)) { page = it }
+                        }
+                    }
                     if (rows.isEmpty()) item { Hint(pl.noneMatch) }
-                    if (rows.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, rows.size)) { page = it } }
                     item {
                         PrimaryButton(pl.apply, !st.applying) {
                             val grouped = HashMap<String, HashMap<Int, String>>()
@@ -628,8 +636,12 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 item { SegmentedChips(listOf(pl.chkAll, pl.lvlErr, pl.lvlWarn, pl.lvlInfo), filter, 12.sp) { filter = it } }
                 item { AppTextField(query, { query = it }, pl.searchIssues) }
                 if (shown.isEmpty()) item { Hint(pl.noneMatch) }
-                if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
-                items(pageItems) { i -> IssueCard(pl, i) { x, any -> PluginCheckJobs.ignore(x, any) } }
+                item {
+                    LabelSection(null) {
+                        if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
+                pageItems.forEach { i -> IssueCard(pl, i) { x, any -> PluginCheckJobs.ignore(x, any) } }
+                    }
+                }
                 item {
                     ExportBar(st.jsName ?: "plugins") {
                         visible.joinToString("\n") { levelLabel(pl, it.level) + " | " + it.plugin + " | " + it.text + (if (it.maybe) " | " + pl.maybeIntended else "") }
@@ -691,13 +703,17 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             if (st.items.isNotEmpty()) {
                 item { SegmentedChips(listOf(pl.dAll, pl.dAdded, pl.dRemoved), if (filter <= 2) filter else -1) { filter = it } }
                 item { SegmentedChips(listOf(pl.dStatus, pl.dParams, pl.dOrder), if (filter >= 3) filter - 3 else -1) { filter = it + 3 } }
-                if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
-                items(pageItems) { d ->
+                item {
+                    LabelSection(null) {
+                        if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
+                pageItems.forEach { d ->
                     AppCard(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(kindLabel(d.kind) + " · " + d.name, color = kindColor(d.kind), fontWeight = FontWeight.SemiBold, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(d.detail, color = p.text, fontSize = 12.sp, lineHeight = 17.sp, fontFamily = FontFamily.Monospace)
                         }
+                    }
+                }
                     }
                 }
                 item {
@@ -729,10 +745,14 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 color = p.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
             )
         }
-        if (issues.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, issues.size)) { page = it } }
         if (issues.isEmpty()) item { Hint(pl.noneMatch) }
-        items(pageItems) { i -> IssueCard(pl, i) }
-        if (issues.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, issues.size)) { page = it } }
+        item {
+            LabelSection(null) {
+                if (issues.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, issues.size)) { page = it }
+        pageItems.forEach { i -> IssueCard(pl, i) }
+                if (issues.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, issues.size)) { page = it }
+            }
+        }
         item { SecondaryButton(pl.infoClose, onClose) }
     }
 }
@@ -759,9 +779,11 @@ ScreenHeader(pl.paramsPageTitle, onClose)
 LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) { 
         item { Text(entry.name, color = p.accent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis) }
         item { AppTextField(query, { query = it }, pl.paramsSearch) }
-        if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
         if (shown.isEmpty()) item { Hint(pl.noneMatch) }
-        items(pageItems, key = { it.first }) { kv ->
+        item {
+            LabelSection(null) {
+                if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
+        pageItems.forEach { kv ->
             AppCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(kv.first, color = p.accent, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, fontFamily = FontFamily.Monospace)
@@ -772,7 +794,9 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 }
             }
         }
-        if (shown.size > PLUGIN_PAGE) item { PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it } }
+                if (shown.size > PLUGIN_PAGE) PluginPager(cur, pages, pl.pageLabel(cur + 1, pages, shown.size)) { page = it }
+            }
+        }
         item { SecondaryButton(pl.paramsDone, onClose) }
     }
 }

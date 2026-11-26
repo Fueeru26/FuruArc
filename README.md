@@ -160,7 +160,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - Audio and Video: **Player**, **Queue**, **Folders** and **Playlists** tabs. Folders list only their names; tapping one scans it into the Queue (with an optional "include subfolders" switch). The Queue shows covers and tags, reorders with up/down arrows, pages by 50 and has a three-dot menu (info, play next, remove, favorites, playlists, share, File Inspection). Playlists are cards in 3 columns with a built-in Favorites list.
 - Player: repeat, shuffle, speed, A-B loop, sleep timer, equalizer, background play with notification controls, remembered position. Video adds rotate, fullscreen, double-tap skip and swipe brightness / volume.
 - Image Gallery: Gallery, Folders and Collections; list or grid view, 60 per page, pinch zoom and slideshow.
-- Media Settings: many player options plus export / import of settings and all lists.
+- Media Settings: many player options plus export / import of settings, last played, Gallery, Queues, folders, collections and playlists.
 - Apply to Queue / Gallery: Folders, Favorites, Collections and Playlists load directly into an empty list, otherwise choose Load (with a warning) or Add. Video Player subtitles (SRT, VTT, ASS/SSA). Media-style notification with seek bar. "Open with..." media is temporary and never overwrites your lists.
 - Search and sort in Queue and Gallery (sort icon left of the search icon: title, artist, file name, duration, date, size, random; the list itself is reordered), View content / Empty for lists, lyrics (.lrc), subtitle timing and auto-load, bookmarks, picture-in-picture, drag or arrow ordering, and restoring the last played audio / video.
 - Game Assets viewers have a Media Player icon to open an asset here.

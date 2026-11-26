@@ -127,7 +127,10 @@ object MediaPrefs {
         for (b in bools) o.put(b.k, b.get())
         for (i in ints) o.put(i.k, i.get())
         o.put("speed", speed.toDouble())
-        return JSONObject().put("furuarc_media_settings", 2).put("settings", o).put("library", MediaLib.exportJson()).toString(2)
+        // last played audio / video (key + position)
+        val last = JSONObject()
+        for (k in 2..3) lastKey(k)?.let { last.put(k.toString(), JSONObject().put("key", it).put("pos", lastPos(k))) }
+        return JSONObject().put("furuarc_media_settings", 3).put("settings", o).put("player", last).put("library", MediaLib.exportJson()).toString(2)
     }
 
     fun importJson(text: String): Boolean {
@@ -139,6 +142,11 @@ object MediaPrefs {
             for (i in ints) i.set(o.optInt(i.k, i.get()).coerceIn(i.lo, i.hi))
             speed = o.optDouble("speed", speed.toDouble()).toFloat().coerceIn(0.25f, 3f)
             root.optJSONObject("library")?.let { MediaLib.importJson(it) }
+            root.optJSONObject("player")?.let { pl ->
+                val e = sp?.edit()
+                for (k in 2..3) pl.optJSONObject(k.toString())?.let { e?.putString("lastKey$k", it.optString("key")); e?.putInt("lastPos$k", it.optInt("pos", 0)) }
+                e?.apply()
+            }
             save()
             true
         } catch (e: Exception) {

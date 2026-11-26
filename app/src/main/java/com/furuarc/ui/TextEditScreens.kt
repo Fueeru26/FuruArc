@@ -435,7 +435,7 @@ fun PlainTextScreen(onBack: () -> Unit, title: String? = null, exts: String? = n
                         NoteCard(nt, te.close) { note = null }
                         Spacer(Modifier.height(8.dp))
                     }
-                    Box(Modifier.height(areaH).fillMaxWidth()) {
+                    RowPanel(Modifier.height(areaH).fillMaxWidth()) { Box(Modifier.fillMaxSize().padding(4.dp)) {
                         key(d.serial) {
                             CodeEditor(
                                 ctl, ep.font, ep.wrap, Modifier.fillMaxSize(),
@@ -445,7 +445,7 @@ fun PlainTextScreen(onBack: () -> Unit, title: String? = null, exts: String? = n
                             )
                         }
                         if (preview) MarkdownPreview(previewSrc, Modifier.fillMaxSize())
-                    }
+                    } }
                     if (ep.symbols && !d.readOnly) {
                         Spacer(Modifier.height(6.dp))
                         SymbolBar(ctl)

@@ -219,14 +219,12 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             }
             item { AppTextField(query, { query = it }, c.folderSearch) }
             item { SegmentedChips(listOf(c.filterAll, c.filterWarn, c.filterBad, c.filterOk), filter) { filter = it } }
-            if (shown.size > pageSize) {
-                item {
-                    PageNav(curPage, pages, { page = it })
-                }
-            }
             if (st.items.isNotEmpty()) item { Hint(c.tapToOpen) }
             if (shown.isEmpty() && !st.running) item { Hint(c.folderNone) }
-            items(pageItems) { it ->
+            item {
+                LabelSection(null) {
+                    if (shown.size > pageSize) PageNav(curPage, pages, { page = it })
+            pageItems.forEach { it ->
                 AppCard(Modifier.fillMaxWidth()) {
                     Row(Modifier.clickable { onOpenFile(it) }.padding(14.dp), verticalAlignment = Alignment.Top) {
                         Text(
@@ -240,6 +238,9 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                             Text(it.summary, color = p.muted, fontSize = 13.sp, lineHeight = 18.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
                         }
                     }
+                }
+            }
+                    if (shown.size > pageSize) PageNav(curPage, pages, { page = it })
                 }
             }
             if (st.items.isNotEmpty() && !st.running) {
@@ -300,7 +301,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                 item { AppTextField(query, { query = it }, c.searchHint) }
                 val kindOf = intArrayOf(-1, DiffItem.ADDED, DiffItem.CHANGED, DiffItem.REMOVED)
                 val rows = d.items.filter { (filter == 0 && it.kind != DiffItem.SAME || kindOf[filter] == it.kind) && (query.isBlank() || it.name.contains(query, true)) }
-                items(rows.take(500)) { x ->
+                item { PagedPanel(null, rows, 50, filter.toString() + query) { x ->
                     val m = when (x.kind) { DiffItem.ADDED -> "+"; DiffItem.REMOVED -> "−"; DiffItem.CHANGED -> "~"; else -> "=" }
                     val col = when (x.kind) { DiffItem.ADDED -> GREEN; DiffItem.REMOVED -> RED; DiffItem.CHANGED -> AMBER; else -> p.muted }
                     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -313,17 +314,17 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                             )
                         }
                     }
-                }
+                } }
                 item { ExportBar(st.nameB ?: "banding") { CompareJobs.reportText() } }
             }
             2 -> st.text?.let { t ->
                 item { SectionCard(c.diffList) { Text(c.textSummary(t.linesA, t.linesB, t.same, t.added.size, t.removed.size), color = p.text, fontSize = 14.sp, lineHeight = 20.sp) } }
                 item { DetailHint(c.textNote) }
                 if (t.added.isNotEmpty()) item {
-                    SectionCard(c.addedLines) { Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { t.added.take(100).forEach { Text("+ $it", color = GREEN, fontSize = 13.sp, fontFamily = FontFamily.Monospace) } } }
+                    PagedPanel(c.addedLines, t.added) { Text("+ $it", color = GREEN, fontSize = 13.sp, fontFamily = FontFamily.Monospace) }
                 }
                 if (t.removed.isNotEmpty()) item {
-                    SectionCard(c.removedLines) { Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { t.removed.take(100).forEach { Text("− $it", color = RED, fontSize = 13.sp, fontFamily = FontFamily.Monospace) } } }
+                    PagedPanel(c.removedLines, t.removed) { Text("− $it", color = RED, fontSize = 13.sp, fontFamily = FontFamily.Monospace) }
                 }
                 item { ExportBar(st.nameB ?: "banding") { CompareJobs.reportText() } }
             }
@@ -339,7 +340,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                         }
                     }
                 }
-                items(t.items.take(300)) { x ->
+                item { PagedPanel(null, t.items, 50) { x ->
                     AppCard(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text("${x.file} | ${x.path}", color = p.muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -347,7 +348,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                             if (x.b.isNotEmpty()) Text("B: ${x.b}", color = GREEN, fontSize = 13.sp, lineHeight = 18.sp, maxLines = 4, overflow = TextOverflow.Ellipsis)
                         }
                     }
-                }
+                } }
                 item { ExportBar(st.nameB ?: "banding") { CompareJobs.reportText() } }
             }
             4 -> st.bin?.let { rows ->
@@ -422,8 +423,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
             if (cat == 2) item { Hint(c.trInconsNote) }
             if (shown.isEmpty()) item { Text(c.trAllGood, color = GREEN, fontSize = 14.sp) }
             else {
-                item { Text("${c.trShowing} ${minOf(shown.size, 200)} / ${shown.size}", color = p.muted, fontSize = 12.sp) }
-                items(shown.take(200)) { x ->
+                item { PagedPanel(null, shown, 50, cat) { x ->
                     AppCard(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text("${x.file} | ${x.path}", color = p.muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -431,7 +431,7 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                             if (x.tr.isNotBlank()) Text("${c.trTr}: ${x.tr}", color = p.accent, fontSize = 13.sp, lineHeight = 18.sp, maxLines = 4, overflow = TextOverflow.Ellipsis)
                         }
                     }
-                }
+                } }
             }
             item { ExportBar(st.name ?: "terjemahan") { TrScanJobs.reportText() } }
         }

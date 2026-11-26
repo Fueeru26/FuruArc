@@ -145,9 +145,11 @@ fun FormatTestScreen(onBack: () -> Unit) {
             contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ScreenGap),
         ) {
-            item { Hint(c.ftHint) }
-            optionPanel(optionsTitle(lang), listOf(engineSpec), mapOf("engine" to engineId), lang, !st.running, "ft_engine_") { _, v ->
-                engineId = v
+            item(key = "ft-opts") {
+                LabelSection(optionsTitle(lang)) {
+                    OptionColumn(listOf(engineSpec), mapOf("engine" to engineId), lang, !st.running) { _, v -> engineId = v }
+                    DetailLink(c.ftHint, 13.sp, 19.sp)
+                }
             }
             item {
                 PickerCard(
@@ -222,9 +224,10 @@ fun FormatTestScreen(onBack: () -> Unit) {
 
             st.error?.let { e -> item { ErrorCard(e) } }
             if (st.lines.isNotEmpty()) {
-                item { SectionLabel(c.ftResults) }
                 if (!st.running) item { FtBanner(fail, warn, st.stopped) }
-                items(st.lines.size) { i -> FtRow(st.lines[i]) }
+                item {
+                    PagedPanel(c.ftResults, st.lines, 50) { ln -> FtRow(ln) }
+                }
                 if (!st.running) {
                     item { Hint(c.ftNote) }
                     if (st.hasSample) item { SecondaryButton(c.ftSaveSample) { saveTree.launch(null) } }

@@ -103,7 +103,8 @@ fun PagedText(
             PageNav(cur, pages.size, { if (sel != null) sel.page = it else localPage = it })
         }
         val listMod = if (listHeight != null) Modifier.fillMaxWidth().height(listHeight) else Modifier.fillMaxWidth().weight(1f, fill = true)
-        LazyColumn(listMod, state = listState) {
+        RowPanel(listMod) {
+        LazyColumn(Modifier.fillMaxSize().padding(10.dp), state = listState) {
             items(lines.size) { i ->
                 val f = focus
                 if (f != null && f.page == cur && f.line == i) {
@@ -125,6 +126,7 @@ fun PagedText(
                     )
                 }
             }
+        }
         }
         if (showCopy) SecondaryButton(x.copyPage) { copyToClipboard(ctx, pages[cur], x.copied) }
     }

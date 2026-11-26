@@ -386,14 +386,14 @@ fun CsvEditScreen(onBack: () -> Unit) {
             if (d != null && panel.mode != 2) {
                 AreaTitle(te.editorArea)
                 AreaFileName(d.item.name, dirty)
-                CsvTableView(
+                RowPanel(Modifier.height(areaH).fillMaxWidth()) { CsvTableView(
                     d, te, ep, note, { note = null },
                     onUndo = { if (d.undo()) dirty = true },
                     onRedo = { if (d.redo()) dirty = true },
                     onMutate = { mutate(it) }, onOptions = { optOpen = true }, onPaste = { paste() },
                     saveText = if (saving) te.saving else te.saveBtn, canSave = !saving && teCanSave(ep, d.created, d.memo), onSave = { save() },
-                    modifier = Modifier.height(areaH).fillMaxWidth(),
-                )
+                    modifier = Modifier.fillMaxSize().padding(10.dp),
+                ) }
             }
             Spacer(Modifier.height(12.dp))
         }
@@ -859,7 +859,7 @@ fun IniEditScreen(onBack: () -> Unit) {
             if (d != null && panel.mode != 2) {
                 AreaTitle(te.editorArea)
                 AreaFileName(d.item.name, dirty)
-                Column(Modifier.height(areaH).fillMaxWidth()) {
+                RowPanel(Modifier.height(areaH).fillMaxWidth()) { Column(Modifier.fillMaxSize().padding(10.dp)) {
             val canSave = teCanSave(ep, d.created, d.memo)
             val rev = d.rev
             val entries = remember(rev) { Ini.parse(d.lines) }
@@ -988,7 +988,7 @@ fun IniEditScreen(onBack: () -> Unit) {
                     )
                 }
             }
-                }
+                } }
             }
             Spacer(Modifier.height(12.dp))
         }

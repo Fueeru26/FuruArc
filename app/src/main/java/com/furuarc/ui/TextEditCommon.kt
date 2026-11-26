@@ -469,13 +469,18 @@ internal fun LazyListScope.teSourceItems(src: TeSource, te: TextEditStr, busy: B
             item {
                 Hint(if (st.scanning) te.scanning else if (filtered.isEmpty()) te.noFiles else te.filesFound(filtered.size))
             }
-            if (filtered.size > FILES_PER_PAGE) item { PageNav(page, pages, onPage = { st.page = it }) }
-            items(shown.size) { i ->
+            item {
+                LabelSection(null) {
+                    if (filtered.size > FILES_PER_PAGE) PageNav(page, pages, onPage = { st.page = it })
+            repeat(shown.size) { i ->
                 val fi = shown[i]
                 val rel = fi.rel.substringAfter('/', "")
                 TeFileRow(fi.name, (if (rel.isEmpty()) "" else "$rel/ · ") + formatSize(fi.size)) {
                     val tree = st.folderUri
                     if (!busy && tree != null) onOpen(fi, tree)
+                }
+            }
+                    if (filtered.size > FILES_PER_PAGE) PageNav(page, pages, onPage = { st.page = it })
                 }
             }
         }
@@ -1227,7 +1232,7 @@ internal fun TePanelUi(
             // Lihat: only the upload field; the content appears below it, read-only, with Edit | Copy under it
             PickerCard(AppIcons.File, te.uploadLabel, panel.viewItem?.name, AppIcons.FolderPlus) { if (!busy) pickView() }
             val vi = panel.viewItem
-            if (vi != null) TeViewPane(vi, te, ep) { panel.picked = vi; panel.mode = 1 }
+            if (vi != null) TeViewPane(vi, te, ep) { panel.picked = vi; panel.mode = 1; if (panel.pickedOk()) onEdit(vi) }
             DetailHint(te.viewHow)
         }
     }

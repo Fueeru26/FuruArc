@@ -315,19 +315,17 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
                         SecondaryButton(n.checkedBtn, !busy) { showList = true; listTab = 0; listQuery = ""; listPage = 0 }
                         AppTextField(value = query, onValueChange = { v -> query = v; page = 0 }, label = f.renSearch)
                         if (visible.isEmpty()) Hint(f.renNoMatch)
-                    }
-                }
-                if (!(moves.isEmpty() && pv.scan.files.isEmpty())) {
-                    if (pages > 1) item { RenPager(curPage, pages, n.pageLabel(curPage + 1, pages, visible.size)) { np -> page = np } }
-                    items(pageItems) { m ->
-                        AppCard(Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                                Text((if (m.entry.isDir) n.folderTag else "") + m.entry.rel, color = p.muted, fontSize = 12.sp, lineHeight = 16.sp)
-                                Text("→ " + m.newName, color = p.text, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
+                        if (pages > 1) RenPager(curPage, pages, n.pageLabel(curPage + 1, pages, visible.size)) { np -> page = np }
+                        pageItems.forEach { m ->
+                            AppCard(Modifier.fillMaxWidth()) {
+                                Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                                    Text((if (m.entry.isDir) n.folderTag else "") + m.entry.rel, color = p.muted, fontSize = 12.sp, lineHeight = 16.sp)
+                                    Text("→ " + m.newName, color = p.text, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
+                                }
                             }
                         }
+                        if (pages > 1) RenPager(curPage, pages, n.pageLabel(curPage + 1, pages, visible.size)) { np -> page = np }
                     }
-                    if (pages > 1) item { RenPager(curPage, pages, n.pageLabel(curPage + 1, pages, visible.size)) { np -> page = np } }
                 }
             }
 
@@ -404,13 +402,17 @@ LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillM
         item { SegmentedChips(listOf(n.tabEdited, n.tabUnref), tab, 14.sp) { onTab(it) } }
         item { AppTextField(value = query, onValueChange = { onQuery(it) }, label = f.renSearch) }
         if (all.isEmpty()) item { Hint(n.listEmpty) } else if (shown.isEmpty()) item { Hint(f.renNoMatch) }
-        if (pages > 1) item { RenPager(cur, pages, f.renPageLabel(cur + 1, pages, shown.size)) { onPage(it) } }
-        items(pageItems) { line ->
-            AppCard(Modifier.fillMaxWidth()) {
-                Text(line, color = p.text, fontSize = 13.sp, lineHeight = 19.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
+        item {
+            LabelSection(null) {
+                if (pages > 1) RenPager(cur, pages, f.renPageLabel(cur + 1, pages, shown.size)) { onPage(it) }
+                pageItems.forEach { line ->
+                    AppCard(Modifier.fillMaxWidth()) {
+                        Text(line, color = p.text, fontSize = 13.sp, lineHeight = 19.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
+                    }
+                }
+                if (pages > 1) RenPager(cur, pages, f.renPageLabel(cur + 1, pages, shown.size)) { onPage(it) }
             }
         }
-        if (pages > 1) item { RenPager(cur, pages, f.renPageLabel(cur + 1, pages, shown.size)) { onPage(it) } }
     }
 }
 }
