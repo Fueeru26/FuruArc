@@ -2,6 +2,7 @@ package com.furuarc
 
 import android.net.Uri
 import com.furuarc.core.ConflictPolicy
+import com.furuarc.core.IgnoreFilter
 import com.furuarc.core.PackInput
 import com.furuarc.storage.TreeWriter
 import com.furuarc.storage.listTree
@@ -21,6 +22,8 @@ data class FolderDiffState(
     val nameB: String? = null,
     val nameOut: String? = null,
     val deep: Boolean = true,
+    /** file / folder names (wildcards allowed, comma separated) left out of the comparison */
+    val ignore: String = "",
     val running: Boolean = false,
     val progress: Float = 0f,
     val label: String = "",
@@ -65,6 +68,7 @@ object FolderDiffJobs {
     fun setB(u: Uri) { uriB = u; _state.update { it.copy(nameB = folderName(u)) }; resetResult() }
     fun setOut(u: Uri) { outUri = u; _state.update { it.copy(nameOut = folderName(u), copied = 0, copyFailed = 0, copyDone = false) } }
     fun setDeep(v: Boolean) { _state.update { it.copy(deep = v) }; resetResult() }
+    fun setIgnore(t: String) { _state.update { it.copy(ignore = t) }; resetResult() }
     fun hasA() = uriA != null
     fun hasB() = uriB != null
     fun hasOut() = outUri != null
@@ -93,13 +97,14 @@ object FolderDiffJobs {
         val b = uriB ?: return
         if (_state.value.running) return
         val deep = _state.value.deep
+        val filter = IgnoreFilter(_state.value.ignore)
         resetResult()
         _state.update { it.copy(running = true) }
         job = Engine.scope.launch {
             val ctx = coroutineContext
             try {
-                val la = listTree(Engine.app, a).associateBy { it.path }
-                val lb = listTree(Engine.app, b).associateBy { it.path }
+                val la = listTree(Engine.app, a).filter { !filter.matches(it.path) }.associateBy { it.path }
+                val lb = listTree(Engine.app, b).filter { !filter.matches(it.path) }.associateBy { it.path }
                 filesB = lb
                 val changed = ArrayList<String>()
                 val added = ArrayList<String>()

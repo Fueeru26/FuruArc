@@ -99,6 +99,28 @@ class ProjectStr(private val lang: Lang) {
         "源档案和工作文件夹只需选择一次。解包使用源档案并保存到工作文件夹；导出、导入和打包把工作文件夹用作输出文件夹。打包的输入文件夹会根据解包结果自动填入（制作补丁项目中则是复制目标文件夹）；其他项目请在工具中自行选择。",
         "원본 아카이브와 작업 폴더는 한 번만 고릅니다. 풀기는 원본 아카이브를 사용해 작업 폴더에 저장하고, 내보내기·가져오기·묶기는 작업 폴더를 출력 폴더로 씁니다. 묶기의 입력 폴더는 풀기 결과(패치 만들기 프로젝트에서는 복사 폴더)에서 자동으로 채워지며, 다른 프로젝트에서는 도구에서 직접 고르세요.",
     )
+    // ---- game mechanism (selector before the steps) ----
+    val mechTitle get() = p("Mekanisme game", "Game mechanism", "ゲームの仕組み", "游戏机制", "게임 방식")
+    val mechMv get() = p("RPGM MV / MZ", "RPGM MV / MZ", "RPGM MV / MZ", "RPGM MV / MZ", "RPGM MV / MZ")
+    val mechXp get() = p("RPGM XP / VX / VX Ace", "RPGM XP / VX / VX Ace", "RPGM XP / VX / VX Ace", "RPGM XP / VX / VX Ace", "RPGM XP / VX / VX Ace")
+    val mechVn get() = p("Visual Novel / umum", "Visual Novel / general", "ビジュアルノベル / 一般", "视觉小说 / 通用", "비주얼 노벨 / 일반")
+    fun mechName(m: Int) = when (m) { 0 -> mechMv; 1 -> mechXp; else -> mechVn }
+    val mechNote get() = p(
+        "Pilih mekanisme game dulu; daftar langkah menyesuaikan. RPGM MV / MZ tidak punya arsip: teks diekspor langsung dari data JSON dan aset didekripsi / dienkripsi per file. Status langkah yang sama tetap tersimpan saat mekanisme diganti. Mengganti dari atau ke MV / MZ mengosongkan pilihan sumber karena jenisnya berbeda (folder, bukan arsip).",
+        "Pick the game mechanism first; the list of steps follows it. RPGM MV / MZ has no archive: text is exported straight from the JSON data and assets are decrypted / encrypted per file. The state of steps that exist in both lists is kept when the mechanism changes. Switching from or to MV / MZ clears the chosen source because it is a different kind (a folder, not an archive).",
+        "最初にゲームの仕組みを選ぶと、手順の一覧がそれに合わせて変わります。RPGM MV / MZ にはアーカイブがなく、テキストは JSON データから直接出力し、アセットはファイルごとに復号・暗号化します。両方の一覧にある手順の状態は仕組みを切り替えても保持されます。MV / MZ との切り替え時は、種類（フォルダとアーカイブ）が異なるためソースの選択がクリアされます。",
+        "先选择游戏机制，步骤列表会随之变化。RPGM MV / MZ 没有档案：文本直接从 JSON 数据导出，资源逐文件解密 / 加密。两种列表中都有的步骤，切换机制后状态会保留。切换到或离开 MV / MZ 时会清除已选的源，因为类型不同（文件夹而非档案）。",
+        "먼저 게임 방식을 고르면 단계 목록이 그에 맞게 바뀝니다. RPGM MV / MZ에는 아카이브가 없어 텍스트는 JSON 데이터에서 바로 내보내고 에셋은 파일별로 복호화 / 암호화합니다. 두 목록에 모두 있는 단계의 상태는 방식을 바꿔도 유지됩니다. MV / MZ로 또는 MV / MZ에서 바꾸면 종류(폴더, 아카이브 아님)가 달라 선택한 원본이 지워집니다.",
+    )
+    val mvSourceLabel get() = p("Folder game (asli, tidak diubah)", "Game folder (original, untouched)", "ゲームフォルダ（元のまま）", "游戏文件夹（原版，不修改）", "게임 폴더 (원본, 변경 안 함)")
+    val mvWorkLabel get() = p("Folder hasil", "Result folder", "結果フォルダ", "结果文件夹", "결과 폴더")
+    val mvPickNote get() = p(
+        "Folder game adalah folder game asli (yang berisi data/js) dan tidak pernah diubah. Folder hasil menerima file yang dihasilkan: teks ekspor dan JSON hasil impor (Terjemahan), atau aset yang dienkripsi ulang. Dekripsi: pilih folder tujuan sendiri di alatnya (di Proyek Ekstrak Aset folder hasil terisi otomatis). Enkripsi memakai System.json game untuk kuncinya (diminta sekali di alatnya), jadi kuncinya sama dengan game asli.",
+        "The game folder is the original game (the one with data/js) and is never changed. The result folder receives the files that are produced: the exported text and the imported JSON files (Translation), or the re-encrypted assets. Decrypt: pick its destination folder in the tool (in the Extract Assets project the result folder is filled in automatically). Encrypt uses the game's System.json for the key (asked once in the tool), so the key stays the same as in the original game.",
+        "ゲームフォルダは元のゲーム（data/js を含むフォルダ）で、変更されません。結果フォルダには、出力されたテキストや取り込み後の JSON（翻訳）、再暗号化されたアセットが保存されます。復号: ツールで保存先を選びます（アセット抽出プロジェクトでは結果フォルダが自動入力されます）。暗号化は鍵のためにゲームの System.json を使う（ツールで一度だけ指定）ので、元のゲームと同じ鍵になります。",
+        "游戏文件夹是原版游戏（含 data/js 的文件夹），不会被修改。结果文件夹接收生成的文件：导出的文本和导入后的 JSON（翻译），或重新加密的资源。解密：在工具中自行选择目标文件夹（提取资源项目中结果文件夹会自动填入）。加密使用游戏的 System.json 获取密钥（在工具中只需指定一次），因此密钥与原版游戏相同。",
+        "게임 폴더는 원본 게임(data/js가 있는 폴더)이며 변경되지 않습니다. 결과 폴더에는 만들어진 파일(내보낸 텍스트와 가져온 JSON(번역) 또는 다시 암호화한 에셋)이 저장됩니다. 복호화: 도구에서 저장할 폴더를 직접 고릅니다(에셋 추출 프로젝트에서는 결과 폴더가 자동 입력). 암호화는 키를 위해 게임의 System.json을 사용(도구에서 한 번만 지정)하므로 원본 게임과 같은 키가 됩니다.",
+    )
     val next get() = p("Lanjutkan", "Continue", "続ける", "继续", "계속")
     val open get() = p("Buka", "Open", "開く", "打开", "열기")
     val done get() = p("Selesai", "Done", "完了", "完成", "완료")
@@ -114,8 +136,9 @@ class ProjectStr(private val lang: Lang) {
         sb.append(typeTitle(pr.type)).append(": ").append(pr.name).append('\n')
         sb.append(p("Dibuat: ", "Created: ", "作成: ", "创建：", "생성: ")).append(date.format(java.util.Date(pr.created))).append('\n')
         sb.append(progress(pr.doneCount(), pr.steps.size)).append('\n')
-        sb.append(sourceLabel).append(": ").append(pr.sourceName.ifEmpty { "-" }).append('\n')
-        sb.append(workLabel).append(": ").append(pr.workName.ifEmpty { "-" }).append("\n\n")
+        sb.append(mechTitle).append(": ").append(mechName(pr.mech)).append('\n')
+        sb.append(if (pr.mech == 0) mvSourceLabel else sourceLabel).append(": ").append(pr.sourceName.ifEmpty { "-" }).append('\n')
+        sb.append(if (pr.mech == 0) mvWorkLabel else workLabel).append(": ").append(pr.workName.ifEmpty { "-" }).append("\n\n")
         pr.steps.forEachIndexed { i, st ->
             val state = when (pr.state(st)) { 2 -> stDone; 1 -> stOpen; else -> stNone }
             sb.append(i + 1).append(". ").append(stepTitle(st)).append(" - ").append(state).append('\n')
@@ -133,6 +156,9 @@ class ProjectStr(private val lang: Lang) {
     fun typeIntro(type: Int) = when (type) { 1 -> cmpIntro; 6 -> locIntro; 5 -> clnIntro; 4 -> audIntro; 3 -> patIntro; 2 -> extIntro; else -> intro }
 
     fun stepTitle(s: Int) = when (s) {
+        22 -> p("Dekripsi aset", "Decrypt assets", "アセットを復号", "解密资源", "에셋 복호화")
+        23 -> p("Enkripsi ulang aset", "Re-encrypt assets", "アセットを再暗号化", "重新加密资源", "에셋 다시 암호화")
+        24 -> p("Cek / edit plugin (opsional)", "Check / edit plugins (optional)", "プラグインの確認・編集（任意）", "检查 / 编辑插件（可选）", "플러그인 확인 / 편집 (선택)")
         21 -> p("Cadangkan folder", "Back up the folder", "フォルダをバックアップ", "备份文件夹", "폴더 백업")
         19 -> p("Edit gambar", "Edit images", "画像を編集", "编辑图片", "이미지 편집")
         18 -> p("Rapikan nama file", "Tidy file names", "ファイル名を整理", "整理文件名", "파일 이름 정리")
@@ -154,7 +180,22 @@ class ProjectStr(private val lang: Lang) {
         5 -> p("Kemas arsip", "Pack archive", "アーカイブをパック", "打包档案", "아카이브 묶기")
         else -> p("Uji format", "Format test", "フォーマットテスト", "格式测试", "포맷 테스트")
     }
-    fun stepDesc(s: Int, type: Int = 0) = if (type == 6 && s == 11) p("Lihat gambar di Media Player untuk menemukan yang berisi teks (tombol, judul, menu). Tambahkan folder kerja ke Folder.", "View the images in the Media Player to find the ones with text (buttons, titles, menus). Add the work folder under Folders.", "メディアプレーヤーで画像を見て、文字入りのもの（ボタン、タイトル、メニュー）を探します。作業フォルダをフォルダに追加してください。", "在媒体播放器中查看图片，找出带文字的（按钮、标题、菜单）。请把工作文件夹添加到“文件夹”。", "미디어 플레이어에서 이미지를 보며 글자가 있는 것(버튼, 제목, 메뉴)을 찾습니다. 작업 폴더를 폴더에 추가하세요.")
+    fun stepDesc(s: Int, type: Int = 0, mech: Int = 2): String = (if (mech == 0) mvDesc(s, type) else null) ?: stepDesc0(s, type)
+
+    /** Step texts of the RPG Maker MV / MZ lists (null = same text as the other mechanisms). */
+    private fun mvDesc(s: Int, type: Int): String? = when {
+        s == 22 && type == 2 -> p("Dekripsi aset game ke folder hasil (terisi otomatis): pilih folder game, kuncinya dibaca dari System.json atau ditebak dari header gambar.", "Decrypt the game assets into the result folder (filled in automatically): pick the game folder, the key is read from System.json or guessed from an image header.", "ゲームのアセットを結果フォルダ（自動入力）に復号します。ゲームフォルダを選ぶと、鍵は System.json から読み取るか画像ヘッダーから推測します。", "把游戏资源解密到结果文件夹（自动填入）：选择游戏文件夹，密钥从 System.json 读取或根据图片头推测。", "게임 에셋을 결과 폴더(자동 입력)로 복호화합니다. 게임 폴더를 고르면 키는 System.json에서 읽거나 이미지 헤더로 추정합니다.")
+        s == 22 -> p("Dekripsi aset yang akan dikerjakan: folder game terisi otomatis, pilih sendiri folder tujuan hasil dekripsi di alatnya. Kuncinya dibaca dari System.json atau ditebak dari header gambar.", "Decrypt the assets you will work on: the game folder is filled in, pick the destination folder for the decrypted files in the tool. The key is read from System.json or guessed from an image header.", "作業するアセットを復号します。ゲームフォルダは自動入力され、復号先フォルダはツールで選びます。鍵は System.json から読み取るか画像ヘッダーから推測します。", "解密要处理的资源：游戏文件夹已自动填入，请在工具中选择解密后文件的目标文件夹。密钥从 System.json 读取或根据图片头推测。", "작업할 에셋을 복호화합니다. 게임 폴더는 자동 입력되고 복호화 결과 폴더는 도구에서 고릅니다. 키는 System.json에서 읽거나 이미지 헤더로 추정합니다.")
+        s == 23 -> p("Enkripsi ulang aset yang sudah diedit / dikompres: pilih foldernya di alat, hasil masuk ke folder hasil (terisi otomatis). Alat meminta System.json game sekali untuk kuncinya, jadi kuncinya sama dengan game asli. System.json di hasil ditulis ulang; Bandingkan Folder mengabaikannya.", "Re-encrypt the edited / compressed assets: pick their folder in the tool, the result goes into the result folder (filled in automatically). The tool asks once for the game's System.json for the key, so the key is the same as the original. The System.json in the result is rewritten; Compare Folders ignores it.", "編集・圧縮したアセットを再暗号化します。ツールでそのフォルダを選ぶと、結果は結果フォルダ（自動入力）に保存されます。鍵のためにゲームの System.json を一度だけ指定するので、元と同じ鍵になります。結果の System.json は書き換えられ、フォルダ比較では無視されます。", "重新加密已编辑 / 压缩的资源：在工具中选择其文件夹，结果保存到结果文件夹（自动填入）。工具会要求一次游戏的 System.json 以获取密钥，因此密钥与原版相同。结果中的 System.json 会被重写，比较文件夹时会忽略它。", "편집·압축한 에셋을 다시 암호화합니다. 도구에서 해당 폴더를 고르면 결과가 결과 폴더(자동 입력)에 저장됩니다. 키를 위해 게임의 System.json을 한 번 지정하므로 원본과 같은 키가 됩니다. 결과의 System.json은 다시 쓰이며 폴더 비교에서는 무시됩니다.")
+        s == 24 -> p("Buka Pengelola Plugin untuk memindai, mengedit, dan memeriksa plugin (misalnya teks di dalam plugin). File plugin yang diedit disalin ke folder hasil agar ikut masuk patch. Lewati jika tidak ada.", "Open the Plugin Manager to scan, edit and check plugins (for example text inside plugins). Copy the edited plugin files into the result folder so they join the patch. Skip it if there is nothing to do.", "プラグインマネージャーでプラグインをスキャン・編集・確認します（例：プラグイン内のテキスト）。編集したプラグインは結果フォルダにコピーするとパッチに含まれます。不要なら省略してください。", "打开插件管理器来扫描、编辑和检查插件（例如插件内的文本）。编辑后的插件文件请复制到结果文件夹以便纳入补丁。没有需要时可跳过。", "플러그인 관리자를 열어 플러그인을 스캔·편집·확인합니다(예: 플러그인 안의 텍스트). 편집한 플러그인 파일은 결과 폴더에 복사해야 패치에 포함됩니다. 필요 없으면 건너뛰세요.")
+        s == 2 -> p("Ekspor teks dari data JSON game langsung (tanpa membongkar apa pun): folder game dan folder hasil terisi otomatis.", "Export the text straight from the game's JSON data (nothing to unpack): the game folder and the result folder are filled in.", "ゲームの JSON データから直接テキストを出力します（展開は不要）。ゲームフォルダと結果フォルダは自動入力されます。", "直接从游戏的 JSON 数据导出文本（无需解包）：游戏文件夹和结果文件夹已自动填入。", "게임의 JSON 데이터에서 바로 텍스트를 내보냅니다(풀 것이 없음). 게임 폴더와 결과 폴더가 자동 입력됩니다.")
+        s == 4 -> p("Impor teks terjemahan ke data JSON: folder game dan folder hasil terisi otomatis, hasilnya hanya file JSON yang berubah (folder game tidak diubah).", "Import the translated text into the JSON data: the game folder and result folder are filled in; the result is only the changed JSON files (the game folder is not changed).", "翻訳したテキストを JSON データに取り込みます。ゲームフォルダと結果フォルダは自動入力され、結果は変更された JSON だけです（ゲームフォルダは変更されません）。", "把翻译文本导入 JSON 数据：游戏文件夹和结果文件夹已自动填入，结果只有改动过的 JSON 文件（不修改游戏文件夹）。", "번역한 텍스트를 JSON 데이터로 가져옵니다. 게임 폴더와 결과 폴더가 자동 입력되며 결과는 변경된 JSON 파일뿐입니다(게임 폴더는 변경 안 됨).")
+        s == 16 && (type == 0 || type == 1 || type == 3 || type == 6) -> p("Bandingkan Folder: folder game (asli) dan folder hasil terisi otomatis, System.json dan file ekspor diabaikan. Pilih folder tujuan lalu salin file yang berubah dan baru: itulah folder patch.", "Compare Folders: the game folder (original) and the result folder are filled in, System.json and the export file are ignored. Pick a destination folder and copy the changed and new files: that is the patch folder.", "フォルダ比較：ゲームフォルダ（元）と結果フォルダは自動入力され、System.json と出力ファイルは無視されます。保存先を選んで変更・新規ファイルをコピーすると、それがパッチフォルダになります。", "比较文件夹：游戏文件夹（原版）和结果文件夹已自动填入，会忽略 System.json 和导出文件。选择目标文件夹并复制已更改和新增的文件，即为补丁文件夹。", "폴더 비교: 게임 폴더(원본)와 결과 폴더가 자동 입력되고 System.json과 내보낸 파일은 무시됩니다. 대상 폴더를 골라 변경·추가된 파일을 복사하면 그것이 패치 폴더입니다.")
+        s == 21 -> p("Cadangkan folder game (salin semua file ke folder lain) sebelum dirapikan.", "Back up the game folder (copy every file to another folder) before tidying it.", "整理する前にゲームフォルダをバックアップします（全ファイルを別のフォルダにコピー）。", "整理前备份游戏文件夹（把所有文件复制到另一个文件夹）。", "정리하기 전에 게임 폴더를 백업합니다(모든 파일을 다른 폴더로 복사).")
+        else -> null
+    }
+
+    private fun stepDesc0(s: Int, type: Int = 0) = if (type == 6 && s == 11) p("Lihat gambar di Media Player untuk menemukan yang berisi teks (tombol, judul, menu). Tambahkan folder kerja ke Folder.", "View the images in the Media Player to find the ones with text (buttons, titles, menus). Add the work folder under Folders.", "メディアプレーヤーで画像を見て、文字入りのもの（ボタン、タイトル、メニュー）を探します。作業フォルダをフォルダに追加してください。", "在媒体播放器中查看图片，找出带文字的（按钮、标题、菜单）。请把工作文件夹添加到“文件夹”。", "미디어 플레이어에서 이미지를 보며 글자가 있는 것(버튼, 제목, 메뉴)을 찾습니다. 작업 폴더를 폴더에 추가하세요.")
         else if (type == 6 && s == 12) p("Ubah gambar hasil sunting ke format yang dipakai game (misalnya PNG) di Konverter Campuran, disimpan ke folder baru. Lewati jika formatnya sudah sama.", "Convert the edited images to the format the game uses (for example PNG) in the Mixed Converter, saved to a new folder. Skip it if the format is already the same.", "混合コンバーターで、編集した画像をゲームが使う形式（例: PNG）に変換し、新しいフォルダに保存します。形式がすでに同じなら省略します。", "在混合转换器中把编辑后的图片转换成游戏使用的格式（例如 PNG），保存到新文件夹。格式已相同则跳过。", "혼합 변환기에서 편집한 이미지를 게임이 쓰는 형식(예: PNG)으로 변환해 새 폴더에 저장합니다. 형식이 이미 같으면 건너뜁니다.")
         else if (type == 6 && s == 16) p("Buka Bandingkan Folder: pilih folder asli (bongkaran yang tidak diubah) untuk memastikan hanya gambar yang dimaksud yang berubah; folder kerja terisi sebagai folder diedit.", "Open Compare Folders: pick the original folder (the untouched unpack) to make sure only the intended images changed; the work folder is filled in as the edited folder.", "フォルダ比較を開きます。元のフォルダ（手を付けていない展開結果）を選んで、意図した画像だけが変わったか確認します。作業フォルダが編集後のフォルダとして入ります。", "打开对比文件夹：选择原始文件夹（未改动的解包结果），确认只有预期的图片发生了变化；工作文件夹会自动作为编辑后的文件夹。", "폴더 비교를 엽니다. 원본 폴더(건드리지 않은 압축 해제본)를 골라 의도한 이미지만 바뀌었는지 확인합니다. 작업 폴더가 편집한 폴더로 채워집니다.")
         else if (type == 6 && s == 5) p("Kemas folder hasil sunting menjadi arsip baru di engine yang sama.", "Pack the edited folder into a new archive of the same engine.", "編集したフォルダを同じエンジンの新しいアーカイブにパックします。", "将编辑后的文件夹打包成同一引擎的新档案。", "편집한 폴더를 같은 엔진의 새 아카이브로 묶습니다.")

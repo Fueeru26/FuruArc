@@ -201,6 +201,15 @@ fun App(vm: MainViewModel) {
         vm.setMode(0)
         screen = if (parent == Screen.SUPPORT && com.furuarc.core.Projects.active != null) Screen.PROJECT else parent
     }
+    // RPGM text export / import: opened from a project Back returns to it (a run without failures marks the step as done)
+    val fromTrJob = {
+        if (com.furuarc.core.Projects.active != null) {
+            val es = com.furuarc.Engine.state.value
+            com.furuarc.core.Projects.autoMark(es.done && es.summary?.let { it.failed == 0 && it.ok > 0 } == true)
+            vm.setMode(0)
+            screen = Screen.PROJECT
+        } else toParent(Screen.RPGM_TR_MENU)
+    }
     var projectId by remember { mutableStateOf<String?>(null) }
     var projectType by remember { mutableStateOf(0) }
     // Compare Folders opened from a project: Back returns to it; a finished comparison (for a patch: after copying) or a backup marks the step as done
@@ -208,7 +217,7 @@ fun App(vm: MainViewModel) {
         val fs = FolderDiffJobs.state.value
         val pj = com.furuarc.core.Projects
         val ok = if (pj.activeStep == pj.BACKUP) fs.copyDone && fs.copied > 0 && fs.copyFailed == 0
-            else fs.done && (pj.get(pj.active)?.type != pj.TYPE_PATCH || fs.copied > 0)
+            else fs.done && (pj.get(pj.active)?.let { it.type != pj.TYPE_PATCH && it.mech != pj.MECH_MV } != true || fs.copied > 0)
         pj.autoMark(ok)
         screen = Screen.PROJECT
     }
@@ -266,12 +275,13 @@ fun App(vm: MainViewModel) {
             Screen.FILECHECK -> screen = Screen.SUPPORT
             Screen.ENGINE -> screen = if (engine.rpgm) Screen.RPGM_ASSETS else Screen.VN_ENGINES
             Screen.VN_ENGINES, Screen.AUTO_SCRIPTS -> screen = Screen.VN_TOOLS
-            Screen.RPGM_ASSETS, Screen.RPGM_TR_MENU, Screen.RPGM_CHEAT_MENU, Screen.PLUGIN_MENU -> screen = Screen.RPGM_TOOLS
+            Screen.PLUGIN_MENU -> { if (com.furuarc.core.Projects.active != null) { com.furuarc.core.Projects.autoMark(false); screen = Screen.PROJECT } else screen = Screen.RPGM_TOOLS }
+            Screen.RPGM_ASSETS, Screen.RPGM_TR_MENU, Screen.RPGM_CHEAT_MENU -> screen = Screen.RPGM_TOOLS
             Screen.PLUGIN_SCAN -> { PluginScanJobs.clear(); screen = Screen.PLUGIN_MENU }
             Screen.PLUGIN_EDIT -> { PluginListJobs.clear(); screen = Screen.PLUGIN_MENU }
             Screen.PLUGIN_CHECK -> { PluginCheckJobs.clear(); screen = Screen.PLUGIN_MENU }
             Screen.PLUGIN_DIFF -> { PluginDiffJobs.clear(); screen = Screen.PLUGIN_MENU }
-            Screen.TR_JOB -> toParent(Screen.RPGM_TR_MENU)
+            Screen.TR_JOB -> fromTrJob()
             Screen.TR_EDIT_JOB -> toParent(Screen.SUPPORT)
             Screen.SAVE_JOB, Screen.VALUE_JOB -> toParent(Screen.RPGM_CHEAT_MENU)
             else -> screen = Screen.HOME
@@ -707,17 +717,37 @@ fun App(vm: MainViewModel) {
                         val work = try { if (pr.workUri.isNotEmpty()) android.net.Uri.parse(pr.workUri) else null } catch (e: Exception) { null }
                         val src = try { if (pr.sourceUri.isNotEmpty()) android.net.Uri.parse(pr.sourceUri) else null } catch (e: Exception) { null }
                         // the tools start with the archive and the work folder of the project already chosen
+                        val mv = pr.mech == com.furuarc.core.Projects.MECH_MV
                         when (step) {
+                            com.furuarc.core.Projects.DECRYPT -> {
+                                // RPG Maker MV / MZ: decrypt the assets of the game folder (the result folder is the destination for the Extract Assets project)
+                                val id = if (com.furuarc.core.Projects.isMz(Engine.app, pr)) "rpgm_mz" else "rpgm_mv"
+                                enter(3, Screen.ASSET_JOB, id); engineId = id
+                                try { src?.let { vm.rpgmInputFolder(it, true) }; if (pr.type == com.furuarc.core.Projects.TYPE_EXTRACT) work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
+                            }
+                            com.furuarc.core.Projects.ENCRYPT -> {
+                                // the encrypted files go to the result folder; the input folder (edited files) and System.json are picked in the tool
+                                val id = if (com.furuarc.core.Projects.isMz(Engine.app, pr)) "rpgm_mz" else "rpgm_mv"
+                                enter(4, Screen.ASSET_JOB, id); engineId = id
+                                try { work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
+                            }
+                            com.furuarc.core.Projects.PLUGINS -> screen = Screen.PLUGIN_MENU
                             com.furuarc.core.Projects.UNPACK -> {
                                 enter(1, Screen.UNPACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO
                                 try { src?.let { vm.setArchive(it, null) }; work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
                             }
-                            com.furuarc.core.Projects.EXPORT -> {
+                            com.furuarc.core.Projects.EXPORT -> if (mv) {
+                                enter(5, Screen.TR_JOB)
+                                try { src?.let { vm.rpgmInputFolder(it, true) }; work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
+                            } else {
                                 enter(ScriptTool.EXPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO
                                 try { work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
                             }
                             com.furuarc.core.Projects.TRANSLATE -> enter(10, Screen.TR_EDIT_JOB)
-                            com.furuarc.core.Projects.IMPORT -> {
+                            com.furuarc.core.Projects.IMPORT -> if (mv) {
+                                enter(6, Screen.TR_JOB)
+                                try { src?.let { vm.rpgmInputFolder(it, true) }; work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
+                            } else {
                                 enter(ScriptTool.IMPORT.mode, Screen.TOOL_JOB, ScriptTools.AUTO); engineId = ScriptTools.AUTO
                                 try { work?.let { vm.setOutputTree(it) } } catch (e: Exception) { }
                             }
@@ -735,12 +765,12 @@ fun App(vm: MainViewModel) {
                             com.furuarc.core.Projects.SCAN -> screen = Screen.INSPECT_FOLDER
                             com.furuarc.core.Projects.IMGEDIT -> {
                                 // the images of the work folder are listed so the editor can go through them
-                                try { if (work != null && com.furuarc.core.ImageEditor.bitmap == null) com.furuarc.core.ImageEditor.loadFolder(Engine.app, work, true) } catch (e: Exception) { }
+                                try { if (!mv && work != null && com.furuarc.core.ImageEditor.bitmap == null) com.furuarc.core.ImageEditor.loadFolder(Engine.app, work, true) } catch (e: Exception) { }
                                 screen = Screen.IMAGEEDIT
                             }
                             com.furuarc.core.Projects.BACKUP -> {
                                 // backup of the work folder: Compare Folders with the work folder as the folder to copy
-                                try { work?.let { FolderDiffJobs.setB(it) } } catch (e: Exception) { }
+                                try { if (mv) src?.let { FolderDiffJobs.setB(it) } else work?.let { FolderDiffJobs.setB(it) } } catch (e: Exception) { }
                                 screen = Screen.INSPECT_FOLDERDIFF
                             }
                             com.furuarc.core.Projects.NAMES -> screen = Screen.NAMEOPT
@@ -748,7 +778,13 @@ fun App(vm: MainViewModel) {
                             com.furuarc.core.Projects.EDIT -> screen = Screen.TEXTEDIT
                             com.furuarc.core.Projects.COMPARE -> {
                                 // compares the original folder with the work folder (the edited copy) and can copy the changed files
-                                try { work?.let { FolderDiffJobs.setB(it) } } catch (e: Exception) { }
+                                try {
+                                    if (mv) {
+                                        // MV / MZ: the untouched game folder against the result folder; System.json (rewritten by the encrypt tool) and the export file are left out
+                                        src?.let { FolderDiffJobs.setA(it) }; work?.let { FolderDiffJobs.setB(it) }
+                                        FolderDiffJobs.setIgnore("System.json, translate.*")
+                                    } else { FolderDiffJobs.setIgnore(""); work?.let { FolderDiffJobs.setB(it) } }
+                                } catch (e: Exception) { }
                                 screen = Screen.INSPECT_FOLDERDIFF
                             }
                             com.furuarc.core.Projects.VIEW -> screen = Screen.MPLAYER
@@ -783,7 +819,7 @@ fun App(vm: MainViewModel) {
                         MenuSpec(AppIcons.Build, s.pl.chkTitle, s.pl.chkSub) { PluginCheckJobs.clear(); screen = Screen.PLUGIN_CHECK },
                         MenuSpec(AppIcons.Archive, s.pl.cmpTitle, s.pl.cmpSub) { PluginDiffJobs.clear(); screen = Screen.PLUGIN_DIFF },
                     ),
-                    onBack = { screen = Screen.RPGM_TOOLS },
+                    onBack = { if (com.furuarc.core.Projects.active != null) { com.furuarc.core.Projects.autoMark(false); screen = Screen.PROJECT } else screen = Screen.RPGM_TOOLS },
                 )
                 Screen.PLUGIN_SCAN -> PluginScanScreen(confirmExit = vm.settings.value.confirmExit) { PluginScanJobs.clear(); screen = Screen.PLUGIN_MENU }
                 Screen.PLUGIN_EDIT -> PluginEditorScreen(vm) { PluginListJobs.clear(); screen = Screen.PLUGIN_MENU }
@@ -811,7 +847,7 @@ fun App(vm: MainViewModel) {
                     onBack = { screen = Screen.RPGM_TOOLS },
                 )
                 Screen.ASSET_JOB -> AssetJobScreen(vm, engine, encrypt = vm.mode() == 4, onBack = toEngineMenu)
-                Screen.TR_JOB -> TranslateScreen(vm, import = vm.mode() == 6, onBack = { toParent(Screen.RPGM_TR_MENU) }, onTranslateText = { u -> enter(10, Screen.TR_EDIT_JOB); vm.rpgmInputFile(u) })
+                Screen.TR_JOB -> TranslateScreen(vm, import = vm.mode() == 6, onBack = { fromTrJob() }, onTranslateText = { u -> enter(10, Screen.TR_EDIT_JOB); vm.rpgmInputFile(u) })
                 Screen.TR_EDIT_JOB -> TranslateEditScreen(vm, onBack = { toParent(Screen.SUPPORT) })
                 Screen.VALUE_JOB -> ValueScreen(vm, onBack = { toParent(Screen.RPGM_CHEAT_MENU) })
                 Screen.SAVE_JOB -> SaveScreen(vm, import = vm.mode() == 8, onBack = { toParent(Screen.RPGM_CHEAT_MENU) })

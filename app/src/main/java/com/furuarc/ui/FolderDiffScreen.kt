@@ -59,6 +59,8 @@ fun FolderDiffScreen(onBack: () -> Unit) {
                         Text(d.deep, color = p.text, fontSize = 14.sp, modifier = Modifier.weight(1f))
                     }
                     DetailLink(d.deepNote, 12.sp, 17.sp)
+                    AppTextField(st.ignore, { FolderDiffJobs.setIgnore(it) }, d.ignoreLabel)
+                    DetailLink(d.ignoreNote, 12.sp, 17.sp)
                 }
             }
             item { PickerCard(AppIcons.FolderUpload, d.folderOut, st.nameOut, AppIcons.Folder) { pickOut.launch(null) } }

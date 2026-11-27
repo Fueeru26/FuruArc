@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/pictures/0_header.webp" alt="FuruArc" width="100%">
+  <img src="docs/pictures/00_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -165,6 +165,7 @@ Support Tools > Image Editor (between the Text Editor and the Media Player) edit
 
 Game Tools > Create Project (below the RPGM Tools and VN Tools cards) holds step-by-step workflows built from the existing tools. Pick a source archive and a work folder once and the tools open with them filled in. Each step opens the matching tool, Back returns to the project, the next step has a "Continue" button, and Unpack, Export, Import, Pack and converter steps are marked Done automatically when they ran without failures. Add a note, rename, duplicate or delete a project (game files are never deleted); a project report can be copied or saved as a text file.
 
+- **Game mechanism** (selector before the steps, also in the create dialog): RPGM MV / MZ, RPGM XP / VX / VX Ace or Visual Novel / general. The steps follow it. RPGM MV / MZ has no archive: the source is the untouched **Game folder**, the work folder is the **Result folder**, and the steps are Export / Import text straight from the JSON data, Decrypt assets, Re-encrypt assets (same `System.json` key, asked once in the tool), Check / edit plugins and Compare Folders (System.json ignored; copy the changed files into the patch folder) instead of Unpack and Pack. XP / VX / VX Ace and Visual Novel use the archive steps below.
 - **Translation Project**: Unpack archive, Export text, Translate, Import text, Pack archive and Format test.
 - **Compress Game Project**: Unpack archive, Scan assets, Compress audio, Compress images, Compress video and Pack archive. Compressed assets may not be accepted by the engine; keep the original archive and test the result.
 - **Extract Assets Project**: Unpack archive, Scan assets, View assets in the Media Player, Convert assets, Find duplicates and Batch rename.
@@ -190,7 +191,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
 ### File & Folder Inspector
 
-<p align="center"><img src="docs/pictures/09_file_inspection.webp" alt="File & Folder Inspector" width="100%"></p>
+<p align="center"><img src="docs/pictures/09_file_and_folder_inspector.webp" alt="File & Folder Inspector" width="100%"></p>
 
 - **File Inspection**: format, checksum, corrupt files, encryption and wrong-code detection in one file.
 - **Folder Inspection**: inspect every archive and script in a folder at once.
@@ -198,7 +199,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - **Hex Viewer**: raw file content by offset, with text and byte search.
 - **Format Test**: choose an engine (format) and upload a real archive of it. The app extracts one random file (up to a size limit you set in KB or MB), packs it into a new archive, unpacks that and compares it with your original (content by SHA-256, header, detection, size). You can test one random file (or a file you name), several, all, or all with a byte-for-byte comparison against the original; the seed repeats a test. No output folder; the result is listed, can be copied or exported, and the samples can be saved. File Inspection has a Test this format button. Engines that cannot be packed yet are not listed. The same format checks with generated samples also run in GitHub Actions.
 - **Duplicate File Finder**: identical files in a folder and its sub-folders.
-- **Compare Folders**: original vs edited folder (changed, new and missing files); the changed and new files can be copied to another folder, for example to build a patch.
+- **Compare Folders**: original vs edited folder (changed, new and missing files; an Ignore field leaves out names such as `System.json`); the changed and new files can be copied to another folder, for example to build a patch.
 - **Translation Scan**: control codes, long lines, empty entries and inconsistent translations.
 - **Key Finder**: find the encryption key and the files that use it.
 
@@ -212,6 +213,8 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - **File Name Optimizer**: make file names safe (non-Latin characters) and update references before building an APK.
 
 ### Settings and updates
+
+<p align="center"><img src="docs/pictures/11_settings_and_updates.webp" alt="Settings and Updates" width="100%"></p>
 
 - Theme (light / dark), language, accent color. Buttons and icon badges use a gradient derived from the accent color. In light mode the background is tinted by the theme color and cards stay near-white with a soft shadow; in dark mode cards are lighter than the background.
 - Screen animations: sideways slide between tabs, pages rise from the bottom when opened and sink when closed (switch off in Display settings).

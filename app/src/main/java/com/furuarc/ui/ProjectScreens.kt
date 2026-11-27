@@ -55,11 +55,12 @@ fun ProjectListScreen(type: Int, onOpen: (String) -> Unit, onBack: () -> Unit) {
     LaunchedEffect(Unit) { Projects.load() }
     var creating by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
+    var newMech by remember { mutableStateOf(Projects.MECH_VN) }
     val shown = Projects.list.filter { it.type == type }
     val typeIcon = when (type) { Projects.TYPE_COMPRESS -> AppIcons.Folder; Projects.TYPE_EXTRACT -> AppIcons.Image; Projects.TYPE_PATCH -> AppIcons.Edit; Projects.TYPE_AUDIT -> AppIcons.Checklist; Projects.TYPE_CLEAN -> AppIcons.Trash; Projects.TYPE_LOCALIZE -> AppIcons.Brush; else -> AppIcons.Translate }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(j.typeTitle(type), onBack, fixed = true, trailing = {
-            IconButton(onClick = { name = ""; creating = true }) { Icon(Icons.Default.Add, j.newBtn, tint = p.text) }
+            IconButton(onClick = { name = ""; newMech = Projects.MECH_VN; creating = true }) { Icon(Icons.Default.Add, j.newBtn, tint = p.text) }
         })
         if (shown.isEmpty()) {
             Column(Modifier.weight(1f).fillMaxWidth().padding(bottom = 48.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
@@ -69,7 +70,7 @@ fun ProjectListScreen(type: Int, onOpen: (String) -> Unit, onBack: () -> Unit) {
                 Spacer(Modifier.height(6.dp))
                 Text(j.emptySub, fontSize = 14.sp, color = p.muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 Spacer(Modifier.height(20.dp))
-                Box(Modifier.width(200.dp)) { PrimaryButton(j.createBtn, true) { name = ""; creating = true } }
+                Box(Modifier.width(200.dp)) { PrimaryButton(j.createBtn, true) { name = ""; newMech = Projects.MECH_VN; creating = true } }
             }
         } else LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
             items(shown.size) { i ->
@@ -81,9 +82,13 @@ fun ProjectListScreen(type: Int, onOpen: (String) -> Unit, onBack: () -> Unit) {
     if (creating) {
         AppDialog(j.typeNew(type), { creating = false }, buttons = {
             DlgBtn(j.cancel, false) { creating = false }
-            DlgBtn(j.create, true, enabled = name.isNotBlank()) { val pr = Projects.create(name, type); creating = false; onOpen(pr.id) }
+            DlgBtn(j.create, true, enabled = name.isNotBlank()) { val pr = Projects.create(name, type, newMech); creating = false; onOpen(pr.id) }
         }) {
-            AppTextField(name, { name = it }, j.nameLabel)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                AppTextField(name, { name = it }, j.nameLabel)
+                Text(j.mechTitle, color = p.muted, fontSize = 13.sp)
+                SegmentedChips(listOf(j.mechMv, j.mechXp, j.mechVn), newMech, 12.sp) { newMech = it }
+            }
         }
     }
 }
@@ -115,6 +120,15 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onDuplicate: (Stri
             Projects.save()
         }
     }
+    val pickSourceTree = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { u ->
+        if (u != null) {
+            try { ctx.contentResolver.takePersistableUriPermission(u, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) { }
+            pr.sourceUri = u.toString()
+            pr.sourceName = try { DocumentFile.fromTreeUri(ctx, u)?.name ?: "" } catch (e: Exception) { "" }
+            Projects.save()
+        }
+    }
+    val mv = pr.mech == Projects.MECH_MV
     // the first step that is not done is the one to continue with
     val nextStep = pr.steps.firstOrNull { pr.state(it) != Projects.ST_DONE }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
@@ -130,9 +144,23 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onDuplicate: (Stri
                     DetailLink(j.typeIntro(pr.type), 13.sp, 19.sp)
                 }
             }
-            item { PickerCard(AppIcons.File, j.sourceLabel, pr.sourceName.ifEmpty { null }, AppIcons.Folder) { pickSource.launch(arrayOf("*/*")) } }
-            item { PickerCard(AppIcons.Folder, j.workLabel, pr.workName.ifEmpty { null }, AppIcons.Folder) { pickWork.launch(null) } }
-            item { DetailLink(j.pickNote, 13.sp, 19.sp) }
+            item {
+                LabelSection(j.mechTitle) {
+                    SegmentedChips(listOf(j.mechMv, j.mechXp, j.mechVn), pr.mech, 12.sp) { m ->
+                        if (m != pr.mech) {
+                            // a game folder (MV / MZ) and a source archive are different kinds of source
+                            if ((m == Projects.MECH_MV) != (pr.mech == Projects.MECH_MV)) { pr.sourceUri = ""; pr.sourceName = "" }
+                            pr.mech = m
+                            Projects.save()
+                        }
+                    }
+                    DetailLink(j.mechNote, 12.sp, 17.sp)
+                }
+            }
+            if (mv) item { PickerCard(AppIcons.Folder, j.mvSourceLabel, pr.sourceName.ifEmpty { null }, AppIcons.Folder) { pickSourceTree.launch(null) } }
+            else item { PickerCard(AppIcons.File, j.sourceLabel, pr.sourceName.ifEmpty { null }, AppIcons.Folder) { pickSource.launch(arrayOf("*/*")) } }
+            item { PickerCard(AppIcons.Folder, if (mv) j.mvWorkLabel else j.workLabel, pr.workName.ifEmpty { null }, AppIcons.Folder) { pickWork.launch(null) } }
+            item { DetailLink(if (mv) j.mvPickNote else j.pickNote, 13.sp, 19.sp) }
             item {
                 LabelSection(j.stepsTitle) {
                     pr.steps.forEachIndexed { i, step ->
@@ -146,7 +174,7 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onDuplicate: (Stri
                                     color = if (st == Projects.ST_DONE) p.accent else p.muted, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                                 )
                             }
-                            Text(j.stepDesc(step, pr.type), color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
+                            Text(j.stepDesc(step, pr.type, pr.mech), color = p.muted, fontSize = 13.sp, lineHeight = 18.sp)
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Box(Modifier.weight(1f)) { if (step == nextStep) PrimaryButton(j.next, true) { onStep(pr, step) } else SecondaryButton(j.open) { onStep(pr, step) } }
                                 Row(

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/pictures/0_header.webp" alt="FuruArc" width="100%">
+  <img src="docs/pictures/00_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -164,6 +164,7 @@ Alat Pendukung > Editor Gambar (di antara Editor File Teks dan Media Player) men
 
 Alat Game > Buat Proyek (di bawah kartu Alat RPGM dan Alat VN) berisi alur kerja bertahap dari alat yang sudah ada. Pilih arsip sumber dan folder kerja sekali, lalu alat terbuka dengan pilihan itu sudah terisi. Tiap langkah membuka alat yang sesuai, tombol Kembali membawa Anda ke proyek, langkah berikutnya punya tombol "Lanjutkan", dan langkah Bongkar, Ekspor, Impor, Kemas, serta konverter ditandai Selesai otomatis jika berjalan tanpa gagal. Tambah catatan, ganti nama, duplikat, atau hapus proyek (file game tidak pernah dihapus); laporan proyek bisa disalin atau disimpan sebagai file teks.
 
+- **Mekanisme game** (pilihan sebelum langkah, juga ada di dialog buat proyek): RPGM MV / MZ, RPGM XP / VX / VX Ace, atau Visual Novel / umum. Langkahnya menyesuaikan. RPGM MV / MZ tidak punya arsip: sumbernya **Folder game** asli yang tidak diubah, folder kerjanya **Folder hasil**, dan langkahnya Ekspor / Impor teks langsung dari data JSON, Dekripsi aset, Enkripsi ulang aset (kunci `System.json` yang sama, diminta sekali di alatnya), Cek / edit plugin, dan Bandingkan Folder (System.json diabaikan; salin file yang berubah ke folder patch) sebagai pengganti Bongkar dan Kemas. XP / VX / VX Ace dan Visual Novel memakai langkah arsip di bawah.
 - **Proyek Terjemahan**: Bongkar arsip, Ekspor teks, Terjemahkan, Impor teks, Kemas arsip, dan Uji format.
 - **Proyek Audit / Cek Game**: Bongkar arsip, Pindai aset, Cek terjemahan, Cari duplikat, dan Uji format (hanya membaca).
 - **Proyek Pembersihan**: Bongkar arsip, Cadangkan folder, Pindai aset, Cari duplikat, Rapikan nama file, Kecilkan aset, dan Kemas arsip. Kerjakan pada salinan: Pencari Duplikat menghapus file.
@@ -189,7 +190,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 
 ### Pemeriksa File dan Folder
 
-<p align="center"><img src="docs/pictures/09_file_inspection.webp" alt="Pemeriksa File dan Folder" width="100%"></p>
+<p align="center"><img src="docs/pictures/09_file_and_folder_inspector.webp" alt="Pemeriksa File dan Folder" width="100%"></p>
 
 - **Pemeriksaan File**: format, checksum, file rusak, enkripsi dan deteksi kode salah dalam satu file.
 - **Pemeriksaan Folder**: periksa semua arsip dan skrip dalam satu folder sekaligus.
@@ -197,7 +198,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - **Penampil Hex**: isi mentah file berdasarkan offset, dengan pencarian teks dan byte.
 - **Uji Coba Format**: pilih engine (format) lalu unggah arsip aslinya. Aplikasi mengekstrak 1 file acak (batas ukuran bisa kamu atur dalam KB atau MB), mengemasnya menjadi arsip baru, membongkarnya lagi, dan membandingkannya dengan arsip aslimu (isi lewat SHA-256, header, deteksi, ukuran). Kamu bisa menguji 1 file acak (atau file yang kamu sebut namanya), beberapa file, semua file, atau semua file dengan perbandingan byte demi byte ke arsip asli; seed mengulang uji yang sama. Tidak ada folder output; hasilnya tampil sebagai daftar, bisa disalin atau diekspor, dan sampelnya bisa disimpan. Pemeriksaan File punya tombol Uji format ini. Engine yang belum bisa dikemas tidak ditampilkan. Pemeriksaan format dengan contoh buatan yang sama juga berjalan di GitHub Actions.
 - **Pencari File Duplikat**: file identik dalam folder dan subfoldernya.
-- **Bandingkan Folder**: folder asli vs folder diedit (file berubah, baru, dan hilang); file yang berubah dan baru bisa disalin ke folder lain, misalnya untuk membuat patch.
+- **Bandingkan Folder**: folder asli vs folder diedit (file berubah, baru, dan hilang; kolom Abaikan melewatkan nama seperti `System.json`); file yang berubah dan baru bisa disalin ke folder lain, misalnya untuk membuat patch.
 - **Pemindaian Terjemahan**: kode kontrol, baris panjang, entri kosong dan terjemahan tidak konsisten.
 - **Pencari Kunci**: cari kunci enkripsi dan file yang memakainya.
 
@@ -211,6 +212,8 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - **Pengoptimal Nama File**: buat nama file aman (karakter non-Latin) dan perbarui referensinya sebelum membuat APK.
 
 ### Pengaturan dan pembaruan
+
+<p align="center"><img src="docs/pictures/11_settings_and_updates.webp" alt="Pengaturan dan Pembaruan" width="100%"></p>
 
 - Tema (terang / gelap), bahasa, warna aksen. Tombol dan ikon memakai gradasi dari warna aksen. Di mode terang latar diberi warna sesuai tema dan kartu tetap putih keabuan dengan bayangan lembut; di mode gelap kartu lebih terang dari latar.
 - Animasi layar: geser samping antar tab, halaman naik dari bawah saat dibuka dan turun saat ditutup (bisa dimatikan di pengaturan Tampilan).
