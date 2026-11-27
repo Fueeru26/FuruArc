@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/pictures/0_header.webp" alt="FuruArc" width="100%">
+  <img src="docs/pictures/00_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -168,7 +168,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 
 ### Pemeriksa File dan Folder
 
-<p align="center"><img src="docs/pictures/09_file_inspection.webp" alt="Pemeriksa File dan Folder" width="100%"></p>
+<p align="center"><img src="docs/pictures/09_file_and_folder_inspector.webp" alt="Pemeriksa File dan Folder" width="100%"></p>
 
 - **Pemeriksaan File**: format, checksum, file rusak, enkripsi dan deteksi kode salah dalam satu file.
 - **Pemeriksaan Folder**: periksa semua arsip dan skrip dalam satu folder sekaligus.
@@ -189,6 +189,8 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - **Pengoptimal Nama File**: buat nama file aman (karakter non-Latin) dan perbarui referensinya sebelum membuat APK.
 
 ### Pengaturan dan pembaruan
+
+<p align="center"><img src="docs/pictures/11_settings_and_updates.webp" alt="Pengaturan dan pembaruan" width="100%"></p>
 
 - Tema (terang / gelap), bahasa, warna aksen. Tombol dan ikon memakai gradasi dari warna aksen. Di mode terang latar diberi warna sesuai tema dan kartu tetap putih keabuan dengan bayangan lembut; di mode gelap kartu lebih terang dari latar.
 - Animasi layar: geser samping antar tab, halaman naik dari bawah saat dibuka dan turun saat ditutup (bisa dimatikan di pengaturan Tampilan).

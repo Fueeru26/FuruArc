@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/pictures/0_header.webp" alt="FuruArc" width="100%">
+  <img src="docs/pictures/00_header.webp" alt="FuruArc" width="100%">
 </p>
 
 <p align="center">
@@ -168,7 +168,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 
 ### File & Folder Inspector
 
-<p align="center"><img src="docs/pictures/09_file_inspection.webp" alt="File & Folder Inspector" width="100%"></p>
+<p align="center"><img src="docs/pictures/09_file_and_folder_inspector.webp" alt="File & Folder Inspector" width="100%"></p>
 
 - **File Inspection**: format, checksum, corrupt files, encryption and wrong-code detection in one file.
 - **Folder Inspection**: inspect every archive and script in a folder at once.
@@ -189,6 +189,8 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - **File Name Optimizer**: make file names safe (non-Latin characters) and update references before building an APK.
 
 ### Settings and updates
+
+<p align="center"><img src="docs/pictures/11_settings_and_updates.webp" alt="Settings and updates" width="100%"></p>
 
 - Theme (light / dark), language, accent color. Buttons and icon badges use a gradient derived from the accent color. In light mode the background is tinted by the theme color and cards stay near-white with a soft shadow; in dark mode cards are lighter than the background.
 - Screen animations: sideways slide between tabs, pages rise from the bottom when opened and sink when closed (switch off in Display settings).
