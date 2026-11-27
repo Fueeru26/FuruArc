@@ -5,6 +5,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Checkbox
@@ -35,7 +37,7 @@ fun ProjectMenuScreen(onTranslation: () -> Unit, onCompress: () -> Unit, onExtra
     val j = projectStr(LocalLang.current)
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(j.menuTitle, onBack)
-        Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
             MenuCard(AppIcons.Translate, j.trTitle, j.trSub, onTranslation)
             MenuCard(AppIcons.Folder, j.cmpTitle, j.cmpSub, onCompress)
             MenuCard(AppIcons.Image, j.extTitle, j.extSub, onExtract)
