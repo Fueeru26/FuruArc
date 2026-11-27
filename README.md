@@ -33,6 +33,7 @@ The app is written in Kotlin with Jetpack Compose. Every tool works through Andr
   - [Translation Editor](#translation-editor)
   - [Media Asset Converter](#media-asset-converter)
   - [Text Editors](#text-editors)
+  - [Image Editor](#image-editor)
   - [Media Player](#media-player)
   - [File & Folder Inspector](#file--folder-inspector)
   - [File Toolkit and File Name Optimizer](#file-toolkit-and-file-name-optimizer)
@@ -151,16 +152,26 @@ Convert and compress game audio, images and video, one file or a whole folder.
 - **Structured Text**: JSON (tree and text views), CSV / TSV (cell table), INI / CFG, XML and Markdown (with preview).
 - **Bulk Replace**: find and replace text across many files in one folder, with a match counter before anything is changed.
 
+### Image Editor
+
+Support Tools > Image Editor (between the Text Editor and the Media Player) edits one picture at a time, for example to translate text inside game images.
+
+- **Move** (drag, pinch to zoom, Fit to screen), **Select** (crop, fill with a color, erase to transparent), **Brush** (with eraser), **Text** (centered on the tapped point, multi-line, outline, bold, Sans / Serif / Mono or a font file) and **Picker** (take a color from the image).
+- **Clone**, **Fill from the surrounding colors** and **Blur / Pixelate** to cover old text; open an image **folder** with Previous / Next and **Save and next**; saved text styles.
+- Rotate, flip and resize (aspect-ratio lock). Undo and redo for the last 6 steps. Images larger than 3072 px on the longest side are reduced when opened.
+- Save as a new PNG, JPG or WebP file, or overwrite the original after a confirmation.
+
 ### Create Project
 
-Game Tools > Create Project (below the RPGM Tools and VN Tools cards) holds step-by-step workflows built from the existing tools. Pick a source archive and a work folder once and the tools open with them filled in. Each step opens the matching tool, Back returns to the project, the next step has a "Continue" button, and Unpack, Export, Import, Pack and converter steps are marked Done automatically when they ran without failures. Add a note, rename or delete a project (game files are never deleted).
+Game Tools > Create Project (below the RPGM Tools and VN Tools cards) holds step-by-step workflows built from the existing tools. Pick a source archive and a work folder once and the tools open with them filled in. Each step opens the matching tool, Back returns to the project, the next step has a "Continue" button, and Unpack, Export, Import, Pack and converter steps are marked Done automatically when they ran without failures. Add a note, rename, duplicate or delete a project (game files are never deleted); a project report can be copied or saved as a text file.
 
 - **Translation Project**: Unpack archive, Export text, Translate, Import text, Pack archive and Format test.
 - **Compress Game Project**: Unpack archive, Scan assets, Compress audio, Compress images, Compress video and Pack archive. Compressed assets may not be accepted by the engine; keep the original archive and test the result.
 - **Extract Assets Project**: Unpack archive, Scan assets, View assets in the Media Player, Convert assets, Find duplicates and Batch rename.
 - **Make Patch Project**: Unpack the original, Edit files, Compare with the original, Pack the changed files as the patch archive and Format test.
 - **Audit / Check Game Project**: Unpack, Scan assets, Check translations, Find duplicates and Format test (read-only checks).
-- **Clean Up Project**: Unpack, Scan assets, Find duplicates, Tidy file names, Shrink assets and Pack. Work on a copy: the Duplicate Finder deletes files.
+- **Clean Up Project**: Unpack, Back up the folder, Scan assets, Find duplicates, Tidy file names, Shrink assets and Pack. Work on a copy: the Duplicate Finder deletes files.
+- **Localize Assets Project**: Unpack, View assets, Edit images in the Image Editor, Convert assets, Compare with the original and Pack. For translating text inside game images.
 
 ### Media Player
 
@@ -187,6 +198,7 @@ Support Tools > Media Player has Image Gallery, Audio Player and Video Player.
 - **Hex Viewer**: raw file content by offset, with text and byte search.
 - **Format Test**: choose an engine (format) and upload a real archive of it. The app extracts one random file (up to a size limit you set in KB or MB), packs it into a new archive, unpacks that and compares it with your original (content by SHA-256, header, detection, size). You can test one random file (or a file you name), several, all, or all with a byte-for-byte comparison against the original; the seed repeats a test. No output folder; the result is listed, can be copied or exported, and the samples can be saved. File Inspection has a Test this format button. Engines that cannot be packed yet are not listed. The same format checks with generated samples also run in GitHub Actions.
 - **Duplicate File Finder**: identical files in a folder and its sub-folders.
+- **Compare Folders**: original vs edited folder (changed, new and missing files); the changed and new files can be copied to another folder, for example to build a patch.
 - **Translation Scan**: control codes, long lines, empty entries and inconsistent translations.
 - **Key Finder**: find the encryption key and the files that use it.
 
@@ -237,7 +249,7 @@ For what each engine supports (archive, pack, script text), see [docs/ENGINES.md
 
 ## Installation
 
-Download the latest APK from the [Releases](https://github.com/Fueeru26/FuruArc/releases) page and install it. Requires **Android 7.0 (API 24)** or newer. Every release lists the SHA-256 checksum of the APK (and attaches `SHA256SUMS.txt`) so you can verify the download.
+Download the latest APK from the [Releases](https://github.com/Fueeru26/FuruArc/releases) page and install it. Requires **Android 7.0 (API 24)** or newer.
 
 ## Building from source
 

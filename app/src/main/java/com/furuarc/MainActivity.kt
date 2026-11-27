@@ -79,8 +79,8 @@ import com.furuarc.ui.theme.FuruArcTheme
 import com.furuarc.ui.theme.LocalPalette
 
 enum class Screen {
-    HOME, LIBRARY, SUPPORT, MORE, FILECHECK, INSPECT, INSPECT_FOLDER, INSPECT_COMPARE, INSPECT_DUP, INSPECT_HEX, INSPECT_FORMATTEST, INSPECT_TR, PROJECT_MENU, PROJECT_LIST, PROJECT, ABOUT, ABOUT_TROUBLE, ABOUT_HOW, ABOUT_QNA, ABOUT_SRC, ABOUT_DEV,
-    VN_TOOLS, VN_ENGINES, AUTO_SCRIPTS, KEYFINDER, TEXTEDIT, TEXTEDIT_PLAIN, TEXTEDIT_STRUCT, TEXTEDIT_BULK, FILETOOLS, NAMEOPT, FILECUT, FILESPLIT, FILEJOIN, FILERENAME, MEDIA, MEDIA_AUDIO, MEDIA_IMAGE, MEDIA_VIDEO, MEDIA_MIXED, MEDIA_TEXT, MEDIA_SPECIAL, ENGINE, UNPACK, PACK, SELECT, BROWSE, SETTINGS,
+    HOME, LIBRARY, SUPPORT, MORE, FILECHECK, INSPECT, INSPECT_FOLDER, INSPECT_COMPARE, INSPECT_DUP, INSPECT_FOLDERDIFF, INSPECT_HEX, INSPECT_FORMATTEST, INSPECT_TR, PROJECT_MENU, PROJECT_LIST, PROJECT, ABOUT, ABOUT_TROUBLE, ABOUT_HOW, ABOUT_QNA, ABOUT_SRC, ABOUT_DEV,
+    VN_TOOLS, VN_ENGINES, AUTO_SCRIPTS, KEYFINDER, IMAGEEDIT, TEXTEDIT, TEXTEDIT_PLAIN, TEXTEDIT_STRUCT, TEXTEDIT_BULK, FILETOOLS, NAMEOPT, FILECUT, FILESPLIT, FILEJOIN, FILERENAME, MEDIA, MEDIA_AUDIO, MEDIA_IMAGE, MEDIA_VIDEO, MEDIA_MIXED, MEDIA_TEXT, MEDIA_SPECIAL, ENGINE, UNPACK, PACK, SELECT, BROWSE, SETTINGS,
     GAME, GAME_AUDIO, GAME_IMAGE, GAME_VIDEO, GAME_TEXT,
     MPLAYER, MPLAYER_IMAGE, MPLAYER_AUDIO, MPLAYER_VIDEO, MPLAYER_SETTINGS,
     RPGM_TOOLS, PLUGIN_MENU, PLUGIN_SCAN, PLUGIN_EDIT, PLUGIN_CHECK, PLUGIN_DIFF, RPGM_ASSETS, RPGM_TR_MENU, RPGM_CHEAT_MENU, ASSET_JOB, TR_JOB, SAVE_JOB, VALUE_JOB, TR_EDIT_JOB, TOOL_JOB,
@@ -203,6 +203,15 @@ fun App(vm: MainViewModel) {
     }
     var projectId by remember { mutableStateOf<String?>(null) }
     var projectType by remember { mutableStateOf(0) }
+    // Compare Folders opened from a project: Back returns to it; a finished comparison (for a patch: after copying) or a backup marks the step as done
+    val backFromFolderDiff = {
+        val fs = FolderDiffJobs.state.value
+        val pj = com.furuarc.core.Projects
+        val ok = if (pj.activeStep == pj.BACKUP) fs.copyDone && fs.copied > 0 && fs.copyFailed == 0
+            else fs.done && (pj.get(pj.active)?.type != pj.TYPE_PATCH || fs.copied > 0)
+        pj.autoMark(ok)
+        screen = Screen.PROJECT
+    }
     // a media converter / folder check opened from a project: Back returns to it (a converter run without failures marks the step as done)
     val backToProject = {
         val ms = MediaJobs.state.value
@@ -234,6 +243,7 @@ fun App(vm: MainViewModel) {
             Screen.MEDIA -> screen = Screen.SUPPORT
             Screen.MPLAYER -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT
             Screen.MPLAYER_IMAGE, Screen.MPLAYER_AUDIO, Screen.MPLAYER_VIDEO, Screen.MPLAYER_SETTINGS -> screen = Screen.MPLAYER
+            Screen.IMAGEEDIT -> { if (com.furuarc.core.ImageEditor.tryExit()) screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT }
             Screen.TEXTEDIT -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT
             Screen.TEXTEDIT_PLAIN, Screen.TEXTEDIT_STRUCT, Screen.TEXTEDIT_BULK -> screen = Screen.TEXTEDIT
             Screen.MEDIA_AUDIO, Screen.MEDIA_IMAGE, Screen.MEDIA_VIDEO, Screen.MEDIA_MIXED, Screen.MEDIA_TEXT -> { if (com.furuarc.core.Projects.active != null) backToProject() else { MediaJobs.clear(); screen = Screen.MEDIA } }
@@ -242,6 +252,7 @@ fun App(vm: MainViewModel) {
             Screen.FILECUT, Screen.FILESPLIT, Screen.FILEJOIN -> screen = Screen.FILETOOLS
             Screen.INSPECT_COMPARE -> { CompareJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
             Screen.INSPECT_DUP -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK
+            Screen.INSPECT_FOLDERDIFF -> { if (com.furuarc.core.Projects.active != null) backFromFolderDiff() else screen = Screen.FILECHECK }
             Screen.INSPECT_HEX -> screen = Screen.FILECHECK
             Screen.INSPECT_FORMATTEST -> { FormatTestJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
             Screen.PROJECT_MENU -> screen = Screen.SUPPORT
@@ -290,6 +301,7 @@ fun App(vm: MainViewModel) {
             "rpgm" -> screen = Screen.RPGM_TOOLS
             "editor" -> enter(10, Screen.TR_EDIT_JOB)
             "textedit" -> screen = Screen.TEXTEDIT
+            "imageedit" -> screen = Screen.IMAGEEDIT
             "textedit.plain" -> screen = Screen.TEXTEDIT_PLAIN
             "textedit.struct" -> screen = Screen.TEXTEDIT_STRUCT
             "textedit.bulk" -> screen = Screen.TEXTEDIT_BULK
@@ -310,6 +322,7 @@ fun App(vm: MainViewModel) {
             "filecheck.folder" -> screen = Screen.INSPECT_FOLDER
             "filecheck.compare" -> screen = Screen.INSPECT_COMPARE
             "filecheck.dup" -> screen = Screen.INSPECT_DUP
+            "filecheck.folderdiff" -> screen = Screen.INSPECT_FOLDERDIFF
             "filecheck.hex" -> screen = Screen.INSPECT_HEX
             "filecheck.formattest" -> { FormatTestJobs.clear(); screen = Screen.INSPECT_FORMATTEST }
             "filecheck.tr" -> screen = Screen.INSPECT_TR
@@ -523,6 +536,7 @@ fun App(vm: MainViewModel) {
                     onFileTools = { screen = Screen.FILETOOLS },
                     onNameOpt = { screen = Screen.NAMEOPT },
                     onTextEdit = { screen = Screen.TEXTEDIT },
+                    onImageEdit = { screen = Screen.IMAGEEDIT },
                     onMedia = { screen = Screen.MEDIA },
                     onPlayer = { screen = Screen.MPLAYER },
                     onProjects = { screen = Screen.PROJECT_MENU },
@@ -538,6 +552,7 @@ fun App(vm: MainViewModel) {
                 Screen.MPLAYER_AUDIO -> com.furuarc.ui.PlayerListScreen(2) { screen = Screen.MPLAYER }
                 Screen.MPLAYER_VIDEO -> com.furuarc.ui.PlayerListScreen(3) { screen = Screen.MPLAYER }
                 Screen.MPLAYER_SETTINGS -> com.furuarc.ui.PlayerSettingsScreen { screen = Screen.MPLAYER }
+                Screen.IMAGEEDIT -> com.furuarc.ui.ImageEditorScreen(onBack = { screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT })
                 Screen.TEXTEDIT -> com.furuarc.ui.TextEditMenuScreen(
                     onPlain = { screen = Screen.TEXTEDIT_PLAIN },
                     onStruct = { screen = Screen.TEXTEDIT_STRUCT },
@@ -633,6 +648,7 @@ fun App(vm: MainViewModel) {
                     onFolder = { screen = Screen.INSPECT_FOLDER },
                     onCompare = { screen = Screen.INSPECT_COMPARE },
                     onDup = { screen = Screen.INSPECT_DUP },
+                    onFolderDiff = { screen = Screen.INSPECT_FOLDERDIFF },
                     onHex = { screen = Screen.INSPECT_HEX },
                     onFormatTest = { FormatTestJobs.clear(); screen = Screen.INSPECT_FORMATTEST },
                     onTr = { screen = Screen.INSPECT_TR },
@@ -674,10 +690,11 @@ fun App(vm: MainViewModel) {
                     onBack = { FolderJobs.clear(); if (com.furuarc.core.Projects.active != null) { com.furuarc.core.Projects.autoMark(false); screen = Screen.PROJECT } else screen = Screen.FILECHECK },
                 )
                 Screen.INSPECT_COMPARE -> CompareScreen { CompareJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
+                Screen.INSPECT_FOLDERDIFF -> com.furuarc.ui.FolderDiffScreen { if (com.furuarc.core.Projects.active != null) backFromFolderDiff() else screen = Screen.FILECHECK }
                 Screen.INSPECT_DUP -> com.furuarc.ui.DupFinderScreen { screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
                 Screen.INSPECT_HEX -> com.furuarc.ui.HexViewerScreen { screen = Screen.FILECHECK }
                 Screen.INSPECT_FORMATTEST -> com.furuarc.ui.FormatTestScreen { FormatTestJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }
-                Screen.PROJECT_MENU -> com.furuarc.ui.ProjectMenuScreen(onTranslation = { projectType = 0; screen = Screen.PROJECT_LIST }, onCompress = { projectType = 1; screen = Screen.PROJECT_LIST }, onExtract = { projectType = 2; screen = Screen.PROJECT_LIST }, onPatch = { projectType = 3; screen = Screen.PROJECT_LIST }, onAudit = { projectType = 4; screen = Screen.PROJECT_LIST }, onClean = { projectType = 5; screen = Screen.PROJECT_LIST }, onBack = { screen = Screen.SUPPORT })
+                Screen.PROJECT_MENU -> com.furuarc.ui.ProjectMenuScreen(onTranslation = { projectType = 0; screen = Screen.PROJECT_LIST }, onCompress = { projectType = 1; screen = Screen.PROJECT_LIST }, onExtract = { projectType = 2; screen = Screen.PROJECT_LIST }, onPatch = { projectType = 3; screen = Screen.PROJECT_LIST }, onAudit = { projectType = 4; screen = Screen.PROJECT_LIST }, onClean = { projectType = 5; screen = Screen.PROJECT_LIST }, onLocalize = { projectType = 6; screen = Screen.PROJECT_LIST }, onBack = { screen = Screen.SUPPORT })
                 Screen.PROJECT_LIST -> com.furuarc.ui.ProjectListScreen(
                     type = projectType,
                     onOpen = { id -> projectId = id; com.furuarc.core.Projects.active = null; screen = Screen.PROJECT },
@@ -707,12 +724,33 @@ fun App(vm: MainViewModel) {
                             com.furuarc.core.Projects.PACK -> {
                                 enter(2, Screen.PACK, ScriptTools.AUTO); engineId = ScriptTools.AUTO
                                 try { work?.let { vm.setPackOutput(it) } } catch (e: Exception) { }
+                                // input folder: the changed files of a patch, otherwise the folder the archive was unpacked into
+                                try {
+                                    val pf = if (pr.type == com.furuarc.core.Projects.TYPE_PATCH) FolderDiffJobs.outUri
+                                        else if (pr.type == com.furuarc.core.Projects.TYPE_TRANSLATION || pr.type == com.furuarc.core.Projects.TYPE_LOCALIZE) com.furuarc.core.Projects.unpackedFolder(Engine.app, pr)
+                                        else null
+                                    pf?.let { vm.setPackFolder(it) }
+                                } catch (e: Exception) { }
                             }
                             com.furuarc.core.Projects.SCAN -> screen = Screen.INSPECT_FOLDER
+                            com.furuarc.core.Projects.IMGEDIT -> {
+                                // the images of the work folder are listed so the editor can go through them
+                                try { if (work != null && com.furuarc.core.ImageEditor.bitmap == null) com.furuarc.core.ImageEditor.loadFolder(Engine.app, work, true) } catch (e: Exception) { }
+                                screen = Screen.IMAGEEDIT
+                            }
+                            com.furuarc.core.Projects.BACKUP -> {
+                                // backup of the work folder: Compare Folders with the work folder as the folder to copy
+                                try { work?.let { FolderDiffJobs.setB(it) } } catch (e: Exception) { }
+                                screen = Screen.INSPECT_FOLDERDIFF
+                            }
                             com.furuarc.core.Projects.NAMES -> screen = Screen.NAMEOPT
                             com.furuarc.core.Projects.TRCHECK -> screen = Screen.INSPECT_TR
                             com.furuarc.core.Projects.EDIT -> screen = Screen.TEXTEDIT
-                            com.furuarc.core.Projects.COMPARE -> screen = Screen.INSPECT_COMPARE
+                            com.furuarc.core.Projects.COMPARE -> {
+                                // compares the original folder with the work folder (the edited copy) and can copy the changed files
+                                try { work?.let { FolderDiffJobs.setB(it) } } catch (e: Exception) { }
+                                screen = Screen.INSPECT_FOLDERDIFF
+                            }
                             com.furuarc.core.Projects.VIEW -> screen = Screen.MPLAYER
                             com.furuarc.core.Projects.CONVERT -> { MediaJobs.clear(); screen = Screen.MEDIA_MIXED }
                             com.furuarc.core.Projects.DUPES -> screen = Screen.INSPECT_DUP
@@ -723,6 +761,7 @@ fun App(vm: MainViewModel) {
                             else -> { FormatTestJobs.clear(); screen = Screen.INSPECT_FORMATTEST }
                         }
                     },
+                    onDuplicate = { nid -> projectId = nid; com.furuarc.core.Projects.active = null },
                     onBack = { com.furuarc.core.Projects.active = null; screen = Screen.PROJECT_LIST },
                 )
                 Screen.INSPECT_TR -> TrScanScreen { TrScanJobs.clear(); screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.FILECHECK }

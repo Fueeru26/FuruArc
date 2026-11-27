@@ -440,7 +440,7 @@ object Engine {
         scanned = emptyList()
         _state.update {
             it.copy(
-                packFolderName = DocumentFile.fromTreeUri(app, uri)?.name ?: "folder",
+                packFolderName = (if (uri.pathSegments.size >= 4 && uri.pathSegments[2] == "document") DocumentFile.fromSingleUri(app, uri)?.name else DocumentFile.fromTreeUri(app, uri)?.name) ?: "folder",
                 packScanning = true, packFiles = 0, packBytes = 0, packIgnored = 0, done = false, summary = null,
             )
         }

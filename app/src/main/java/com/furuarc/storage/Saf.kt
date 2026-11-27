@@ -207,6 +207,19 @@ class TreeWriter(private val ctx: Context, private val treeUri: Uri) {
     }
 }
 
+/**
+ * Document id that listing starts from: a tree URI lists its own root, while a document URI inside a tree
+ * (".../tree/T/document/D", for example a sub-folder found with DocumentFile) lists that sub-folder D.
+ */
+fun listRootId(uri: Uri): String {
+    val seg = uri.pathSegments
+    return try {
+        if (seg.size >= 4 && seg[0] == "tree" && seg[2] == "document") DocumentsContract.getDocumentId(uri) else DocumentsContract.getTreeDocumentId(uri)
+    } catch (e: Exception) {
+        DocumentsContract.getTreeDocumentId(uri)
+    }
+}
+
 /** List all files in a folder (recursive) as material for pack, one query per folder. */
 /** [recursive] = false takes only the top-level files of the folder (no subfolders). */
 fun listTree(ctx: Context, treeUri: Uri, recursive: Boolean = true): List<PackInput> {
@@ -241,6 +254,6 @@ fun listTree(ctx: Context, treeUri: Uri, recursive: Boolean = true): List<PackIn
         if (recursive) for (sub in subdirs) walk(sub.first, prefix + sub.second + "/")
     }
 
-    walk(DocumentsContract.getTreeDocumentId(treeUri), "")
+    walk(listRootId(treeUri), "")
     return out.sortedBy { it.path }
 }

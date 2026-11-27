@@ -58,6 +58,8 @@ object FeatureCatalog {
         f("rpgm", AppIcons.Gamepad, s.menuRpgmTitle, tab, "rpg maker rpgm mv mz xp vx ace")
         f("editor", AppIcons.Edit, s.r.edTitle, tab, "terjemahan translation editor draft json csv tl translate")
         f("textedit", AppIcons.Description, tx.menuTitle, tab, "text editor teks txt json csv xml ubah edit")
+        val ie = com.furuarc.i18n.imageEditStr(lang)
+        f("imageedit", AppIcons.Brush, ie.menuTitle, tab, "image editor editor gambar potong crop resize ubah ukuran teks text kuas brush warna color pipet png jpg webp lokalisasi")
         f("textedit.plain", AppIcons.TextFields, tx.plainTitle, txP, "txt text plain teks biasa encoding")
         f("textedit.struct", AppIcons.Layers, tx.structTitle, txP, "json csv xml structured terstruktur tree pohon")
         f("textedit.bulk", AppIcons.SwapHoriz, tx.bulkTitle, txP, "replace ganti massal bulk regex cari")
@@ -83,6 +85,8 @@ object FeatureCatalog {
         f("filecheck.compare", AppIcons.File, ck.compareTitle, ckP, "bandingkan compare diff")
         f("filecheck.hex", AppIcons.MenuBook, ft.hexTitle, ckP, "hex viewer penampil biner binary")
         f("filecheck.formattest", AppIcons.Checklist, ck.ftTitle, ckP, "uji coba format test round trip kemas bongkar pack unpack self test diagnosa")
+        val fd = com.furuarc.i18n.folderDiffStr(lang)
+        f("filecheck.folderdiff", AppIcons.Folder, fd.title, ckP, "bandingkan folder compare folders diff perbedaan berubah changed salin copy patch")
         f("filecheck.dup", AppIcons.ContentCopy, ft.dupTitle, ckP, "duplikat duplicate kembar hash")
         f("filecheck.tr", AppIcons.Translate, ck.trScanTitle, ckP, "terjemahan scan translation pindai teks")
         f("filetools", AppIcons.Build, ft.menuTitle, tab, "alat file potong pisah gabung rename ganti nama")
@@ -143,6 +147,7 @@ object FeatureCatalog {
         Screen.MPLAYER_VIDEO -> "player.video"
         Screen.MPLAYER_SETTINGS -> "player.settings"
         Screen.TR_EDIT_JOB -> "editor"
+        Screen.IMAGEEDIT -> "imageedit"
         Screen.TEXTEDIT_PLAIN -> "textedit.plain"
         Screen.TEXTEDIT_STRUCT -> "textedit.struct"
         Screen.TEXTEDIT_BULK -> "textedit.bulk"
@@ -158,6 +163,7 @@ object FeatureCatalog {
         Screen.INSPECT_HEX -> "filecheck.hex"
         Screen.INSPECT_FORMATTEST -> "filecheck.formattest"
         Screen.INSPECT_DUP -> "filecheck.dup"
+        Screen.INSPECT_FOLDERDIFF -> "filecheck.folderdiff"
         Screen.INSPECT_TR -> "filecheck.tr"
         Screen.FILECUT -> "filetools.cut"
         Screen.FILESPLIT -> "filetools.split"

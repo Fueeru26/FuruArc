@@ -60,7 +60,7 @@ Buka **Uji Coba Format** di Pemeriksa File dan Folder, pilih engine, unggah arsi
 Aktifkan **Proses latar belakang** di Pengaturan. Di Android 13+ aplikasi meminta izin notifikasi saat kamu mengaktifkannya.
 
 **Bagaimana pembaruan bekerja?**
-Aplikasi mengecek rilis GitHub terbaru. Tidak ada yang diunduh sebelum kamu menekan "Download versi terbaru", dan Android selalu meminta konfirmasi pemasangan. Setiap rilis mencantumkan checksum SHA-256 dari APK.
+Aplikasi mengecek rilis GitHub terbaru. Tidak ada yang diunduh sebelum kamu menekan "Download versi terbaru", dan Android selalu meminta konfirmasi pemasangan.
 
 **Pemasang bilang aplikasi tidak terpasang, atau pembaruan tidak mau dipasang.**
 Izinkan pemasangan dari sumber ini saat Android bertanya. Jika kamu memasang build debug atau build yang ditandatangani kunci lain, Android menolak pembaruan yang ditandatangani kunci rilis: hapus build itu dulu (ekspor pengaturan dan daftarmu di Pengaturan Media jika ingin menyimpannya).

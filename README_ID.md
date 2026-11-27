@@ -151,13 +151,23 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 - **File Teks Berstruktur**: JSON (tampilan pohon dan teks), CSV / TSV (tabel sel), INI / CFG, XML dan Markdown (dengan pratinjau).
 - **Ganti Massal**: cari dan ganti teks di banyak file dalam satu folder, dengan penghitung kecocokan sebelum apa pun diubah.
 
+### Editor Gambar
+
+Alat Pendukung > Editor Gambar (di antara Editor File Teks dan Media Player) menyunting satu gambar sekali waktu, misalnya untuk menerjemahkan teks di dalam gambar game.
+
+- **Geser** (seret, cubit untuk zoom, Pas layar), **Pilih** (potong, isi warna, hapus jadi transparan), **Kuas** (dengan penghapus), **Teks** (di tengah titik yang diketuk, beberapa baris, garis tepi, tebal, Sans / Serif / Mono atau file font) dan **Pipet** (ambil warna dari gambar).
+- **Klon**, **Isi dari warna sekitar**, dan **Buramkan / Pikselkan** untuk menutup teks lama; buka **folder** gambar dengan Sebelumnya / Berikutnya dan **Simpan lalu berikutnya**; gaya teks tersimpan.
+- Putar, balik, dan ubah ukuran (kunci rasio). Urungkan dan ulangi untuk 6 langkah terakhir. Gambar yang sisi terpanjangnya lebih dari 3072 px diperkecil saat dibuka.
+- Simpan sebagai file PNG, JPG, atau WebP baru, atau timpa file asal setelah konfirmasi.
+
 ### Buat Proyek
 
-Alat Game > Buat Proyek (di bawah kartu Alat RPGM dan Alat VN) berisi alur kerja bertahap dari alat yang sudah ada. Pilih arsip sumber dan folder kerja sekali, lalu alat terbuka dengan pilihan itu sudah terisi. Tiap langkah membuka alat yang sesuai, tombol Kembali membawa Anda ke proyek, langkah berikutnya punya tombol "Lanjutkan", dan langkah Bongkar, Ekspor, Impor, Kemas, serta konverter ditandai Selesai otomatis jika berjalan tanpa gagal. Tambah catatan, ganti nama, atau hapus proyek (file game tidak pernah dihapus).
+Alat Game > Buat Proyek (di bawah kartu Alat RPGM dan Alat VN) berisi alur kerja bertahap dari alat yang sudah ada. Pilih arsip sumber dan folder kerja sekali, lalu alat terbuka dengan pilihan itu sudah terisi. Tiap langkah membuka alat yang sesuai, tombol Kembali membawa Anda ke proyek, langkah berikutnya punya tombol "Lanjutkan", dan langkah Bongkar, Ekspor, Impor, Kemas, serta konverter ditandai Selesai otomatis jika berjalan tanpa gagal. Tambah catatan, ganti nama, duplikat, atau hapus proyek (file game tidak pernah dihapus); laporan proyek bisa disalin atau disimpan sebagai file teks.
 
 - **Proyek Terjemahan**: Bongkar arsip, Ekspor teks, Terjemahkan, Impor teks, Kemas arsip, dan Uji format.
 - **Proyek Audit / Cek Game**: Bongkar arsip, Pindai aset, Cek terjemahan, Cari duplikat, dan Uji format (hanya membaca).
-- **Proyek Pembersihan**: Bongkar arsip, Pindai aset, Cari duplikat, Rapikan nama file, Kecilkan aset, dan Kemas arsip. Kerjakan pada salinan: Pencari Duplikat menghapus file.
+- **Proyek Pembersihan**: Bongkar arsip, Cadangkan folder, Pindai aset, Cari duplikat, Rapikan nama file, Kecilkan aset, dan Kemas arsip. Kerjakan pada salinan: Pencari Duplikat menghapus file.
+- **Proyek Lokalisasi Aset**: Bongkar arsip, Lihat aset, Edit gambar di Editor Gambar, Konversi aset, Bandingkan dengan asli, dan Kemas arsip. Untuk menerjemahkan teks di dalam gambar game.
 - **Proyek Kompres Game**: Bongkar arsip, Pindai aset, Kompres audio, Kompres gambar, Kompres video, dan Kemas arsip. Aset hasil kompres bisa tidak diterima engine; simpan arsip asli dan uji hasilnya.
 - **Proyek Ekstrak Aset**: Bongkar arsip, Pindai aset, Lihat aset di Media Player, Konversi aset, Cari duplikat, dan Ganti nama massal.
 - **Proyek Buat Patch**: Bongkar arsip asli, Ubah file, Bandingkan dengan asli, Kemas file yang berubah menjadi arsip patch, dan Uji format.
@@ -187,6 +197,7 @@ Alat Pendukung > Media Player berisi Galeri Gambar, Pemutar Audio, dan Pemutar V
 - **Penampil Hex**: isi mentah file berdasarkan offset, dengan pencarian teks dan byte.
 - **Uji Coba Format**: pilih engine (format) lalu unggah arsip aslinya. Aplikasi mengekstrak 1 file acak (batas ukuran bisa kamu atur dalam KB atau MB), mengemasnya menjadi arsip baru, membongkarnya lagi, dan membandingkannya dengan arsip aslimu (isi lewat SHA-256, header, deteksi, ukuran). Kamu bisa menguji 1 file acak (atau file yang kamu sebut namanya), beberapa file, semua file, atau semua file dengan perbandingan byte demi byte ke arsip asli; seed mengulang uji yang sama. Tidak ada folder output; hasilnya tampil sebagai daftar, bisa disalin atau diekspor, dan sampelnya bisa disimpan. Pemeriksaan File punya tombol Uji format ini. Engine yang belum bisa dikemas tidak ditampilkan. Pemeriksaan format dengan contoh buatan yang sama juga berjalan di GitHub Actions.
 - **Pencari File Duplikat**: file identik dalam folder dan subfoldernya.
+- **Bandingkan Folder**: folder asli vs folder diedit (file berubah, baru, dan hilang); file yang berubah dan baru bisa disalin ke folder lain, misalnya untuk membuat patch.
 - **Pemindaian Terjemahan**: kode kontrol, baris panjang, entri kosong dan terjemahan tidak konsisten.
 - **Pencari Kunci**: cari kunci enkripsi dan file yang memakainya.
 
@@ -237,7 +248,7 @@ Untuk kemampuan tiap engine (arsip, kemas, teks skrip), lihat [docs/ENGINES_ID.m
 
 ## Instalasi
 
-Unduh APK terbaru dari halaman [Releases](https://github.com/Fueeru26/FuruArc/releases) lalu pasang. Membutuhkan **Android 7.0 (API 24)** atau lebih baru. Setiap rilis mencantumkan checksum SHA-256 dari APK (dan melampirkan `SHA256SUMS.txt`) agar kamu bisa memverifikasi unduhannya.
+Unduh APK terbaru dari halaman [Releases](https://github.com/Fueeru26/FuruArc/releases) lalu pasang. Membutuhkan **Android 7.0 (API 24)** atau lebih baru.
 
 ## Build dari source
 

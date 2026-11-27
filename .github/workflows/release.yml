@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag such as v1.05 (or v1.05-beta for a pre-release) to build a signed APK
+# Push a tag such as 1.07 (or 1.07-beta for a pre-release) to build a signed APK
 # and publish it as a GitHub release. The in-app updater downloads the first .apk
 # asset of the latest release, so this workflow attaches exactly one APK.
 #
@@ -12,9 +12,14 @@ name: Release
 
 on:
   push:
-    tags: [ 'v*' ]
-  # manual run (API / app): pass the tag as ref (for example v1.06), the tag check below reads GITHUB_REF_NAME
+    tags: [ '[0-9]*' ]
+  # manual run: fill in the "tag" input (for example 1.07). It can be run from the main branch.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag, for example 1.07 (created automatically if it does not exist)'
+        required: true
+        default: '1.07'
 
 permissions:
   contents: write
@@ -27,8 +32,11 @@ jobs:
 
       - name: Check the tag against versionName and CHANGELOG
         id: meta
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           BASE="${TAG#v}"
           BASE="${BASE%%-*}"
           VER="$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)"
@@ -64,7 +72,7 @@ jobs:
             echo "::error::Secret ANDROID_KEYSTORE_BASE64 is not set"
             exit 1
           fi
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > "$RUNNER_TEMP/release.jks"
           echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
 
       - name: Build the signed release APK
@@ -76,7 +84,7 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --stacktrace
 
-      - name: Verify the signature and name the files
+      - name: Verify the signature and name the file
         run: |
           APK="app/build/outputs/apk/release/app-release.apk"
           if [ ! -f "$APK" ]; then
@@ -87,26 +95,17 @@ jobs:
           BT="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs "$APK"
           mkdir -p dist
-          cp "$APK" "dist/FuruArc-v${{ steps.meta.outputs.version }}.apk"
-          (cd dist && sha256sum "FuruArc-v${{ steps.meta.outputs.version }}.apk" > SHA256SUMS.txt)
-          {
-            echo
-            echo "**SHA-256**"
-            echo
-            echo '```'
-            cat dist/SHA256SUMS.txt
-            echo '```'
-          } >> release_notes.md
+          cp "$APK" "dist/FuruArc-${{ steps.meta.outputs.version }}.apk"
 
       - name: Publish the release
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ steps.meta.outputs.tag }}
           name: FuruArc ${{ steps.meta.outputs.version }}
           body_path: release_notes.md
           prerelease: ${{ steps.meta.outputs.prerelease == 'true' }}
-          files: |
-            dist/FuruArc-v${{ steps.meta.outputs.version }}.apk
-            dist/SHA256SUMS.txt
+          make_latest: ${{ steps.meta.outputs.prerelease == 'true' && 'false' || 'true' }}
+          files: dist/FuruArc-${{ steps.meta.outputs.version }}.apk
 
       - name: Remove the keystore
         if: always()

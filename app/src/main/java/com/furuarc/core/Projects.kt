@@ -60,6 +60,10 @@ object Projects {
     const val TRCHECK = 17
     // extra step of the Clean Up project
     const val NAMES = 18
+    // extra step of the Localize Assets project
+    const val IMGEDIT = 19
+    // backup step of the Clean Up project
+    const val BACKUP = 21
     val STEPS = listOf(UNPACK, EXPORT, TRANSLATE, IMPORT, PACK, TEST)
     val COMPRESS_STEPS = listOf(UNPACK, SCAN, AUDIO, IMAGE, VIDEO, PACK)
 
@@ -69,15 +73,18 @@ object Projects {
 
     val AUDIT_STEPS = listOf(UNPACK, SCAN, TRCHECK, DUPES, TEST)
 
-    val CLEAN_STEPS = listOf(UNPACK, SCAN, DUPES, NAMES, CONVERT, PACK)
+    val CLEAN_STEPS = listOf(UNPACK, BACKUP, SCAN, DUPES, NAMES, CONVERT, PACK)
 
+    val LOCALIZE_STEPS = listOf(UNPACK, VIEW, IMGEDIT, CONVERT, COMPARE, PACK)
+
+    const val TYPE_LOCALIZE = 6
     const val TYPE_CLEAN = 5
     const val TYPE_AUDIT = 4
     const val TYPE_PATCH = 3
     const val TYPE_EXTRACT = 2
     const val TYPE_TRANSLATION = 0
     const val TYPE_COMPRESS = 1
-    fun stepsOf(type: Int) = when (type) { TYPE_COMPRESS -> COMPRESS_STEPS; TYPE_EXTRACT -> EXTRACT_STEPS; TYPE_PATCH -> PATCH_STEPS; TYPE_AUDIT -> AUDIT_STEPS; TYPE_CLEAN -> CLEAN_STEPS; else -> STEPS }
+    fun stepsOf(type: Int) = when (type) { TYPE_COMPRESS -> COMPRESS_STEPS; TYPE_EXTRACT -> EXTRACT_STEPS; TYPE_PATCH -> PATCH_STEPS; TYPE_AUDIT -> AUDIT_STEPS; TYPE_CLEAN -> CLEAN_STEPS; TYPE_LOCALIZE -> LOCALIZE_STEPS; else -> STEPS }
 
     val list = mutableStateListOf<Project>()
     /** Project whose step was opened; the tool's Back button returns to the project while this is set. */
@@ -124,6 +131,16 @@ object Projects {
         return p
     }
 
+    /** A new project of the same kind with the same name (+ suffix), note, source archive and work folder, and all steps reset. */
+    fun duplicate(p: Project, suffix: String): Project {
+        load()
+        val c = Project(System.currentTimeMillis().toString(36) + list.size, p.name + suffix, System.currentTimeMillis(), p.note, p.type)
+        c.sourceUri = p.sourceUri; c.sourceName = p.sourceName; c.workUri = p.workUri; c.workName = p.workName
+        list.add(0, c)
+        save()
+        return c
+    }
+
     fun get(id: String?): Project? { load(); return list.firstOrNull { it.id == id } }
 
     fun delete(id: String) {
@@ -148,8 +165,27 @@ object Projects {
     fun autoMark(ok: Boolean) {
         val p = get(active) ?: return
         val st = activeStep
-        if (ok && (st == UNPACK || st == EXPORT || st == IMPORT || st == PACK || st == AUDIO || st == IMAGE || st == VIDEO || st == CONVERT)) setState(p, st, ST_DONE)
+        if (ok && (st == UNPACK || st == EXPORT || st == IMPORT || st == PACK || st == AUDIO || st == IMAGE || st == VIDEO || st == CONVERT || st == COMPARE || st == BACKUP)) setState(p, st, ST_DONE)
         activeStep = 0
+    }
+
+    /**
+     * The folder the project's archive was unpacked into: a sub-folder of the work folder named after the archive
+     * (also with the "_ekstrak" suffix or without the extension); when there is exactly one sub-folder that one; otherwise the work folder.
+     * Returns a document URI inside the work folder tree, which the pack input accepts.
+     */
+    fun unpackedFolder(ctx: Context, p: Project): android.net.Uri? {
+        if (p.workUri.isEmpty()) return null
+        val tree = android.net.Uri.parse(p.workUri)
+        val root = androidx.documentfile.provider.DocumentFile.fromTreeUri(ctx, tree) ?: return null
+        val dirs = root.listFiles().filter { it.isDirectory }
+        val src = p.sourceName
+        val base = src.substringBeforeLast('.')
+        val pick = dirs.firstOrNull { it.name == src }
+            ?: dirs.firstOrNull { it.name == base }
+            ?: dirs.firstOrNull { src.isNotEmpty() && (it.name ?: "").startsWith(src) }
+            ?: if (dirs.size == 1) dirs[0] else null
+        return pick?.uri ?: tree
     }
 
     /** Settings backup: all projects as JSON. */

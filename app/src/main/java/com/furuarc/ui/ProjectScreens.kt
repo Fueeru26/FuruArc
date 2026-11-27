@@ -31,7 +31,7 @@ import com.furuarc.ui.theme.LocalPalette
 
 /** Create Project menu: one card per kind of project (for now only the Translation Project). */
 @Composable
-fun ProjectMenuScreen(onTranslation: () -> Unit, onCompress: () -> Unit, onExtract: () -> Unit, onPatch: () -> Unit, onAudit: () -> Unit, onClean: () -> Unit, onBack: () -> Unit) {
+fun ProjectMenuScreen(onTranslation: () -> Unit, onCompress: () -> Unit, onExtract: () -> Unit, onPatch: () -> Unit, onAudit: () -> Unit, onClean: () -> Unit, onLocalize: () -> Unit, onBack: () -> Unit) {
     val j = projectStr(LocalLang.current)
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(j.menuTitle, onBack)
@@ -42,6 +42,7 @@ fun ProjectMenuScreen(onTranslation: () -> Unit, onCompress: () -> Unit, onExtra
             MenuCard(AppIcons.Edit, j.patTitle, j.patSub, onPatch)
             MenuCard(AppIcons.Checklist, j.audTitle, j.audSub, onAudit)
             MenuCard(AppIcons.Trash, j.clnTitle, j.clnSub, onClean)
+            MenuCard(AppIcons.Brush, j.locTitle, j.locSub, onLocalize)
         }
     }
 }
@@ -55,15 +56,25 @@ fun ProjectListScreen(type: Int, onOpen: (String) -> Unit, onBack: () -> Unit) {
     var creating by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
     val shown = Projects.list.filter { it.type == type }
+    val typeIcon = when (type) { Projects.TYPE_COMPRESS -> AppIcons.Folder; Projects.TYPE_EXTRACT -> AppIcons.Image; Projects.TYPE_PATCH -> AppIcons.Edit; Projects.TYPE_AUDIT -> AppIcons.Checklist; Projects.TYPE_CLEAN -> AppIcons.Trash; Projects.TYPE_LOCALIZE -> AppIcons.Brush; else -> AppIcons.Translate }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(j.typeTitle(type), onBack, fixed = true, trailing = {
             IconButton(onClick = { name = ""; creating = true }) { Icon(Icons.Default.Add, j.newBtn, tint = p.text) }
         })
-        LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
-            if (shown.isEmpty()) item { Hint(j.empty) }
+        if (shown.isEmpty()) {
+            Column(Modifier.weight(1f).fillMaxWidth().padding(bottom = 48.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                EmptyArt(typeIcon, 132.dp)
+                Spacer(Modifier.height(16.dp))
+                Text(j.emptyTitle, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = p.text)
+                Spacer(Modifier.height(6.dp))
+                Text(j.emptySub, fontSize = 14.sp, color = p.muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Spacer(Modifier.height(20.dp))
+                Box(Modifier.width(200.dp)) { PrimaryButton(j.createBtn, true) { name = ""; creating = true } }
+            }
+        } else LazyColumn(state = rememberLazyListState(), modifier = Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(ScreenGap)) {
             items(shown.size) { i ->
                 val pr = shown[i]
-                MenuCard(when (type) { Projects.TYPE_COMPRESS -> AppIcons.Folder; Projects.TYPE_EXTRACT -> AppIcons.Image; Projects.TYPE_PATCH -> AppIcons.Edit; Projects.TYPE_AUDIT -> AppIcons.Checklist; Projects.TYPE_CLEAN -> AppIcons.Trash; else -> AppIcons.Translate }, pr.name, j.progress(pr.doneCount(), pr.steps.size)) { onOpen(pr.id) }
+                MenuCard(typeIcon, pr.name, j.progress(pr.doneCount(), pr.steps.size)) { onOpen(pr.id) }
             }
         }
     }
@@ -79,7 +90,7 @@ fun ProjectListScreen(type: Int, onOpen: (String) -> Unit, onBack: () -> Unit) {
 
 /** One project: the steps of the workflow with their state, and a note. */
 @Composable
-fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onBack: () -> Unit) {
+fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onDuplicate: (String) -> Unit = {}, onBack: () -> Unit) {
     val p = LocalPalette.current
     val j = projectStr(LocalLang.current)
     val pr = Projects.get(id)
@@ -108,6 +119,7 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onBack: () -> Unit
     val nextStep = pr.steps.firstOrNull { pr.state(it) != Projects.ST_DONE }
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp)) {
         ScreenHeader(pr.name, onBack, fixed = true, trailing = {
+            IconButton(onClick = { val c = Projects.duplicate(pr, j.copySuffix); onDuplicate(c.id) }) { Icon(AppIcons.ContentCopy, j.duplicate, tint = p.text) }
             IconButton(onClick = { newName = pr.name; renaming = true }) { Icon(AppIcons.Edit, j.rename, tint = p.text) }
             IconButton(onClick = { askDelete = true }) { Icon(AppIcons.Trash, j.delete, tint = p.text) }
         })
@@ -149,6 +161,7 @@ fun ProjectScreen(id: String, onStep: (Project, Int) -> Unit, onBack: () -> Unit
                     }
                 }
             }
+            item { ExportBar(pr.name) { j.reportText(pr) } }
             item {
                 LabelSection(j.noteTitle) {
                     AppTextField(pr.note, { pr.note = it; Projects.save() }, j.noteLabel, multiline = true)

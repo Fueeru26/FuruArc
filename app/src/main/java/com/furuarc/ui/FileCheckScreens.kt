@@ -119,9 +119,10 @@ fun Hint(text: String) {
 // ======================= File & Folder Inspector menu =======================
 
 @Composable
-fun FileCheckMenuScreen(onFile: () -> Unit, onFolder: () -> Unit, onCompare: () -> Unit, onHex: () -> Unit, onFormatTest: () -> Unit, onDup: () -> Unit, onTr: () -> Unit, onBack: () -> Unit) {
+fun FileCheckMenuScreen(onFile: () -> Unit, onFolder: () -> Unit, onCompare: () -> Unit, onHex: () -> Unit, onFormatTest: () -> Unit, onDup: () -> Unit, onFolderDiff: () -> Unit = {}, onTr: () -> Unit, onBack: () -> Unit) {
     val c = checkStr(LocalLang.current)
     val ft = com.furuarc.i18n.fileToolsStr(LocalLang.current)
+    val fd = com.furuarc.i18n.folderDiffStr(LocalLang.current)
     MenuListScreen(
         c.menuTitle,
         listOf(
@@ -131,6 +132,7 @@ fun FileCheckMenuScreen(onFile: () -> Unit, onFolder: () -> Unit, onCompare: () 
             MenuSpec(AppIcons.MenuBook, ft.hexTitle, ft.hexSub, onHex),
             MenuSpec(AppIcons.Checklist, c.ftTitle, c.ftSub, onFormatTest),
             MenuSpec(AppIcons.ContentCopy, ft.dupTitle, ft.dupSub, onDup),
+            MenuSpec(AppIcons.Folder, fd.title, fd.sub, onFolderDiff),
             MenuSpec(AppIcons.Translate, c.trScanTitle, c.trScanSub, onTr),
         ),
         onBack,

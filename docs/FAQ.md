@@ -60,7 +60,7 @@ Open **Format Test** in the File & Folder Inspector, choose the engine, upload a
 Turn on **Run in background** in Settings. On Android 13+ the app asks for the notification permission when you enable it.
 
 **How do updates work?**
-The app checks the latest GitHub release. Nothing is downloaded until you tap "Download latest version", and Android always asks you to confirm the installation. Each release lists a SHA-256 checksum of the APK.
+The app checks the latest GitHub release. Nothing is downloaded until you tap "Download latest version", and Android always asks you to confirm the installation.
 
 **The installer says the app was not installed, or the update will not install.**
 Allow installing from this source when Android asks. If you installed a debug build or a build signed with another key, Android refuses an update signed with the release key: uninstall that build first (export your settings and lists in Media Settings if you want to keep them).
