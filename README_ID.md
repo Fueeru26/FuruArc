@@ -153,12 +153,14 @@ Konversi dan kompres audio, gambar dan video game, satu file atau satu folder pe
 
 ### Editor Gambar
 
-Alat Pendukung > Editor Gambar (di antara Editor File Teks dan Media Player) menyunting satu gambar sekali waktu, misalnya untuk menerjemahkan teks di dalam gambar game.
+Alat Pendukung > Editor Gambar (di antara Editor File Teks dan Media Player) adalah editor berlapis untuk ponsel portrait.
 
-- **Geser** (seret, cubit untuk zoom, Pas layar), **Pilih** (potong, isi warna, hapus jadi transparan), **Kuas** (dengan penghapus), **Teks** (di tengah titik yang diketuk, beberapa baris, garis tepi, tebal, Sans / Serif / Mono atau file font) dan **Pipet** (ambil warna dari gambar).
-- **Klon**, **Isi dari warna sekitar**, dan **Buramkan / Pikselkan** untuk menutup teks lama; buka **folder** gambar dengan Sebelumnya / Berikutnya dan **Simpan lalu berikutnya**; gaya teks tersimpan.
-- Putar, balik, dan ubah ukuran (kunci rasio). Urungkan dan ulangi untuk 6 langkah terakhir. Gambar yang sisi terpanjangnya lebih dari 3072 px diperkecil saat dibuka.
-- Simpan sebagai file PNG, JPG, atau WebP baru, atau timpa file asal setelah konfirmasi.
+- **Beranda**: Proyek Baru (ukuran preset atau bebas, warna latar atau transparan), Buka Gambar, dan Proyek Terakhir dengan thumbnail (ganti nama, duplikat, hapus). Proyek tersimpan otomatis beserta lapisannya.
+- **Kanvas**: zoom dan geser dengan dua jari, latar kotak-kotak untuk transparansi, grid rule of thirds, dan garis snap. Satu jari menjalankan tool aktif.
+- **Lapisan**: lapisan gambar, lukis, teks, bentuk, dan warna dengan tampil/sembunyi, kunci, ganti nama, opasitas, mode campur, duplikat, urutan, gabung ke bawah, dan ratakan.
+- **Pilih** (pindah, skala, dan rotasi dengan titik sudut, rata), **Gambar** (kuas, pensil, marker, stabilo, kuas lembut, kuas keras, airbrush, penghapus, pipet), **Teks** (font termasuk dari file, garis tepi, bayangan, latar), **Bentuk** (persegi, persegi tumpul, elips, garis, panah, poligon), **Crop** (rasio preset), dan Lainnya: putar, balik, luruskan, skala atau ubah ukuran kanvas, latar, riwayat.
+- Urungkan dan ulangi dengan daftar riwayat (dibatasi memori). Ekspor ke PNG, JPG, atau WebP dengan kualitas, lebar hasil, dan latar transparan.
+- Direncanakan di tahap berikutnya: kamera dan kolase, adjustment, filter, seleksi, mask, curves, dan ekspor proyek.
 
 ### Buat Proyek
 

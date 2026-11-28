@@ -154,12 +154,14 @@ Convert and compress game audio, images and video, one file or a whole folder.
 
 ### Image Editor
 
-Support Tools > Image Editor (between the Text Editor and the Media Player) edits one picture at a time, for example to translate text inside game images.
+Support Tools > Image Editor (between the Text Editor and the Media Player) is a layered editor for portrait phones.
 
-- **Move** (drag, pinch to zoom, Fit to screen), **Select** (crop, fill with a color, erase to transparent), **Brush** (with eraser), **Text** (centered on the tapped point, multi-line, outline, bold, Sans / Serif / Mono or a font file) and **Picker** (take a color from the image).
-- **Clone**, **Fill from the surrounding colors** and **Blur / Pixelate** to cover old text; open an image **folder** with Previous / Next and **Save and next**; saved text styles.
-- Rotate, flip and resize (aspect-ratio lock). Undo and redo for the last 6 steps. Images larger than 3072 px on the longest side are reduced when opened.
-- Save as a new PNG, JPG or WebP file, or overwrite the original after a confirmation.
+- **Home**: New Project (size presets or custom, background colour or transparent), Open Image, and Recent Projects with thumbnails (rename, duplicate, delete). Projects are saved automatically with their layers.
+- **Canvas**: two-finger zoom and pan, checkerboard for transparency, rule-of-thirds grid and snap guides. One finger works the active tool.
+- **Layers**: image, drawing, text, shape and fill layers with visibility, lock, rename, opacity, blend modes, duplicate, reorder, merge down and flatten.
+- **Select** (move, scale and rotate with the corner handle, align), **Draw** (brush, pencil, marker, highlighter, soft, hard, airbrush, eraser, eyedropper), **Text** (fonts incl. from a file, outline, shadow, background), **Shapes** (rectangle, rounded, ellipse, line, arrow, polygon), **Crop** (ratio presets), and More: rotate, flip, straighten, scale or resize the canvas, background, history.
+- Undo and redo with a history list (limited by memory). Export to PNG, JPG or WebP with quality, output width and transparent background.
+- Planned for later: camera and collage, adjustments, filters, selections, masks, curves and project export.
 
 ### Create Project
 

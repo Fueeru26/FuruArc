@@ -252,7 +252,7 @@ fun App(vm: MainViewModel) {
             Screen.MEDIA -> screen = Screen.SUPPORT
             Screen.MPLAYER -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT
             Screen.MPLAYER_IMAGE, Screen.MPLAYER_AUDIO, Screen.MPLAYER_VIDEO, Screen.MPLAYER_SETTINGS -> screen = Screen.MPLAYER
-            Screen.IMAGEEDIT -> { if (com.furuarc.core.ImageEditor.tryExit()) screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT }
+            Screen.IMAGEEDIT -> { if (com.furuarc.ui.ImgSession.tryExit(Engine.app)) screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT }
             Screen.TEXTEDIT -> screen = if (com.furuarc.core.Projects.active != null) Screen.PROJECT else Screen.SUPPORT
             Screen.TEXTEDIT_PLAIN, Screen.TEXTEDIT_STRUCT, Screen.TEXTEDIT_BULK -> screen = Screen.TEXTEDIT
             Screen.MEDIA_AUDIO, Screen.MEDIA_IMAGE, Screen.MEDIA_VIDEO, Screen.MEDIA_MIXED, Screen.MEDIA_TEXT -> { if (com.furuarc.core.Projects.active != null) backToProject() else { MediaJobs.clear(); screen = Screen.MEDIA } }
@@ -765,8 +765,7 @@ fun App(vm: MainViewModel) {
                             com.furuarc.core.Projects.SCAN -> screen = Screen.INSPECT_FOLDER
                             com.furuarc.core.Projects.IMGEDIT -> {
                                 // the images of the work folder are listed so the editor can go through them
-                                try { if (!mv && work != null && com.furuarc.core.ImageEditor.bitmap == null) com.furuarc.core.ImageEditor.loadFolder(Engine.app, work, true) } catch (e: Exception) { }
-                                screen = Screen.IMAGEEDIT
+                                                                screen = Screen.IMAGEEDIT
                             }
                             com.furuarc.core.Projects.BACKUP -> {
                                 // backup of the work folder: Compare Folders with the work folder as the folder to copy
