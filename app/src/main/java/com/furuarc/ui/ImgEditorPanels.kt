@@ -169,7 +169,7 @@ internal fun CropPanel(st: EdState) {
     val names = listOf(e.cropFree, e.cropOriginal, "1:1", "4:3", "3:2", "16:9", "9:16")
     IPanel {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            names.forEachIndexed { i, n -> IChip(n, st.cropRatio == i) { st.setCropRatio(i) } }
+            names.forEachIndexed { i, n -> IChip(n, st.cropRatio == i) { st.pickRatio(i) } }
         }
         Text("${(st.cR - st.cL).toInt()} × ${(st.cB - st.cT).toInt()} px", color = LocalPalette.current.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -365,7 +365,7 @@ internal class EdState(val doc: Doc, val ctx: Context, val e: ImageEditStr, val 
         }
     }
 
-    fun setCropRatio(i: Int) {
+    fun pickRatio(i: Int) {
         cropRatio = i
         val r = ratioValue()
         if (r <= 0f) return
